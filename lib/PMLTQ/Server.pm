@@ -5,6 +5,8 @@ use Mango;
 use Mango::BSON ':bson';
 use PMLTQ::Server::Model;
 
+use List::Util qw(min);
+
 has db => sub { state $mango = Mango->new(shift->config->{mongo_uri}) };
 
 has mandel => sub { state $mandel = PMLTQ::Server::Model->new(storage => shift->db) };
