@@ -9,7 +9,12 @@ use List::Util qw(min);
 
 has db => sub { state $mango = Mango->new(shift->config->{mongo_uri}) };
 
-has mandel => sub { state $mandel = PMLTQ::Server::Model->new(storage => shift->db) };
+has mandel => sub {
+  state $mandel = PMLTQ::Server::Model->new(
+    storage => shift->db,
+    #model_class => 'PMLTQ::Server::Model',
+    namespaces => [qw/PMLTQ::Server::Model/])
+};
 
 # This method will run once at server start
 sub startup {
@@ -21,6 +26,7 @@ sub startup {
 
 	$self->helper(mango => sub { shift->app->db });
   $self->helper(mandel => sub { shift->app->mandel });
+  $self->app->mandel->initialize;
 
   # Show log in STDERR
   $self->log->handle(\*STDERR);

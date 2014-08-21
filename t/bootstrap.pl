@@ -1,26 +1,37 @@
 # bootstraping tests
+use Mojo::Base -strict;
 
 use Test::More;
 use Test::PostgreSQL;
 use Test::Mojo;
 
+use File::Basename 'dirname';
 use File::Spec;
-use FindBin;
+use File::Which qw( which );
+
+use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
 my $pgsql = Test::PostgreSQL->new()
     or plan skip_all => $Test::PostgreSQL::errstr;
+
+my $pg_restore = which('pg_restore');
+die "Cannot find pg_restore in your path" unless $pg_restore;
 
 my $test_tb;
 my $app;
 
 sub test_app {
   return $app if $app;
-
   $app = Test::Mojo->new('PMLTQ::Server');
+  return $app;
+}
 
-  my $treebanks = $app->app->mango->db->collection('treebanks');
-  $test_tb = $treebank_rs->create({
-    name => 'pdt20_sample',
+sub test_treebank {
+  return $test_tb if $test_tb;
+
+  my $treebanks = test_app()->app->mandel->collection('treebank');
+  $test_tb = $treebanks->create({
+    name => 'pdt20_mini',
     title => 'PDT 2.0 Sample',
     driver => 'Pg',
     host => 'localhost',
@@ -30,26 +41,20 @@ sub test_app {
     password => '',
     public => 1,
     data_sources => [{
-      schema => 'valency_lexicon',
-      path => File::Spec->cardir($FindBin::RealBin, 'test_files', 'pdt20_sample', 'pml_valex')
-    }, {
       schema => 'adata',
-      path => File::Spec->cardir($FindBin::RealBin, 'test_files', 'pdt20_sample', 'sample')
+      path => File::Spec->catdir($FindBin::RealBin, 'test_files', 'pdt20_mini', 'data')
     }, {
       schema => 'tdata',
-      path => File::Spec->cardir($FindBin::RealBin, 'test_files', 'pdt20_sample', 'sample')
+      path => File::Spec->catdir($FindBin::RealBin, 'test_files', 'pdt20_mini', 'data')
     }]
   });
 
-  return $app;
-}
+  my $filename = File::Spec->catdir($FindBin::RealBin, 'test_files', 'pdt20_mini', 'pdt20_mini.dump');
 
-sub test_treebank { $test_tb }
+  system($pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pgsql->port, '-U', 'postgres', '-no-acl', '--no-owner', '-w', $filename) == 0
+    or die "Restoring test database failed: $?";
 
-sub login {
-  ok test_app->app->authenticate('', '', { persistent_token => 'admin' }), 'Login successful';
-  ok test_app->app->is_user_authenticated, 'User exists';
-  #ok test_app->app->current_user, 'User exists';
+  return $test_tb
 }
 
 1;

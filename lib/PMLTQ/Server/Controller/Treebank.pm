@@ -4,8 +4,6 @@ package PMLTQ::Server::Controller::Treebank;
 
 use Mojo::Base 'Mojolicious::Controller';
 
-use PMLTQ::Server::Model::Treebank;
-
 =head1 METHODS
 
 =head2 initialize
@@ -17,8 +15,8 @@ Bridge for other routes. Saves current treebank to stash under 'tb' key.
 sub initialize {
   my $c = shift;
 
-  my $tb_name = $self->param('treebank');
-  $c->mango->db->collection('treebanks')->find_one({name => $tb_name} => sub {
+  my $tb_name = $c->param('treebank');
+  $c->mandel->collection('treebank')->search({name => $tb_name})->single(sub {
     my ($collection, $err, $tb) = @_;
 
     unless ($tb) {
@@ -37,7 +35,7 @@ sub initialize {
       return;
     }
 
-    $c->stash(tb => PMLTQ::Server::Model::Treebank->new($tb));
+    $c->stash(tb => $tb);
     $c->continue;
   });
 
