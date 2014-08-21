@@ -3,9 +3,18 @@ use Mojo::Base 'Mojolicious';
 
 use Mango;
 use Mango::BSON ':bson';
+use PMLTQ::Server::Model;
 
+use List::Util qw(min);
 
-has db => sub { state $mango = Mango->new(shift->config->{mongo_uri}) };
+has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
+
+has mandel => sub {
+  state $mandel = PMLTQ::Server::Model->new(
+    storage => shift->db,
+    #model_class => 'PMLTQ::Server::Model',
+    namespaces => [qw/PMLTQ::Server::Model/])
+};
 
 # This method will run once at server start
 sub startup {
@@ -14,7 +23,7 @@ sub startup {
   $self->plugin('Config' => {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
-  $self->plugin("bootstrap3");
+$self->plugin("bootstrap3");
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin('authentication' => {
           'autoload_user' => 0,
@@ -54,9 +63,16 @@ sub startup {
           'user_privs' => sub { print STDERR 'TODO: user_privs\n'; },
           'user_role'  => sub { print STDERR 'TODO: user_role\n'; },
          });
-  setup_helpers($self);
   
-  
+  $self->helper(mango => sub { shift->app->db });
+  $self->helper(mandel => sub { shift->app->mandel });
+  $self->app->mandel->initialize;
+
+  # Show log in STDERR
+  $self->log->handle(\*STDERR);
+
+  # Setup all helpers
+  $self->setup_helpers();
 
   # Router
   my $r = $self->routes;
@@ -87,9 +103,15 @@ sub startup {
   $r->post('/admin/treebank/update') ->over(authenticated => 1, has_priv => 'admin')->to('Admin#updatetreebank'); 
   $r->get('/admin/treebank/update')  ->over(authenticated => 1, has_priv => 'admin')->to('Admin#updatetreebank_form'); 
   
-  
-  
-  
+  my $treebank = $r->bridge('/:treebank')->
+    name('treebank')->to(controller => 'Treebank', action => 'initialize');
+  $treebank->get ('metadata')->to('#metadata');
+  $treebank->post('suggest')->to('#suggest');
+  $treebank->get ('history')->to(controller => 'History', action => 'list');
+  $treebank->post('query')->to(controller => 'Query', action => 'query');
+  $treebank->post('query/svg', 'query_svg')->to(controller => 'Query', action => 'query_svg');
+  $treebank->post('svg')->to(controller => 'Query', action => 'result_svg');
+
   $r->get('/mongotest' => sub {
     my $c = shift;
 
@@ -178,7 +200,31 @@ sub setup_helpers {
                                      return 1;
                                    });
   
-  
+  $self->helper(status_error => \&_status_error);
+}
+
+sub _status_error {
+  my ($self, @errors) = @_;
+
+  die __PACKAGE__, 'No errors to render' unless @errors;
+
+  if (@errors == 1) {
+    my $error = shift @errors;
+    $self->res->code($error->{code});
+    $self->render(json => { error => $error->{message} });
+  } else {
+    # find lowest code and display only those errors
+    my $code = min map { $_->{code} } @errors;
+
+    @errors = grep { $_->{code} == $code } @errors;
+    return $self->status_error(@errors) if @errors == 1;
+
+    $self->res->code($code);
+    $self->render(json => {
+      message => 'The request cannot be fulfilled because of multiple errors',
+      errors => [ map { $_->{message} } @errors ]
+    });
+  }
 }
 
 1;
