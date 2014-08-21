@@ -7,7 +7,7 @@ use PMLTQ::Server::Model;
 
 use List::Util qw(min);
 
-has db => sub { state $mango = Mango->new(shift->config->{mongo_uri}) };
+has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
 
 has mandel => sub {
   state $mandel = PMLTQ::Server::Model->new(

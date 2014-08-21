@@ -102,6 +102,17 @@ sub query {
   my $self = shift;
 
   my $input = $self->req->json;
+
+  use Data::Dumper;
+  say Dumper($input);
+  unless ($input->{query}) {
+    $self->status_error({
+      code => 400,
+      message => 'Query cannot be empty!'
+    });
+    return;
+  }
+
   # TODO: input validation
   #return unless $self->validate_input($query_payload, $input);
 
@@ -160,8 +171,8 @@ sub query {
     })
   }
 
-  # save history
-  $tb->record_history($input->{query}, $self->current_user);
+  # TODO: save history
+  # $tb->record_history($input->{query}, $self->current_user);
 }
 
 =head2 query_svg

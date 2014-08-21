@@ -5,11 +5,15 @@ use Test::More;
 use Test::PostgreSQL;
 use Test::Mojo;
 
+use Treex::PML;
+
 use File::Basename 'dirname';
 use File::Spec;
 use File::Which qw( which );
 
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
+
+my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 
 my $pgsql = Test::PostgreSQL->new()
     or plan skip_all => $Test::PostgreSQL::errstr;
@@ -17,13 +21,12 @@ my $pgsql = Test::PostgreSQL->new()
 my $pg_restore = which('pg_restore');
 die "Cannot find pg_restore in your path" unless $pg_restore;
 
-my $test_tb;
-my $app;
+Treex::PML::AddResourcePathAsFirst(File::Spec->catdir($test_files, 'resources'));
+
+my ($app, $test_tb);
 
 sub test_app {
-  return $app if $app;
-  $app = Test::Mojo->new('PMLTQ::Server');
-  return $app;
+  return $app ||= Test::Mojo->new('PMLTQ::Server');
 }
 
 sub test_treebank {
@@ -42,17 +45,19 @@ sub test_treebank {
     public => 1,
     data_sources => [{
       schema => 'adata',
-      path => File::Spec->catdir($FindBin::RealBin, 'test_files', 'pdt20_mini', 'data')
+      path => File::Spec->catdir($test_files, 'pdt20_mini', 'data')
     }, {
       schema => 'tdata',
-      path => File::Spec->catdir($FindBin::RealBin, 'test_files', 'pdt20_mini', 'data')
+      path => File::Spec->catdir($test_files, 'pdt20_mini', 'data')
     }]
   });
 
-  my $filename = File::Spec->catdir($FindBin::RealBin, 'test_files', 'pdt20_mini', 'pdt20_mini.dump');
+  $test_tb->save();
+  my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
 
-  system($pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pgsql->port, '-U', 'postgres', '-no-acl', '--no-owner', '-w', $filename) == 0
-    or die "Restoring test database failed: $?";
+  my @cmd = ($pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pgsql->port, '-U', 'postgres', '--no-acl', '--no-owner', '-w', $filename);
+  say STDERR join(' ', @cmd);
+  system(@cmd) == 0 or die "Restoring test database failed: $?";
 
   return $test_tb
 }

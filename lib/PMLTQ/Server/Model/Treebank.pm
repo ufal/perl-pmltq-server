@@ -88,7 +88,7 @@ Will do a actual search on the treebank using the L<PMLTQ::SQLEvaluator>.
 
 sub search {
   my $self = shift;
-  my %opts = @_;
+  my %opts = (limit => 100, @_);
 
   my ($evaluator, $sth);
   eval {
