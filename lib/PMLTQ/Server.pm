@@ -23,7 +23,7 @@ sub startup {
   $self->plugin('Config' => {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
-$self->plugin("bootstrap3");
+  $self->plugin("bootstrap3");
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin('authentication' => {
           'autoload_user' => 0,
@@ -64,10 +64,7 @@ $self->plugin("bootstrap3");
           'user_role'  => sub { print STDERR 'TODO: user_role\n'; },
          });
   
-  $self->helper(mango => sub { shift->app->db });
-  $self->helper(mandel => sub { shift->app->mandel });
-  $self->app->mandel->initialize;
-
+  
   # Show log in STDERR
   $self->log->handle(\*STDERR);
 
@@ -142,7 +139,10 @@ $self->plugin("bootstrap3");
 
 sub setup_helpers {
   my $self = shift;     
-  $self->helper(mango       => sub { shift->app->db });
+  $self->helper(mango => sub { shift->app->db });
+  $self->helper(mandel => sub { shift->app->mandel });
+  $self->app->mandel->initialize;
+  
   # COLLECTIONS
   $self->helper(users       => sub { shift->app->mango->db->collection('users') });
   $self->helper(treebanks   => sub { shift->mango->db->collection('treebanks') });
