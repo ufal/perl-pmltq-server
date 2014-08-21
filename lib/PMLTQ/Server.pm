@@ -32,23 +32,13 @@ sub startup {
           'load_user' => sub { 
                  my ($app, $uid) = @_; 
                  print STDERR "load_user \t$uid \n",$self->user($uid),"\n";
-                 
                  return $self->user($uid);
-                 
-                 #return {name=>"pmltq",pass=>"q"} if $uid eq 'pmltq'; 
-                 #return {name=>"pmltq2",pass=>"q"} if $uid eq 'pmltq2'; 
                },
           'validate_user' =>  sub {
                  my ($app, $username, $password, $extradata) = @_;
-                 #my $uid = 'userid';
-                 #return $uid if ($username eq 'pmltq' and $password eq 'q');
-                 print STDERR "validate_user\t$username\t$password \n";
-                 
                  my $user = $self->user($username);
                  return undef unless $user;
-                 print STDERR $user->{'username'} ," ",$user->{'pass'} eq $password," ",$user->{'active'};
                  return $username if $user->{'pass'} eq $password && $user->{'active'};
-                 
                },
           'current_user_fn' => 'current_user', # compatibility with old code
          });

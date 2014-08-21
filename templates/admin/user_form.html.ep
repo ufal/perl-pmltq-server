@@ -27,7 +27,7 @@ nefungují treebanky !!!<br>
   %}
   %for my $t (@treebanks) {
       <p>
-        <input type="checkbox" name="$t" <%=$A eq 'U' && $user->{'treebanks'}->{$t} ? "checked" : "" %> >
+        <input type="checkbox" name="<%=$t%>" <%=$A eq 'U' && $user->{'treebanks'}->{$t} ? "checked" : "" %> >
       %= $t
       </p>
   % }  

@@ -13,23 +13,16 @@ sub welcome {
 }
 sub adduser {
   my $self = shift;
-  #$self->users->insert({name=>$self->param('name'),pass=>$self->param('pass'),email=>$self->param('email'),treebanks=>[]});
-  
-  print STDERR "NAME: ",$self->param('name'),"\n";
   my $username = $self->param('username');
   $username= $self->generate_username($self->param('name')) unless $username;
   my $pass = $self->param('pass');
   unless($pass){
     $pass = generate_pass(10);
-    
     # todo send generated pass via email
-    # 
-    }
-  print STDERR" TODO generate username if does not exists !!!\n";
-  print STDERR" TODO send pass via email if does not exists !!!\n";
-  
-  
-  
+  }
+  print STDERR " TODO send pass via email if does not exists !!!\n";
+  print STDERR join(" ",map {$_->{'name'}}  @{$self->treebanks->find->all}),"\n";
+  print STDERR join(" ",$self->param),"\n";
   
   my %treebanks = map {$_->{'name'}=>1} grep {$self->param($_->{'name'})}  @{$self->treebanks->find->all};
   print STDERR "TREEBANKS: ",keys(%treebanks),"\n";
@@ -75,6 +68,8 @@ sub adduser_form{
   $self->render('admin/user_form');
 }
 sub updateuser_form{
+  my $self = shift;
+  $self->render('admin/user_form');
 }
 
 
