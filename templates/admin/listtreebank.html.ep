@@ -1,0 +1,41 @@
+% layout 'default';
+% title 'PMLTQ Server - List of users';
+
+
+
+<h1>List of treebanks</h1>
+<%= link_to '/admin/treebank/add'=> begin %> Add treebank <% end %>
+<table>
+%for my $k (qw/name visible public anonaccess/) {
+    <td><b>
+      %= $k
+    </b></td>
+% }
+% for my $u (@{app->treebanks->find->all}){
+  
+  <tr>
+  %for my $k (qw/name/) {
+    <td>
+      %= $u->{$k}
+      
+    </td>
+  % }
+  %for my $k (qw/visible public anonaccess/) {
+    <td>
+      % if($u->{$k}){
+      %= $u->{$k}
+      % }
+    </td>
+  % }  
+  %for my $a (qw/delete update/) {
+    <td>
+      %= link_to $a => url_for("/admin/treebank/$a")->query(user=>$u->{'name'})->to_abs 
+    </td>
+  % }
+  
+  </tr>
+% }
+
+</table>
+
+

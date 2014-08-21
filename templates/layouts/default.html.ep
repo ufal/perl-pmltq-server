@@ -1,5 +1,24 @@
 <!DOCTYPE html>
 <html>
   <head><title><%= title %></title></head>
-  <body><%= content %></body>
+  <body>
+  %if (is_user_authenticated){
+<div style="float:right">
+<b>
+%= link_to current_user->{'name'} => '/profile' 
+</b>
+<br>
+% if(has_priv('admin')){
+  <a href="/admin">ADMINISTRATION</a> 
+  <br />
+%}  
+  <a style="" href="/logout">logout</a>
+</div>
+%}
+<a style="float:left;" href="/">HOME</a>
+
+<h1 style="text-align:center">PMLTQ Server</h1>
+<hr>
+  <%= content %>
+  </body>
 </html>

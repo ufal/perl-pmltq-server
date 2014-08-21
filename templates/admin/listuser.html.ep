@@ -1,0 +1,42 @@
+% layout 'default';
+% title 'PMLTQ Server - List of users';
+
+% my @treebanks = map {$_->{'name'}} @{app->treebanks->find->all};
+
+<h1>List of users</h1>
+<%= link_to '/admin/user/add'=> begin %> Add user <% end %>
+
+<table>
+%for my $k (qw/username name email pass/,@treebanks) {
+    <td><b>
+      %= $k
+    </b></td>
+% }
+% for my $u (@{app->users->find->all}){
+  
+  <tr>
+  %for my $k (qw/username name email pass/) {
+    <td>
+      %= $u->{$k}
+    </td>
+  % }
+  %for my $t (@treebanks) {
+    <td>
+      %if($u->{'treebanks'}->{$t}) {
+        X
+      %}
+    </td>
+  % }
+  %for my $a (qw/delete update/) {
+    <td>
+      %= link_to $a => url_for("/admin/user/$a")->query(username=>$u->{'username'})->to_abs 
+    </td>
+  % }
+  
+  </tr>
+% }
+
+</table>
+
+
+

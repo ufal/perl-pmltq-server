@@ -1,0 +1,40 @@
+% layout 'default';
+% title 'PMLTQ Server - User';
+
+
+% print STDERR "ADD/UPDATE: $action";
+% my @treebanks = map {$_->{'name'}} @{app->treebanks->find->all};
+
+% my $A = ($action eq 'updateuser_form') ? 'U' : 'A';
+% my $user=undef;
+% if($A eq 'U'){
+%   $user=app->user(param 'username');
+%   $A = 'A' unless $user;
+%}
+<h1><%= $A eq 'A' ? ('Add new user') : ("Update ".$user->{'name'}) %></h1>
+nefungují treebanky !!!<br>
+%= form_for "/admin/user/".(($A eq 'A')?'add':'update') => (method => 'POST') => begin
+  % #            NAME         LABEL           TYPE                        VALUE                              ADITIONAL SET
+  %for my $f (( ["name",      "Name",         ($A eq 'A')?"text":"hidden",($A eq 'A')?"":$user->{'name'},    "required"],
+  %             ["username",  "Username",     ($A eq 'A')?"text":"hidden",($A eq 'A')?"":$user->{'username'},""],
+  %             ["email",     "Email",        "email",                    ($A eq 'A')?"":$user->{'email'},   "required"],
+  %             ["pass",      "Password",     "password",                 "",                                ""],
+  %             ["active",    "Active",       "checkbox",                 "1",                               ($A eq 'A' || $user->{'active'}    ?"checked":"")],
+  %             ["selfupdate","Selfupdatable","checkbox",                 "1",                               ($A eq 'A' || $user->{'selfupdate'}?"checked":"")],
+  %             ["admin",     "Admin",        "checkbox",                 "1",                               ($A eq 'A')?"" :($user->{'admin'}  ?"checked":"")]
+  %             )){
+    <%=$f->[1]%> <input name="<%=$f->[0]%>" value="<%=$f->[3]%>" type="<%=$f->[2]%>" <%=$f->[4]%>/>
+  %}
+  %for my $t (@treebanks) {
+      <p>
+        <input type="checkbox" name="$t" <%=$A eq 'U' && $user->{'treebanks'}->{$t} ? "checked" : "" %> >
+      %= $t
+      </p>
+  % }  
+
+  
+TODO: tags
+  
+  %= submit_button 'Add'
+  
+% end

@@ -1,21 +1,91 @@
 % layout 'default';
 % title 'PMLTQ Server Login';
 
-<h1>PMLTQ Server</h1>
+
+% if(is_user_authenticated){
+
+%} else {
+
 <div id="login-content">
-	<form method="post">
-		<p>
-			<label>Username</label>
-			<input value="" name="username" class="text-input" type="text" />
-		</p>
-		<br style="clear: both;" />
-		<p>
-			<label>Password</label>
-			<input name="password" class="text-input" type="password" />
-		</p>
-		<br style="clear: both;" />
-		<p>
-			<input class="button" type="submit" value="Sign In" />
-		</p>
-	</form>
+
+%= form_for '/' => (method => 'POST') => begin
+  %= label_for username => 'Username'
+  %= text_field 'username'
+  %= label_for pass => 'Password'
+  %= password_field 'pass'
+  %= submit_button 'Sign In'
+  
+% end
+<br>
+% if (my $msg = flash 'err') {
+  <b style="color:red;"><%= $msg %></b><br>
+% }
 </div>
+%}
+
+<h1> Temporary content </h1>
+
+
+<h2>Users</h2>
+<table>
+%for my $k (qw/username name email pass/) {
+    <td><b>
+      %= $k
+    </b></td>
+% }
+% for my $u (@{app->users->find->all}){
+  
+  <tr>
+  %for my $k (qw/username name email pass/) {
+    <td>
+      %= $u->{$k}
+    </td>
+  % }
+  %for my $a (qw/delete update/) {
+    <td>
+      %= link_to $a => url_for("/admin/user/$a")->query(username=>$u->{'username'})->to_abs 
+    </td>
+  % }
+  
+  </tr>
+% }
+
+</table>
+
+<h2>Treebanks</h2>
+<table>
+%for my $k (qw/name visible public anonaccess/) {
+    <td><b>
+      %= $k
+    </b></td>
+% }
+% for my $u (@{app->treebanks->find->all}){
+  
+  <tr>
+  %for my $k (qw/name/) {
+    <td>
+      %= $u->{$k}
+      
+    </td>
+  % }
+  %for my $k (qw/visible public anonaccess/) {
+    <td>
+      % if($u->{$k}){
+      %= $u->{$k}
+      % }
+    </td>
+  % }  
+  %for my $a (qw/delete update/) {
+    <td>
+      %= link_to $a => url_for("/admin/treebank/$a")->query(name=>$u->{'name'})->to_abs 
+    </td>
+  % }
+  
+  </tr>
+% }
+
+</table>
+
+<h2>Privs</h2>
+TODO
+
