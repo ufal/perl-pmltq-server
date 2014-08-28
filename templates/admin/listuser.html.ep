@@ -6,36 +6,41 @@
 <h1>List of users</h1>
 <%= link_to '/admin/user/add'=> begin %> Add user <% end %>
 
-<table>
+<table class="table">
+  <thead>
+    <tr>
 %for my $k (qw/username name email pass/,@treebanks) {
-    <td><b>
-      %= $k
-    </b></td>
+      <td>
+        %= $k
+      </td>
 % }
+    </tr>
+  </thead>
+  <tbody>
 % for my $u (@{app->users->find->all}){
   
-  <tr>
+    <tr>
   %for my $k (qw/username name email pass/) {
-    <td>
+      <td>
       %= $u->{$k}
-    </td>
+      </td>
   % }
   %for my $t (@treebanks) {
-    <td>
+      <td>
       %if($u->{'treebanks'}->{$t}) {
         X
       %}
-    </td>
+      </td>
   % }
   %for my $a (qw/delete update/) {
-    <td>
+      <td>
       %= link_to $a => url_for("/admin/user/$a")->query(username=>$u->{'username'})->to_abs 
-    </td>
+      </td>
   % }
   
-  </tr>
+    </tr>
 % }
-
+  </tbody>
 </table>
 
 

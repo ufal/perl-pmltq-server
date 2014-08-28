@@ -2,13 +2,14 @@
 % title 'PMLTQ Server - User';
 
 
-% print STDERR "ADD/UPDATE: $action";
+% print STDERR "ADD/UPDATE: $action\n";
 % my @treebanks = map {$_->{'name'}} @{app->treebanks->find->all};
 
 % my $A = ($action eq 'updateuser_form') ? 'U' : 'A';
+% print STDERR "ADD/UPDATE: $A\n";
 % my $user=undef;
 % if($A eq 'U'){
-%   $user=app->user(param 'username');
+%   $user=app->pmltquser(param 'username');
 %   $A = 'A' unless $user;
 %}
 <h1><%= $A eq 'A' ? ('Add new user') : ("Update ".$user->{'name'}) %></h1>

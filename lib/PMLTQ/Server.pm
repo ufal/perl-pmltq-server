@@ -22,7 +22,7 @@ sub startup {
   $self->plugin('Config' => {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
-   $self->plugin("PMLTQ::Server::Helpers");
+  $self->plugin("PMLTQ::Server::Helpers");
   $self->plugin("bootstrap3");
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin('authentication' => {

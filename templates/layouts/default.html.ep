@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html>
-  <head><title><%= title %></title></head>
+  <head>
+    %= asset "bootstrap.css"
+    %= asset "bootstrap.js"
+    <title><%= title %></title>
+  </head>
   <body>
-  %if (is_user_authenticated){
-<div style="float:right">
-<b>
-%= link_to current_user->{'name'} => '/profile' 
-</b>
-<br>
-% if(has_priv('admin')){
-  <a href="/admin">ADMINISTRATION</a> 
-  <br />
-%}  
-  <a style="" href="/logout">logout</a>
-</div>
-%}
-<a style="float:left;" href="/">HOME</a>
 
-<h1 style="text-align:center">PMLTQ Server</h1>
-<hr>
+
+<div class="navbar navbar-default" role="navigation">
+
+
+
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">PMLTQ SERVER</a>
+          </div>
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              
+<!--
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+-->           
+              %if (is_user_authenticated and has_priv('admin')){
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Server settings <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li class="dropdown-header">PMLTQ users</li>
+                  <li><%= link_to '/admin/user/add'=> begin %> Add user <% end %></li>
+                  <li><%= link_to '/admin/user/list' => begin %> Users <% end %></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-header">Treebanks</li>
+                  <li><%= link_to '/admin/treebank/add'=> begin %> Add treebank <% end %></li>
+                  <li><%= link_to url_for("/admin/treebank/list")->to_abs => begin %> Treebanks <% end %></li>
+                  
+                </ul>
+              </li>
+             %}
+             %if (is_user_authenticated){
+             <li> <%= link_to current_user->{'name'} => '/profile'%></li>
+             <li><a href="/logout">Logout</a></li>
+             %}              
+              
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+<div class="container">
+  <div class="page-header">
+    <h1 style="text-align:center"><%= title %></h1>
+  </div>
   <%= content %>
+</div>  
+
   </body>
 </html>
+
+
+
