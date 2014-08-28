@@ -22,12 +22,12 @@ sub register {
   $app->helper(pmltquser        => \&_pmltquser);
   $app->helper(treebank    => \&_treebank);
   # ADD
-  $app->helper(adduser     => \&adduser);
+  $app->helper(adduser     => \&_adduser);
   
   $app->helper(addtreebank => \&_addtreebank);
   # DELETE
   $app->helper(deluser     => \&_deluser);
-  $app->helper(deltreebank => \&deltreebank);
+  $app->helper(deltreebank => \&_deltreebank);
   # UPDATE 
   $app->helper(updateuser     => \&_updateuser);
   #ERROR

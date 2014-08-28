@@ -23,6 +23,36 @@
 </div>
 %}
 
+
+<h1> Realy big table </h1>
+<table class="table table-hover table-responsive">
+  <thead>
+    <tr>
+%for my $k (0..(26*26-1)) {
+      <td>
+        %= $k
+      </td>
+% }
+    </tr>
+  </thead>
+  <tbody>
+% for my $u (0..25){
+  
+    <tr>
+  %for my $k (0..25) {
+  %for my $j (0..25) {
+      <td>
+      %= chr(65+$k).chr(65+$j)
+      </td>
+  % }
+  % }
+  
+    </tr>
+% }
+  </tbody>
+
+</table>
+
 <h1> Temporary content </h1>
 
 
@@ -88,4 +118,6 @@
 
 <h2>Privs</h2>
 TODO
+
+
 

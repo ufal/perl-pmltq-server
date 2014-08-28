@@ -45,12 +45,28 @@
                 </ul>
               </li>
              %}
-             %if (is_user_authenticated){
-             <li> <%= link_to current_user->{'name'} => '/profile'%></li>
-             <li><a href="/logout">Logout</a></li>
-             %}              
               
             </ul>
+
+             %if (is_user_authenticated){
+            <ul class="nav navbar-nav pull-right">
+             <li> <%= link_to current_user->{'name'} => '/profile'%></li>
+             <li><a href="/logout">Logout</a></li>
+            </ul>
+             %} else {
+
+<form class="form-inline navbar-form pull-right" action="/" method="post" role="form">
+  <div class="form-group">
+    <label class="sr-only" for="username">Username</label>
+    <input type="text" class="form-control outline" name="username" placeholder="Username">
+  </div>
+  <div class="form-group">
+    <label class="sr-only" for="pass">Password</label>
+    <input type="password" class="form-control outline" name="pass" placeholder="Password">
+  </div>
+  <button type="submit" class="btn btn-default">Sign in</button>
+</form>             
+             %}   
           </div><!--/.nav-collapse -->
         </div>
       </div>

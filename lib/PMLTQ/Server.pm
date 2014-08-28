@@ -72,6 +72,7 @@ sub startup {
   
   
   
+  $r->get('/admin/user/test')       ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#testuserexist');
   $r->get('/admin/user/list')       ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#listuser');
   $r->post('/admin/user/add')       ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#adduser');
   $r->get('/admin/user/add')        ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#adduser_form');

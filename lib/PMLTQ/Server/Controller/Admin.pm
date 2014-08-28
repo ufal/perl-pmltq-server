@@ -11,6 +11,13 @@ sub welcome {
 
   #$self->render(text=>"LOGGED !!! '". $self->current_user->{'name'}."'");
 }
+sub testuserexist {
+  my $self = shift;
+  my $username = $self->param('username');
+  print STDERR "testuserexist !!!\n\t$username\n";
+  my $u = $self->pmltquser($username);
+  $self->rendered($u ? 400 : 200);
+}
 sub adduser {
   my $self = shift;
   my $username = $self->param('username');
