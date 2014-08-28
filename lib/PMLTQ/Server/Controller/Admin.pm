@@ -112,7 +112,7 @@ sub generate_username
   $str =~ s/\.*$//;
   $str =~ s/\.+/\./;
   my $append="";
-  while($self->user("$str$append")){
+  while($self->pmltquser("$str$append")){
     $append=0 unless $append;
     $append++;
   }

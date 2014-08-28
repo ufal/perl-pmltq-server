@@ -5,7 +5,6 @@ use Mango;
 use Mango::BSON ':bson';
 use PMLTQ::Server::Model;
 
-use List::Util qw(min);
 
 has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
 
@@ -23,6 +22,7 @@ sub startup {
   $self->plugin('Config' => {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
+   $self->plugin("PMLTQ::Server::Helpers");
   $self->plugin("bootstrap3");
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin('authentication' => {
@@ -31,12 +31,12 @@ sub startup {
           'our_stash_key' => 'auth',
           'load_user' => sub { 
                  my ($app, $uid) = @_; 
-                 print STDERR "load_user \t$uid \n",$self->user($uid),"\n";
-                 return $self->user($uid);
+                 print STDERR "load_user \t$uid \n",$self->pmltquser($uid),"\n";
+                 return $self->pmltquser($uid);
                },
           'validate_user' =>  sub {
                  my ($app, $username, $password, $extradata) = @_;
-                 my $user = $self->user($username);
+                 my $user = $self->pmltquser($username);
                  return undef unless $user;
                  return $username if $user->{'pass'} eq $password && $user->{'active'};
                },
@@ -59,7 +59,7 @@ sub startup {
   $self->log->handle(\*STDERR);
 
   # Setup all helpers
-  $self->setup_helpers();
+  # $self->setup_helpers(); ###  moved to PMLTQ::Server::Helpers
 
   # Router
   my $r = $self->routes;
@@ -127,94 +127,7 @@ sub startup {
 }
 
 
-sub setup_helpers {
-  my $self = shift;     
-  $self->helper(mango => sub { shift->app->db });
-  $self->helper(mandel => sub { shift->app->mandel });
-  $self->app->mandel->initialize;
-  
-  # COLLECTIONS
-  $self->helper(users       => sub { shift->app->mango->db->collection('users') });
-  $self->helper(treebanks   => sub { shift->mango->db->collection('treebanks') });
-  # ELEMENT IN COLLECTION
-  $self->helper(user        => sub { my ($self,$username) = @_; 
-                                     return $self->users->find_one({'username' => $username}) 
-                                   });
-  $self->helper(treebank    => sub { my ($self,$tbname) = @_; 
-                                     return $self->treebanks->find_one({'name' => $tbname}) 
-                                   });
-  # ADD
-  $self->helper(adduser     => sub { 
-                                     #my ($self,$username,$password,$email,@treebanks) = @_; 
-                                     #return 0 if $self->user($username);
-                                     my ($self,$user) = @_;
-                                     return 0 if $self->user($user->{'username'});
-                                     $self->users->insert($user);
-                                     return 1;
-                                   });
-  
-  $self->helper(addtreebank => sub {  my ($self,$treebank) = @_;
-                                     return 0 if $self->treebank($treebank->{'name'});
-                                     $self->treebanks->insert($treebank);
-                                     return 1;
-                                   });
-  # DELETE
-  $self->helper(deluser     => sub { 
-                                     my ($self,$username) = @_;
-                                     return 0 unless $self->user($username);
-                                     $self->users->remove({'username'=>$username});
-                                     return 1;
-                                   });
-  $self->helper(deltreebank => sub { 
-                                     my ($self,$tbname) = @_;
-                                     return 0 unless $self->treebank($tbname);
-                                     $self->treebanks->remove({'name'=>$tbname});
-                                     return 1;
-                                   });
-  # UPDATE 
-  $self->helper(updateuser     => sub { 
-                                     my($self,$username,$data) = @_;
-                                     
-                                     #my $username = $d->{'username'};
-                                     #my $data =  $d->{'data'};
-                                     
-                                     # probíhá update všeho !!! nelze projet cyklem, musíme si předem uložit ostatní údaje - nejlépe vytágnout usera z databáze, aktualizovat ho a pak ho nahrát do databáze
-                                     my $user = $self->user($username);
-                                     print STDERR "UPDATE: $user\n";
-                                     print STDERR  "\tname=$username\n";
-                                     print STDERR  "\tdata=$data\n";
-                                     return 0 unless $user;
-                                     
-                                     
-                                     $self->users->update({username=>$username},{$_=>$data->{$_}}) for (keys %$data);
-                                     return 1;
-                                   });
-  
-  $self->helper(status_error => \&_status_error);
-}
 
-sub _status_error {
-  my ($self, @errors) = @_;
 
-  die __PACKAGE__, 'No errors to render' unless @errors;
-
-  if (@errors == 1) {
-    my $error = shift @errors;
-    $self->res->code($error->{code});
-    $self->render(json => { error => $error->{message} });
-  } else {
-    # find lowest code and display only those errors
-    my $code = min map { $_->{code} } @errors;
-
-    @errors = grep { $_->{code} == $code } @errors;
-    return $self->status_error(@errors) if @errors == 1;
-
-    $self->res->code($code);
-    $self->render(json => {
-      message => 'The request cannot be fulfilled because of multiple errors',
-      errors => [ map { $_->{message} } @errors ]
-    });
-  }
-}
 
 1;
