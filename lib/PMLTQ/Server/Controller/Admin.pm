@@ -32,18 +32,28 @@ sub adduser {
   print STDERR join(" ",$self->param),"\n";
   
   my %treebanks = map {$_->{'name'}=>1} grep {$self->param($_->{'name'})}  @{$self->treebanks->find->all};
-  print STDERR "TREEBANKS: ",keys(%treebanks),"\n";
+  print STDERR "TREEBANKS: ",join(" ",keys(%treebanks)),"\n";
   my %privs = map {$_=>1} grep {$self->param($_)}  qw/admin selfupdate/;
-  print STDERR "PRIVS:  ",keys(%privs),"\n";
+  print STDERR "PRIVS:  ",join(" ",keys(%privs)),"\n";
   my $user = {name=>$self->param('name'),
               username=>$username,
               pass=>$pass,
-              email=>$self->param('email'),
+              email=>$self->param('email'), #chyba je v emailu
               $self->param('active')?(active=>1):(active=>0),
               treebanks=>\%treebanks,
               privs=>\%privs};
+=xx
+{ "_id" : ObjectId("53ffbf537b57f23cb2010000"), 
+"pass" : "123", 
+"name" : "sss", 
+"HASH(0x3ea5fb8)" : null, 
+"username" : "m", 
+"email" : "active", 
+"0" : "treebanks", 
+"HASH(0x3e85c78)" : "privs" }
+=cut
   $self->flash(err => 'user already exists !!!') unless $self->app->adduser($user);
-  $self->redirect_to("/admin");
+  $self->redirect_to("/admin/user/list");
 }
 
 
