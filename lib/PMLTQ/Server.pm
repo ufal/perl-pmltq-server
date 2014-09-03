@@ -5,13 +5,11 @@ use Mango;
 use Mango::BSON ':bson';
 use PMLTQ::Server::Model;
 
-
 has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
 
 has mandel => sub {
   state $mandel = PMLTQ::Server::Model->new(
     storage => shift->db,
-    #model_class => 'PMLTQ::Server::Model',
     namespaces => [qw/PMLTQ::Server::Model/])
 };
 
@@ -70,8 +68,6 @@ sub startup {
   $r->get('/logout')->to('Auth#pmltq_logout');
   $r->get('/admin')->over(authenticated => 1, has_priv => 'admin')->to('Admin#welcome');
   
-  
-  
   $r->get('/admin/user/test')       ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#testuserexist');
   $r->get('/admin/user/list')       ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#listuser');
   $r->post('/admin/user/add')       ->over(authenticated => 1, has_priv => 'admin')     ->to('Admin#adduser');
@@ -100,9 +96,4 @@ sub startup {
   $treebank->post('query/svg', 'query_svg')->to(controller => 'Query', action => 'query_svg');
   $treebank->post('svg')->to(controller => 'Query', action => 'result_svg');
 }
-
-
-
-
-
 1;
