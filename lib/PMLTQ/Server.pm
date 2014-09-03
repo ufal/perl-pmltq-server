@@ -99,32 +99,6 @@ sub startup {
   $treebank->post('query')->to(controller => 'Query', action => 'query');
   $treebank->post('query/svg', 'query_svg')->to(controller => 'Query', action => 'query_svg');
   $treebank->post('svg')->to(controller => 'Query', action => 'result_svg');
-
-  $r->get('/mongotest' => sub {
-    my $c = shift;
-
-    my $collection = $c->mango->db->collection('visitors');
-    my $ip         = $c->tx->remote_address;
-
-    # Store information about current visitor
-    $collection->insert({when => bson_time, from => $ip} => sub {
-      my ($collection, $err, $oid) = @_;
-
-      return $c->render_exception($err) if $err;
-
-      # Retrieve information about previous visitors
-      $collection->find->sort({when => -1})->fields({_id => 0})->all(sub {
-        my ($collection, $err, $docs) = @_;
-
-        return $c->render_exception($err) if $err;
-
-        # And show it to current visitor
-        $c->render(json => $docs);
-      });
-    });
-
-    $c->render_later;
-  })
 }
 
 
