@@ -112,9 +112,11 @@ sub run_database {
 }
 
 END {
-  test_app()->app->db->collection_names(sub {
+  test_app()->app->db->db->collection_names(sub {
     my ($db, $err, $names) = @_;
-    $db->collection($_)->drop for (@$name) unless $err;
+    unless ($err) {
+      $db->collection($_)->drop for (@$names);
+    }
   });
 }
 
