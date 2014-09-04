@@ -10,7 +10,8 @@ has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->co
 has mandel => sub {
   state $mandel = PMLTQ::Server::Model->new(
     storage => shift->db,
-    namespaces => [qw/PMLTQ::Server::Model/])
+    namespaces => [qw/PMLTQ::Server::Model/]
+  );
 };
 
 # This method will run once at server start

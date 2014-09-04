@@ -4,11 +4,9 @@ use Test::More;
 use Test::Mojo;
 use File::Basename 'dirname';
 use Data::Dumper;
-use Carp::Always;
 
 use lib dirname(__FILE__);
 
-$ENV{PMLTQ_SERVER_TESTDB} = 'mongodb://localhost/pmltq-server-test';
 require 'bootstrap.pl';
 
 my $t = test_app();

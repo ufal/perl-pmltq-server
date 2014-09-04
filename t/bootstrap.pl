@@ -1,6 +1,5 @@
 # bootstraping tests
 use Mojo::Base -strict;
-use Carp::Always;
 use File::Basename 'dirname';
 use File::Spec;
 
@@ -8,32 +7,53 @@ use Test::More;
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', '..', 'Test-postgresql', 'lib'));
 use Test::PostgreSQL;
 use Test::Mojo;
+use DBI;
 
 use Treex::PML;
 use File::Which qw( which );
 
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
-use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', '..', 'perl-pmltq', 'lib'));
+
+$ENV{MOJO_MODE} = 'test';
+
+unless ($ENV{PMLTQ_SERVER_TESTDB}) {
+  #$mongo_database = "pmltq-server-test-$$";
+  my $mongo_database = "pmltq-server-test";
+  $ENV{PMLTQ_SERVER_TESTDB} = "mongodb://localhost/$mongo_database";
+  # $mongo_shell = $ENV{MONGO_SHELL} || which('mongo');
+
+  # plan skip_all => "Skipping tests because there is no Mongodb installed";
+}
 
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 my $pg_dir = File::Spec->catdir(dirname(__FILE__), 'postgres');
-my $pg_local = -d $pg_dir && $ENV{LOCAL_PG};
-my $pg_port = $ENV{PG_PORT};
-my ($pg_restore, $pgsql);
+my $pg_expect_running = -d $pg_dir;
+my $pg_port = $ENV{PG_PORT} || 11543;
+my ($pg_running, $pg_restore, $pgsql);
 
-unless ($pg_port) {
+my $test_dsn = "DBI:Pg:dbname=test;host=127.0.0.1;port=$pg_port;user=postgres";
+
+if ($pg_expect_running && !$ENV{PG_LOCAL}) {
+  my $dbh = DBI->connect($test_dsn, undef, undef, { PrintError => 0, RaiseError => 0 });
+  $pg_running = $dbh->ping if $dbh;
+  diag 'Connection to local postgres failed' unless $pg_running;
+  undef $dbh;
+}
+
+unless ($pg_running) {
   $pgsql = Test::PostgreSQL->new(
+    port => $pg_port,
     auto_start => 0,
-    ($ENV{LOCAL_PG} ? (base_dir => $pg_dir) : ()), # use dir for subsequent runs to simply skip initialization
+    ($ENV{PG_LOCAL} ? (base_dir => $pg_dir) : ()), # use dir for subsequent runs to simply skip initialization
   ) or plan skip_all => $Test::PostgreSQL::errstr;
 
-  $pgsql->setup() unless (-d $pg_dir);  # create postgress dir does not exists
+  $pgsql->setup() unless (-d $pgsql->base_dir);  # create postgress dir does not exists
 
   $pgsql->start;
     
   $pg_port = $pgsql->port;  
-  $pg_restore = which('pg_restore');
-  die "Cannot find pg_restore in your path" unless $pg_restore;
+  $pg_restore = $ENV{PG_RESTORE} || which('pg_restore');
+  die "Cannot find pg_restore in your path and is not provided in PG_RESTORE variable either" unless $pg_restore;
 }
 
 Treex::PML::AddResourcePathAsFirst(File::Spec->catdir($test_files, 'resources'));
@@ -75,7 +95,7 @@ sub test_treebank {
 }
 
 sub init_database {
-  return if $pg_local; 
+  return if $pg_expect_running; 
 
   my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
 
@@ -87,7 +107,15 @@ sub init_database {
 sub run_database {
   return unless $pgsql;
   say STDERR "Connect to: " . $pgsql->dsn;
+  say STDERR "Press CTR-C to terminate...";
   sleep;
+}
+
+END {
+  test_app()->app->db->collection_names(sub {
+    my ($db, $err, $names) = @_;
+    $db->collection($_)->drop for (@$name) unless $err;
+  });
 }
 
 1;

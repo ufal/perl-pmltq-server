@@ -6,7 +6,7 @@ use File::Basename 'dirname';
 use File::Spec;
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..'));
 
-$ENV{LOCAL_PG}=1; # setup local
+$ENV{PG_LOCAL}=1; # setup local
 
 require 'bootstrap.pl';
 
