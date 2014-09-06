@@ -82,20 +82,18 @@ sub _deltreebank{
 
 
 sub _updateuser { 
-  my($self,$username,$data) = @_;
+  my($self,$username,$user) = @_;
   
   #my $username = $d->{'username'};
   #my $data =  $d->{'data'};
   
   # probíhá update všeho !!! nelze projet cyklem, musíme si předem uložit ostatní údaje - nejlépe vytágnout usera z databáze, aktualizovat ho a pak ho nahrát do databáze
-  my $user = $self->pmltquser($username);
   print STDERR "UPDATE: $user\n";
   print STDERR  "\tname=$username\n";
-  print STDERR  "\tdata=$data\n";
   return 0 unless $user;
   
   
-  $self->users->update({username=>$username},{$_=>$data->{$_}}) for (keys %$data);
+  $self->users->update({username=>$username},$user);
   return 1;
 }
 
