@@ -103,8 +103,6 @@ sub query {
 
   my $input = $self->req->json;
 
-  use Data::Dumper;
-  say Dumper($input);
   unless ($input->{query}) {
     $self->status_error({
       code => 400,

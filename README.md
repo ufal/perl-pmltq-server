@@ -6,7 +6,7 @@ This is a refactored version of PMLTQ::CGI server. It is an implementation of PM
 
     git clone https://github.com/ufal/perl-pmltq-server.git
     cd perl-pmltq-server
-    cpanm -n Mojolicious
+    cpanm --installdeps .
     morbo ./script/pmltq-server
 
 # TODO

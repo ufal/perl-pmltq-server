@@ -1,0 +1,14 @@
+#!/usr/bin/env perl
+
+use Mojo::Base -strict;
+
+use File::Basename 'dirname';
+use File::Spec;
+use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..'));
+
+$ENV{PG_LOCAL}=1; # setup local
+
+require 'bootstrap.pl';
+
+init_database();
+run_database();
