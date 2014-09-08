@@ -7,10 +7,13 @@ use Test::More;
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', '..', 'Test-postgresql', 'lib'));
 use Test::PostgreSQL;
 use Test::Mojo;
+use Mojo::IOLoop::Server;
 use DBI;
 
 use Treex::PML;
 use File::Which qw( which );
+use File::Temp qw(tempfile);
+use POSIX qw(WNOHANG);
 
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
@@ -94,6 +97,52 @@ sub test_treebank {
   return $test_tb
 }
 
+my $print_server_pid;
+
+sub start_print_server {
+  my $print_server = File::Spec->catfile(dirname(__FILE__), 'script', 'print_server.pl');
+  # my $print_server_app = Mojo::Server->new->load_app($print_server);
+  # $print_server_app = Test::Mojo->new->app($print_server_app);
+  # return $print_server_app->ua->server->nb_url;
+  my $port = Mojo::IOLoop::Server->generate_port;
+  my $listen = "http://localhost:$port";
+  chmod 0755, $print_server;
+
+  say 'Starting print server';
+
+  my ($fh, $filename) = tempfile();
+
+  $print_server_pid = fork;
+  die "fork(2) failed:$!" unless defined $print_server_pid;
+  if ($print_server_pid == 0) {
+    close $fh; open $fh, '>', $filename or die "failed to open log file: $!";
+    open STDOUT, '>>&', $fh
+      or die "dup(2) failed:$!";
+    open STDERR, '>>&', $fh
+      or die "dup(2) failed:$!";
+    exec("$print_server $port");
+    die 'Starting print server failed';
+  }
+
+  close $fh;
+  # wait until server becomes ready (or dies)
+  for (my $i = 0; $i < 100; $i++) {
+      open $fh, '<', $filename or die "failed to open log file: $!";
+      my $lines = do { join '', <$fh> };
+      close $fh;
+      last if $lines =~ m{Server is running};
+      if (waitpid($print_server_pid, WNOHANG) > 0) {
+          # failed
+          die $lines;
+      }
+      sleep 1;
+  }
+
+  say "Started listening at: $listen with PID: $print_server_pid";
+
+  return $listen;
+}
+
 sub init_database {
   return if $pg_expect_running; 
 
@@ -118,6 +167,17 @@ END {
       $db->collection($_)->drop for (@$names);
     }
   });
+
+  if ($print_server_pid && $print_server_pid != 0) {
+    kill TERM => $print_server_pid;
+    # wait for kill TERM to take effect
+    select undef, undef, undef, 0.01;  
+    my $reaped = waitpid $print_server_pid => WNOHANG;
+    unless ($reaped == $print_server_pid) {
+        say STDERR "Killing print server PID: $print_server_pid by force";
+        kill 9 => $print_server_pid;
+    }
+  }
 }
 
 1;

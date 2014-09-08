@@ -295,7 +295,7 @@ sub query_svg {
         my ($err, $code) = $tx->error;
         $self->status_error({
           code => $code||500,
-          message => "$err"
+          message => ref $err ? $err : "$err"
         })
       }
     });

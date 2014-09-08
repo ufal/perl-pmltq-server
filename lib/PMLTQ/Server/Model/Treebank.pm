@@ -16,7 +16,7 @@ use URI;
 
 field [qw/name title driver host port database username password/] => ( isa => Str );
 
-field data_source => ( isa => ArrayRef[HashRef[Str]] );
+field data_sources => ( isa => ArrayRef[HashRef[Str]] );
 
 
 =head1 METHODS
@@ -139,7 +139,7 @@ sub locate_file {
     for my $what ('__#files','__#references') {
       my $n = $schema->[0].$what;
       next if $n=~/"/;          # just for sure
-      print STDERR "testing: $what $n $f\n";
+      #print STDERR "testing: $what $n $f\n";
       my $count = $evaluator->run_sql_query(qq{SELECT count(1) FROM "$n" WHERE "file"=?}, {
           RaiseError=>1,
           Bind=>[ $f ],
@@ -174,17 +174,17 @@ sub resolve_data_path {
   my $path;
   if (defined($schema_name) and defined($data_dir)) {
     $f = $new_filename if defined $new_filename;
-    my ($sources) = map $_->path, grep { $_->schema eq $schema_name } $self->data_sources;
+    my ($sources) = map $_->{path}, grep { $_->{schema} eq $schema_name } @{$self->data_sources};
 
     if ($sources) {
       $path = URI::file->new($f)->abs(URI::file->new($sources.'/'))->file;
-      print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
+      #print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
     } else {
       $path = URI::file->new($f)->abs(URI::file->new($data_dir.'/'))->file;
-      print STDERR "F: schema '$schema_name', file: $f, located: $path in data-dir\n";
+      #print STDERR "F: schema '$schema_name', file: $f, located: $path in data-dir\n";
     }
   } else {
-    print STDERR "did not find $f in the database\n";
+    #print STDERR "did not find $f in the database\n";
     my $uri = URI->new($f);
     if (!$uri->scheme) { # it must be a relative URI
       $uri->scheme('file'); # convert it to file URI
