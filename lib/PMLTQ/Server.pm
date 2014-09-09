@@ -30,7 +30,7 @@ sub startup {
           'our_stash_key' => 'auth',
           'load_user' => sub { 
                  my ($app, $uid) = @_; 
-                 print STDERR "load_user \t$uid \n",$self->pmltquser($uid),"\n";
+#                 print STDERR "load_user \t$uid \n",$self->pmltquser($uid),"\n";
                  return $self->pmltquser($uid);
                },
           'validate_user' =>  sub {

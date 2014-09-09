@@ -4,7 +4,6 @@ use Mojo::Base 'Mojolicious::Controller';
 use utf8;
 use Unicode::Normalize; 
 use Encode;
-
 sub welcome {
   my $self = shift;
   #$self->redirect_to("/");
@@ -14,7 +13,7 @@ sub welcome {
 sub testuserexist {
   my $self = shift;
   my $username = $self->param('username');
-  print STDERR "testuserexist !!!\n\t$username\n";
+#  print STDERR "testuserexist !!!\n\t$username\n";
   my $u = $self->pmltquser($username);
   $self->rendered($u ? 400 : 200);
 }
@@ -27,14 +26,14 @@ sub adduser {
     $pass = generate_pass(10);
     # todo send generated pass via email
   }
-  print STDERR " TODO send pass via email if does not exists !!!\n";
-  print STDERR join(" ",map {$_->{'name'}}  @{$self->treebanks->find->all}),"\n";
-  print STDERR join(" ",$self->param),"\n";
+#  print STDERR " TODO send pass via email if does not exists !!!\n";
+#  print STDERR join(" ",map {$_->{'name'}}  @{$self->treebanks->find->all}),"\n";
+#  print STDERR join(" ",$self->param),"\n";
   
   my %treebanks = map {$_->{'name'}=>1} grep {$self->param($_->{'name'})}  @{$self->treebanks->find->all};
-  print STDERR "TREEBANKS: ",keys(%treebanks),"\n";
+#  print STDERR "TREEBANKS: ",join(" ",keys(%treebanks)),"\n";
   my %privs = map {$_=>1} grep {$self->param($_)}  qw/admin selfupdate/;
-  print STDERR "PRIVS:  ",keys(%privs),"\n";
+#  print STDERR "PRIVS:  ",join(" ",keys(%privs)),"\n";
   my $user = {name=>$self->param('name'),
               username=>$username,
               pass=>$pass,
@@ -43,7 +42,7 @@ sub adduser {
               treebanks=>\%treebanks,
               privs=>\%privs};
   $self->flash(err => 'user already exists !!!') unless $self->app->adduser($user);
-  $self->redirect_to("/admin");
+  $self->redirect_to("/admin/user/list");
 }
 
 
@@ -51,31 +50,35 @@ sub adduser {
 sub deluser {
   my $self = shift;
   $self->flash(err => 'user does not exist') unless $self->app->deluser($self->param('username'));
-
   $self->redirect_to("/admin");
 }
+
 sub updateuser {
   my $self = shift;
-  # TODO poslat do této funkce param('name')
+  my $user = $self->pmltquser($self->param('username'));
   my %treebanks = map {$_->{'name'}=>1} grep {$self->param($_->{'name'})}  @{$self->treebanks->find->all};
-  my $pass = $self->param('pass');
-  print STDERR "UPDATE1 ",$self->param('username'),"\n";
-  print STDERR "UPDATE1 email:",$self->param('email'),"\n";
   my %privs = map {$_=>1} grep {$self->param($_)}  qw/admin selfupdate/;
-  my %data = (email=>$self->param('email'),$pass ? (pass=>$pass) : (), treebanks => \%treebanks,privs => \%privs);
-  print STDERR "data ",%data,"\n\n";
-  #$self->app->updateuser({username => ($self->param('username')),data=>\%data});
-  $self->app->updateuser($self->param('username'),\%data);
-  $self->redirect_to("/admin");
+  $user->{'pass'} = $self->param('pass') if $self->param('pass');
+  $user->{'treebanks'} = \%treebanks;
+  $user->{'privs'} = \%privs;
+  $user->{'email'} = $self->param('email');
+  $self->app->updateuser($self->param('username'),$user);
+  $self->redirect_to("/admin/user/list");
 }
+
 
 
 sub adduser_form{
   my $self = shift;
+ # print STDERR "ADD USER\n";
+ # $self->render('admin/user_form');
   $self->render('admin/user_form');
 }
+
+
 sub updateuser_form{
   my $self = shift;
+ # print STDERR "UPDATE USER\n";
   $self->render('admin/user_form');
 }
 
@@ -101,7 +104,7 @@ sub updatetreebank {
 
 
 sub generate_username
-{
+{  
   my $self = shift;
   my $str = shift;
   use Lingua::Translit;
