@@ -11,6 +11,7 @@ use lib dirname(__FILE__);
 
 require 'bootstrap.pl';
 
+start_postgres();
 my $t = test_app();
 my $tb = test_treebank();
 

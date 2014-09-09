@@ -18,50 +18,48 @@ use POSIX qw(WNOHANG);
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
 $ENV{MOJO_MODE} = 'test';
-
 unless ($ENV{PMLTQ_SERVER_TESTDB}) {
-  #$mongo_database = "pmltq-server-test-$$";
   my $mongo_database = "pmltq-server-test";
   $ENV{PMLTQ_SERVER_TESTDB} = "mongodb://localhost/$mongo_database";
-  # $mongo_shell = $ENV{MONGO_SHELL} || which('mongo');
-
-  # plan skip_all => "Skipping tests because there is no Mongodb installed";
 }
 
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 my $pg_dir = File::Spec->catdir(dirname(__FILE__), 'postgres');
 my $pg_expect_running = -d $pg_dir;
-my $pg_port = $ENV{PG_PORT} || 11543;
-my ($pg_running, $pg_restore, $pgsql);
+my ($pg_running, $pg_restore, $pgsql, $pg_port);
 
-my $test_dsn = "DBI:Pg:dbname=test;host=127.0.0.1;port=$pg_port;user=postgres";
+sub start_postgres {
+  $pg_port = $ENV{PG_PORT} || 11543;
 
-if ($pg_expect_running && !$ENV{PG_LOCAL}) {
-  my $dbh = DBI->connect($test_dsn, undef, undef, { PrintError => 0, RaiseError => 0 });
-  $pg_running = $dbh->ping if $dbh;
-  diag 'Connection to local postgres failed' unless $pg_running;
-  undef $dbh;
-}
+  my $test_dsn = "DBI:Pg:dbname=test;host=127.0.0.1;port=$pg_port;user=postgres";
 
-unless ($pg_running) {
-  $pgsql = Test::PostgreSQL->new(
-    port => $pg_port,
-    auto_start => 0,
-    ($ENV{PG_LOCAL} ? (base_dir => $pg_dir) : ()), # use dir for subsequent runs to simply skip initialization
-  ) or plan skip_all => $Test::PostgreSQL::errstr;
+  if ($pg_expect_running && !$ENV{PG_LOCAL}) {
+    my $dbh = DBI->connect($test_dsn, undef, undef, { PrintError => 0, RaiseError => 0 });
+    $pg_running = $dbh->ping if $dbh;
+    diag 'Connection to local postgres failed' unless $pg_running;
+    undef $dbh;
+  }
 
-  $pgsql->setup() unless (-d $pgsql->base_dir);  # create postgress dir does not exists
+  unless ($pg_running) {
+    $pgsql = Test::PostgreSQL->new(
+      port => $pg_port,
+      auto_start => 0,
+      ($ENV{PG_LOCAL} ? (base_dir => $pg_dir) : ()), # use dir for subsequent runs to simply skip initialization
+    ) or plan skip_all => $Test::PostgreSQL::errstr;
 
-  $pgsql->start;
-    
-  $pg_port = $pgsql->port;  
-  $pg_restore = $ENV{PG_RESTORE} || which('pg_restore');
-  die "Cannot find pg_restore in your path and is not provided in PG_RESTORE variable either" unless $pg_restore;
+    $pgsql->setup() unless (-d $pgsql->base_dir);  # create postgress dir does not exists
+
+    $pgsql->start;
+
+    $pg_port = $pgsql->port;
+    $pg_restore = $ENV{PG_RESTORE} || which('pg_restore');
+    die "Cannot find pg_restore in your path and is not provided in PG_RESTORE variable either" unless $pg_restore;
+  }
 }
 
 Treex::PML::AddResourcePathAsFirst(File::Spec->catdir($test_files, 'resources'));
 
-my ($app, $test_tb);
+my ($app, $test_tb, $test_user);
 
 sub test_app {
   return $app ||= Test::Mojo->new('PMLTQ::Server');
@@ -92,9 +90,23 @@ sub test_treebank {
 
   $test_tb->save();
 
-  init_database();
-
   return $test_tb
+}
+
+sub test_user {
+  return $test_user if $test_user;
+
+  my $users = test_app()->app->mandel->collection('user');
+  $test_user = $users->create({
+    name => 'Joe Tester',
+    username => 'tester',
+    password => 'secret',
+    email => 'joe@happytesting.com'
+  });
+
+  $test_user->save();
+
+  return $test_user
 }
 
 my $print_server_pid;
@@ -144,7 +156,7 @@ sub start_print_server {
 }
 
 sub init_database {
-  return if $pg_expect_running; 
+  return if $pg_expect_running;
 
   my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
 
@@ -161,17 +173,16 @@ sub run_database {
 }
 
 END {
-  test_app()->app->db->db->collection_names(sub {
-    my ($db, $err, $names) = @_;
-    unless ($err) {
-      $db->collection($_)->drop for (@$names);
-    }
-  });
+  my $db = test_app()->app->db->db;
+  for (@{$db->collection_names}) {
+    next if /^system/ || /\$/;
+    $db->collection($_)->drop
+   }
 
   if ($print_server_pid && $print_server_pid != 0) {
     kill TERM => $print_server_pid;
     # wait for kill TERM to take effect
-    select undef, undef, undef, 0.01;  
+    select undef, undef, undef, 0.01;
     my $reaped = waitpid $print_server_pid => WNOHANG;
     unless ($reaped == $print_server_pid) {
         say STDERR "Killing print server PID: $print_server_pid by force";
