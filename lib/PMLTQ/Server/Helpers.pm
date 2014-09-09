@@ -2,6 +2,7 @@ package PMLTQ::Server::Helpers;
 
 use Mojo::Base 'Mojolicious::Plugin';
 use Mango::BSON 'bson_oid';
+use Digest::SHA qw(sha1_hex);
 
 use List::Util qw(min);
 
@@ -14,7 +15,10 @@ sub register {
   $app->helper(mango => sub { shift->app->db });
   $app->helper(mandel => sub { shift->app->mandel });
   $app->app->mandel->initialize;
-  
+
+  # History
+  $app->helper(history_key => \&_history_key);
+
   # COLLECTIONS
   $app->helper(users       => sub { shift->app->mango->db->collection('users') });
   $app->helper(treebanks   => sub { shift->mango->db->collection('treebanks') });
@@ -23,33 +27,45 @@ sub register {
   $app->helper(treebank    => \&_treebank);
   # ADD
   $app->helper(adduser     => \&_adduser);
-  
+
   $app->helper(addtreebank => \&_addtreebank);
   # DELETE
   $app->helper(deluser     => \&_deluser);
   $app->helper(deltreebank => \&_deltreebank);
-  # UPDATE 
+  # UPDATE
   $app->helper(updateuser     => \&_updateuser);
   #ERROR
   $app->helper(status_error => \&_status_error);
 }
 
 
+sub _history_key {
+  my $self = shift;
 
+  my $current_user = $self->current_user;
+  return $current_user->id if $current_user;
 
-sub _pmltquser { 
-  my ($self,$username) = @_; 
-  return $self->users->find_one({'username' => $username}) 
+  my $key = $self->session->{history_key};
+  unless ($key) {
+    $key = sha1_hex(time() . rand() . (2 * rand()));
+    $self->session(history_key => $key);
+  }
+  return $key;
+}
+
+sub _pmltquser {
+  my ($self,$username) = @_;
+  return $self->users->find_one({'username' => $username})
 }
 
 
-sub _treebank{ my ($self,$tbname) = @_; 
-  return $self->treebanks->find_one({'name' => $tbname}) 
+sub _treebank{ my ($self,$tbname) = @_;
+  return $self->treebanks->find_one({'name' => $tbname})
 }
 
 
-sub _adduser{ 
-  #my ($self,$username,$password,$email,@treebanks) = @_; 
+sub _adduser{
+  #my ($self,$username,$password,$email,@treebanks) = @_;
   #return 0 if $self->user($username);
   my ($self,$user) = @_;
   return 0 if $self->pmltquser($user->{'username'});
@@ -65,7 +81,7 @@ sub _addtreebank {  my ($self,$treebank) = @_;
 }
 
 
-sub _deluser{ 
+sub _deluser{
   my ($self,$username) = @_;
   return 0 unless $self->pmltquser($username);
   $self->users->remove({'username'=>$username});
@@ -73,7 +89,7 @@ sub _deluser{
 }
 
 
-sub _deltreebank{ 
+sub _deltreebank{
   my ($self,$tbname) = @_;
   return 0 unless $self->treebank($tbname);
   $self->treebanks->remove({'name'=>$tbname});
@@ -81,18 +97,18 @@ sub _deltreebank{
 }
 
 
-sub _updateuser { 
+sub _updateuser {
   my($self,$username,$user) = @_;
-  
+
   #my $username = $d->{'username'};
   #my $data =  $d->{'data'};
-  
+
   # probíhá update všeho !!! nelze projet cyklem, musíme si předem uložit ostatní údaje - nejlépe vytágnout usera z databáze, aktualizovat ho a pak ho nahrát do databáze
   print STDERR "UPDATE: $user\n";
   print STDERR  "\tname=$username\n";
   return 0 unless $user;
-  
-  
+
+
   $self->users->update({username=>$username},$user);
   return 1;
 }

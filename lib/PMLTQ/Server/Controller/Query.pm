@@ -169,8 +169,7 @@ sub query {
     })
   }
 
-  # TODO: save history
-  # $tb->record_history($input->{query}, $self->current_user);
+  $tb->record_history($self->history_key, $input->{query}, $self->current_user);
 }
 
 =head2 query_svg

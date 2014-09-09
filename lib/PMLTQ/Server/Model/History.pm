@@ -2,7 +2,7 @@ package PMLTQ::Server::Model::History;
 
 use Mandel::Document (
   name => 'PMLTQ::Server::Document',
-  collection_name => 'users'
+  collection_name => 'histories'
 );
 
 use Types::Standard qw(Str Ref);
@@ -12,6 +12,8 @@ use DateTime;
 belongs_to treebank => 'PMLTQ::Server::Model::Treebank';
 
 belongs_to user => 'PMLTQ::Server::Model::User';
+
+field history_key => (isa => Str);
 
 field query => (isa => Str);
 

@@ -64,19 +64,20 @@ sub get_evaluator {
 
 Saves a query to the history for the current user.
 
-  $tb->record_history($query, $current_user, $callback);
+  $tb->record_history($history_key, $query, $user, $cb);
 
 =cut
 
 sub record_history {
-  my ($self, $query, $user, $cb) = @_;
+  my ($self, $history_key, $query, $user, $cb) = @_;
 
-  return unless $query and $user;
+  return unless $query and $history_key;
 
   my $rec = $self->connection->collection('history')->create({
+    history_key => $history_key,
     query => $query,
   });
-  $rec->user($user->id);
+  $rec->user($user->id) if $user;
   $rec->treebank($self->id);
 
   if ($cb) {
