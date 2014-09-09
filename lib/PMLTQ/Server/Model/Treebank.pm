@@ -2,9 +2,11 @@ package PMLTQ::Server::Model::Treebank;
 
 # ABSTRACT: Model representing a treebank
 
-use Mandel::Document 'treebanks';
+use PMLTQ::Server::Document 'treebanks';
+
 use Types::Standard qw(Str ArrayRef HashRef);
 
+use Digest::SHA qw(sha1_hex);
 use PMLTQ::SQLEvaluator;
 use Treex::PML;
 use File::Spec;
@@ -18,6 +20,7 @@ field [qw/name title driver host port database username password/] => ( isa => S
 
 field data_sources => ( isa => ArrayRef[HashRef[Str]] );
 
+has_many histories => 'PMLTQ::Server::Model::History';
 
 =head1 METHODS
 
@@ -61,23 +64,27 @@ sub get_evaluator {
 
 Saves a query to the history for the current user.
 
-  $tb->record_history($query, $current_user);
+  $tb->record_history($query, $current_user, $callback);
 
 =cut
 
 sub record_history {
-  my ($self, $query, $user) = @_;
+  my ($self, $query, $user, $cb) = @_;
 
   return unless $query and $user;
 
-  my $rec = $self->history->find_or_new({
+  my $rec = $self->connection->collection('history')->create({
     query => $query,
-    user_id => $user->id,
   });
+  $rec->user($user->id);
+  $rec->treebank($self->id);
 
-  $rec->insert_or_update;
-
-  return $rec;
+  if ($cb) {
+    $rec->save($cb)
+  } else {
+    $rec->save;
+    return $rec;
+  }
 }
 
 =head2 search
