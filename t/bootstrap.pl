@@ -9,6 +9,7 @@ use Test::PostgreSQL;
 use Test::Mojo;
 use Mojo::Util qw(b64_decode hmac_sha1_sum);
 use Mojo::JSON;
+use Mojo::URL;
 use Mojo::IOLoop::Server;
 use DBI;
 
@@ -20,12 +21,15 @@ use POSIX qw(WNOHANG);
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
 $ENV{MOJO_MODE} = 'test';
-my $mongo_database;
+my $mongo_database = "pmltq-server-test-$$";
 unless ($ENV{PMLTQ_SERVER_TESTDB}) {
-  $mongo_database = "pmltq-server-test-$$";
   $ENV{PMLTQ_SERVER_TESTDB} = "mongodb://localhost/$mongo_database";
-  test_app()->app->db->db->command(dropDatabase => 1);
+} else {
+  $ENV{PMLTQ_SERVER_TESTDB} = Mojo::URL->new($ENV{PMLTQ_SERVER_TESTDB})->path("/$mongo_database")->to_string;
 }
+
+test_app()->app->db->db->command(dropDatabase => 1);
+
 
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 my $pg_dir = File::Spec->catdir(dirname(__FILE__), 'postgres');
