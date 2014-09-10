@@ -1,8 +1,7 @@
 requires 'Mojolicious';
 requires 'Mango';
 requires 'Mandel';
-# Expect PMLTQ installed manually
-# requires 'PMLTQ'; 
+requires 'PMLTQ', '0.8.0';
 
 requires 'Mojolicious::Plugin::Bootstrap3';
 requires 'Mojolicious::Plugin::Authentication';
