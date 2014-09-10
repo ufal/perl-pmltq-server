@@ -20,9 +20,11 @@ use POSIX qw(WNOHANG);
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
 $ENV{MOJO_MODE} = 'test';
+my $mongo_database;
 unless ($ENV{PMLTQ_SERVER_TESTDB}) {
-  my $mongo_database = "pmltq-server-test";
+  $mongo_database = "pmltq-server-test-$$";
   $ENV{PMLTQ_SERVER_TESTDB} = "mongodb://localhost/$mongo_database";
+  test_app()->app->db->db->command(dropDatabase => 1);
 }
 
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
@@ -49,13 +51,23 @@ sub start_postgres {
       ($ENV{PG_LOCAL} ? (base_dir => $pg_dir) : ()), # use dir for subsequent runs to simply skip initialization
     ) or plan skip_all => $Test::PostgreSQL::errstr;
 
-    $pgsql->setup() unless (-d $pgsql->base_dir);  # create postgress dir does not exists
+    my $need_init = 0;
+
+    # create postgress dir does not exists
+    unless (-d File::Spec->catdir($pgsql->base_dir, 'data')) {
+      $pgsql->setup();
+      $need_init = 1;
+    }
 
     $pgsql->start;
 
     $pg_port = $pgsql->port;
-    $pg_restore = $ENV{PG_RESTORE} || which('pg_restore');
-    die "Cannot find pg_restore in your path and is not provided in PG_RESTORE variable either" unless $pg_restore;
+
+    if ($need_init) {
+      $pg_restore = $ENV{PG_RESTORE} || which('pg_restore');
+      die "Cannot find pg_restore in your path and is not provided in PG_RESTORE variable either" unless $pg_restore;
+      init_database();
+    }
   }
 }
 
@@ -163,7 +175,7 @@ sub init_database {
   my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
 
   my @cmd = ($pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '-w', $filename);
-  say STDERR join(' ', @cmd);
+  #say STDERR join(' ', @cmd);
   system(@cmd) == 0 or die "Restoring test database failed: $?";
 }
 
@@ -196,11 +208,7 @@ sub extract_session {
 }
 
 END {
-  my $db = test_app()->app->db->db;
-  for (@{$db->collection_names}) {
-    next if /^system/ || /\$/;
-    $db->collection($_)->drop
-   }
+  test_app()->app->db->db->command(dropDatabase => 1);
 
   if ($print_server_pid && $print_server_pid != 0) {
     kill TERM => $print_server_pid;
