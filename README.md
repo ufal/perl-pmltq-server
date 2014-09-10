@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ufal/perl-pmltq-server.png)](https://travis-ci.org/ufal/perl-pmltq-server)
+
 # PML-TQ Server - work in progress
 
 This is a refactored version of PMLTQ::CGI server. It is an implementation of PML-TQ powered by SQL database.
