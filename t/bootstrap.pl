@@ -7,6 +7,8 @@ use Test::More;
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', '..', 'Test-postgresql', 'lib'));
 use Test::PostgreSQL;
 use Test::Mojo;
+use Mojo::Util qw(b64_decode hmac_sha1_sum);
+use Mojo::JSON;
 use Mojo::IOLoop::Server;
 use DBI;
 
@@ -170,6 +172,27 @@ sub run_database {
   say STDERR "Connect to: " . $pgsql->dsn;
   say STDERR "Press CTR-C to terminate...";
   sleep;
+}
+
+sub extract_session {
+    my $t = shift;
+
+    my $jar = $t->ua->cookie_jar;
+    my $app = $t->app;
+    my $session_name = $app->sessions->cookie_name;
+
+    my ($session_cookie) = grep { $_->name eq $session_name } $jar->all;
+    return unless $session_cookie;
+
+    (my $value = $session_cookie->value) =~ s/--([^\-]+)$//;
+    my $sign = $1;
+
+    my $ok;
+    $sign eq hmac_sha1_sum($value, $_) and $ok = 1 for @{$app->secrets};
+    return unless $ok;
+
+    my $session = Mojo::JSON->new->decode(b64_decode $value);
+    return $session;
 }
 
 END {

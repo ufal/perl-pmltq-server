@@ -24,12 +24,33 @@ $t->post_ok($query_url => json => { })
   ->status_is(400)
   ->json_has('/error', 'Got error for empty query');
 
+my $session = extract_session($t);
+ok (!$session || !$session->{history_key}, 'No session or no session key');
+
 my $query = 'a-node []';
 
 $t->post_ok($query_url => json => {
   query => $query
 })->status_is(200)->or(sub { diag Dumper($t->tx->res->json) })
   ->json_has('/results/0', 'Got some results');
+
+# Check history
+$session = extract_session($t);
+ok ($session, 'Got session');
+ok ($session->{history_key}, 'Got history key');
+
+my $history_url = $t->app->url_for('treebank_history', treebank => $tb->name);
+ok ($history_url, 'Constructing url for history');
+$t->get_ok($history_url)
+  ->status_is(200);
+
+my $arr = $t->tx->res->json;
+ok (@$arr == 1, 'One item in the history');
+$t->json_has('/0/_id')
+  ->json_is('/0/history_key', $session->{history_key})
+  ->json_is('/0/query', $query)
+  ->json_has('/0/query_sum')
+  ->json_has('/0/last_use');
 
 my $print_server_url = Mojo::URL->new(start_print_server());
 

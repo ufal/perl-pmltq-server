@@ -155,10 +155,22 @@ sub query {
       push @results, $row;
     }
 
-    $self->render(json => {
-      ( $returns_nodes ? (names => [@names]) : () ),
-      results => [@results]
-    })
+    $tb->record_history($self->history_key, $input->{query}, $self->current_user, sub {
+      my($rec, $err) = @_;
+
+      return $self->status_error({
+        code => 500,
+        message => "Database error while saving history: $err"
+      }) if $err;
+
+      $self->render(json => {
+        ( $returns_nodes ? (names => [@names]) : () ),
+        results => [@results]
+      })
+    });
+
+    $self->render_later;
+    return;
   };
 
   $err = $@;
@@ -168,8 +180,6 @@ sub query {
       message => "INTERNAL SERVER ERROR: $err"
     })
   }
-
-  $tb->record_history($self->history_key, $input->{query}, $self->current_user);
 }
 
 =head2 query_svg
