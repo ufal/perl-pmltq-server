@@ -6,4 +6,6 @@ perl:
   - "5.14"
 env:
   - "HARNESS_OPTIONS=j9"
+services:
+  - mongodb
 script: "./script/pmltq-server test"
