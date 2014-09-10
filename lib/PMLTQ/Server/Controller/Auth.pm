@@ -8,8 +8,8 @@ sub login {
 }
 
 sub pmltq_logout {
-  my $self = shift; 
-  $self->logout(); 
+  my $self = shift;
+  $self->logout();
   $self->redirect_to( '/' );
 }
 
@@ -19,7 +19,7 @@ sub check {
     $self->redirect_to('/');
   } else {
     $self->flash(err => 'Invalid username or password');
-    $self->redirect_to('/');  
+    $self->redirect_to('/');
   }
 
 }
