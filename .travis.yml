@@ -1,0 +1,9 @@
+language: perl
+perl:
+  - "5.20"
+  - "5.18"
+  - "5.16"
+  - "5.14"
+env:
+  - "HARNESS_OPTIONS=j9"
+script: "./script/pmltq-server test"
