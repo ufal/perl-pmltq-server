@@ -136,16 +136,16 @@ sub add_resource_shortcut {
       my $controller = $params->{controller} || "$name#";
 
       # Generate "/$name" route, handled by controller $name
-      my $resource = $r->route("/$plural")->to($controller);
+      my $resource = $r->route("/$plural")->to(controller => $controller);
 
       # GET requests - lists the collection of this resource
-      $resource->get->to('#list')->name("list_$plural");
+      $resource->get->to(action => 'list')->name("list_$plural");
 
       # POST requests - creates a new resource
-      $resource->post->to('#create')->name("create_$name");
+      $resource->post->to(action => 'create')->name("create_$name");
 
       # New form
-      $r->get("/$name/new")->to("#new_$name")->name("new_$name");
+      $r->get("/$name/new")->to(controller => $controller, action => "new_$name")->name("new_$name");
 
       # Generate "/$name/:id" route, also handled by controller $name
 
@@ -155,13 +155,13 @@ sub add_resource_shortcut {
         to(controller => $controller, action => "find_$name", "${name}_id" => 'id');
 
       # GET requests - lists a single resource
-      $resource->get->to('#show')->name("show_$name");
+      $resource->get->to(controller => $controller, action => 'show')->name("show_$name");
 
       # DELETE requests - deletes a resource
-      $resource->delete->to('#remove')->name("delete_$name");
+      $resource->delete->to(controller => $controller, action => 'remove')->name("delete_$name");
 
       # PUT requests - updates a resource
-      $resource->put->to('#update')->name("update_$name");
+      $resource->put->to(controller => $controller, action => 'update')->name("update_$name");
 
       # return "/$name/:id" route so that potential child routes make sense
       return $resource;
