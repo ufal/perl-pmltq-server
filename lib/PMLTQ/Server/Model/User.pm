@@ -2,24 +2,27 @@ package PMLTQ::Server::Model::User;
 
 # ABSTRACT: Model representing an user
 
-use Mandel::Document 'users';
-use Types::Standard qw(Str ArrayRef HashRef);
+use PMLTQ::Server::Document 'users';
 
+use Types::Standard qw(Str ArrayRef Bool HashRef);
+#use List::Util qw(any);
 
-field [qw/username name pass active  database username/] => ( isa => Str );
-#has_many treebanks => PMLTQ::Server::Model::Treebank;
-#has_many privs => PMLTQ::Server::Model::Privileges;
+has_many histories => 'PMLTQ::Server::Model::History';
 
-field data_source => ( isa => ArrayRef[HashRef[Str]] );
+field [qw/name username password email/] => (isa => Str);
 
+field [qw/is_active/] => (isa => Bool);
 
+list_of available_treebanks => 'PMLTQ::Server::Model::Treebank';
 
-### pouze operace nad jedním uživatelem !!!
+list_of permissions => 'PMLTQ::Server::Model::Permission';
 
-sub update {}
-sub delete {}
-sub privs {}
-sub treebanks {}
+sub has_permission {
+  my ($self, $permission) = @_;
 
+  my $permissions = $self->permissions;
+  return 0 unless @{$permissions};
+  List::Util::any { $_->name||'' eq $permission } @{$permissions};
+}
 
 1;

@@ -2,9 +2,11 @@ package PMLTQ::Server::Model::Treebank;
 
 # ABSTRACT: Model representing a treebank
 
-use Mandel::Document 'treebanks';
+use PMLTQ::Server::Document 'treebanks';
+
 use Types::Standard qw(Str ArrayRef HashRef);
 
+use Digest::SHA qw(sha1_hex);
 use PMLTQ::SQLEvaluator;
 use Treex::PML;
 use File::Spec;
@@ -16,8 +18,9 @@ use URI;
 
 field [qw/name title driver host port database username password/] => ( isa => Str );
 
-field data_source => ( isa => ArrayRef[HashRef[Str]] );
+field data_sources => ( isa => ArrayRef[HashRef[Str]] );
 
+has_many histories => 'PMLTQ::Server::Model::History';
 
 =head1 METHODS
 
@@ -61,23 +64,28 @@ sub get_evaluator {
 
 Saves a query to the history for the current user.
 
-  $tb->record_history($query, $current_user);
+  $tb->record_history($history_key, $query, $user, $cb);
 
 =cut
 
 sub record_history {
-  my ($self, $query, $user) = @_;
+  my ($self, $history_key, $query, $user, $cb) = @_;
 
-  return unless $query and $user;
+  return unless $query and $history_key;
 
-  my $rec = $self->history->find_or_new({
+  my $rec = $self->connection->collection('history')->create({
+    history_key => $history_key,
     query => $query,
-    user_id => $user->id,
   });
+  $rec->user($user->id) if $user;
+  $rec->treebank($self->id);
 
-  $rec->insert_or_update;
-
-  return $rec;
+  if ($cb) {
+    $rec->save($cb)
+  } else {
+    $rec->save;
+    return $rec;
+  }
 }
 
 =head2 search
@@ -139,7 +147,7 @@ sub locate_file {
     for my $what ('__#files','__#references') {
       my $n = $schema->[0].$what;
       next if $n=~/"/;          # just for sure
-      print STDERR "testing: $what $n $f\n";
+      #print STDERR "testing: $what $n $f\n";
       my $count = $evaluator->run_sql_query(qq{SELECT count(1) FROM "$n" WHERE "file"=?}, {
           RaiseError=>1,
           Bind=>[ $f ],
@@ -174,17 +182,17 @@ sub resolve_data_path {
   my $path;
   if (defined($schema_name) and defined($data_dir)) {
     $f = $new_filename if defined $new_filename;
-    my ($sources) = map $_->path, grep { $_->schema eq $schema_name } $self->data_sources;
+    my ($sources) = map $_->{path}, grep { $_->{schema} eq $schema_name } @{$self->data_sources};
 
     if ($sources) {
       $path = URI::file->new($f)->abs(URI::file->new($sources.'/'))->file;
-      print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
+      #print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
     } else {
       $path = URI::file->new($f)->abs(URI::file->new($data_dir.'/'))->file;
-      print STDERR "F: schema '$schema_name', file: $f, located: $path in data-dir\n";
+      #print STDERR "F: schema '$schema_name', file: $f, located: $path in data-dir\n";
     }
   } else {
-    print STDERR "did not find $f in the database\n";
+    #print STDERR "did not find $f in the database\n";
     my $uri = URI->new($f);
     if (!$uri->scheme) { # it must be a relative URI
       $uri->scheme('file'); # convert it to file URI

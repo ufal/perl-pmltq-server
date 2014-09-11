@@ -8,6 +8,7 @@ use File::Spec;
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
 my $t = Test::Mojo->new('PMLTQ::Server');
+$t->ua->max_redirects(10);
 $t->get_ok('/')->status_is(200);
 
 done_testing();

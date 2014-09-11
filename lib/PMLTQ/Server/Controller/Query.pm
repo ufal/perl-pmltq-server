@@ -155,10 +155,22 @@ sub query {
       push @results, $row;
     }
 
-    $self->render(json => {
-      ( $returns_nodes ? (names => [@names]) : () ),
-      results => [@results]
-    })
+    $tb->record_history($self->history_key, $input->{query}, $self->current_user, sub {
+      my($rec, $err) = @_;
+
+      return $self->status_error({
+        code => 500,
+        message => "Database error while saving history: $err"
+      }) if $err;
+
+      $self->render(json => {
+        ( $returns_nodes ? (names => [@names]) : () ),
+        results => [@results]
+      })
+    });
+
+    $self->render_later;
+    return;
   };
 
   $err = $@;
@@ -168,9 +180,6 @@ sub query {
       message => "INTERNAL SERVER ERROR: $err"
     })
   }
-
-  # TODO: save history
-  # $tb->record_history($input->{query}, $self->current_user);
 }
 
 =head2 query_svg
@@ -295,7 +304,7 @@ sub query_svg {
         my ($err, $code) = $tx->error;
         $self->status_error({
           code => $code||500,
-          message => "$err"
+          message => ref $err ? $err : "$err"
         })
       }
     });
@@ -372,7 +381,7 @@ sub result_svg {
   eval {
     my ($f) = $tb->get_evaluator
       ->idx_to_pos([$input->{nodes}->[0]]);
-    print STDERR "$f\n";
+    #print STDERR "$f\n";
     if ($f) {
       $input->{tree}=$1 if ($f=~s{##(\d+)(?:\.\d+)?}{} and !$input->{tree});
       $path = $tb->resolve_data_path($f);

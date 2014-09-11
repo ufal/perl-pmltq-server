@@ -10,5 +10,6 @@ $ENV{PG_LOCAL}=1; # setup local
 
 require 'bootstrap.pl';
 
+start_postgres();
 init_database();
 run_database();
