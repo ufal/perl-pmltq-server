@@ -111,3 +111,5 @@ sub delete {
 
   $c->render_later;
 }
+
+1;
