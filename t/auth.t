@@ -7,7 +7,6 @@ use Mojo::UserAgent::CookieJar;
 use File::Basename 'dirname';
 use File::Spec;
 use Data::Dumper;
-use Carp::Always;
 
 use lib dirname(__FILE__);
 
