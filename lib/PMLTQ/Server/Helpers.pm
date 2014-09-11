@@ -53,6 +53,7 @@ sub _adduser{
   #return 0 if $self->user($username);
   my ($self,$user) = @_;
   return 0 if $self->pmltquser($user->{'username'});
+  $user->{'privs'}->{'selfupdate'} = 1 if $user->{'privs'}->{'admin'};
   $self->users->insert($user);
   return 1;
 }
@@ -83,16 +84,8 @@ sub _deltreebank{
 
 sub _updateuser { 
   my($self,$username,$user) = @_;
-  
-  #my $username = $d->{'username'};
-  #my $data =  $d->{'data'};
-  
-  # probíhá update všeho !!! nelze projet cyklem, musíme si předem uložit ostatní údaje - nejlépe vytágnout usera z databáze, aktualizovat ho a pak ho nahrát do databáze
-  print STDERR "UPDATE: $user\n";
-  print STDERR  "\tname=$username\n";
   return 0 unless $user;
-  
-  
+  $user->{'privs'}->{'selfupdate'} = 1 if $user->{'privs'}->{'admin'};
   $self->users->update({username=>$username},$user);
   return 1;
 }

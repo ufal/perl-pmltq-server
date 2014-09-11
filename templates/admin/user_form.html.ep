@@ -13,34 +13,6 @@
 %   $A = 'A' unless $user;
 %}
 <h1><%= $A eq 'A' ? ('Add new user') : ("Update ".$user->{'name'}) %></h1>
-nefungují treebanky !!!<br>
-<!--
-<form action="/admin/user/<%=(($A eq 'A')?'add':'update')%>" method="post">
-  % #            NAME         LABEL           TYPE                        VALUE                              ADITIONAL SET
-  %for my $f (( ["name",      "Name",         ($A eq 'A')?"text":"hidden",($A eq 'A')?"":$user->{'name'},    "required"],
-  %             ["username",  "Username",     ($A eq 'A')?"text":"hidden",($A eq 'A')?"":$user->{'username'},""],
-  %             ["email",     "Email",        "email",                    ($A eq 'A')?"":$user->{'email'},   "required"],
-  %             ["pass",      "Password",     "password",                 "",                                ""],
-  %             ["active",    "Active",       "checkbox",                 "1",                               ($A eq 'A' || $user->{'active'}    ?"checked":"")],
-  %             ["selfupdate","Selfupdatable","checkbox",                 "1",                               ($A eq 'A' || $user->{'selfupdate'}?"checked":"")],
-  %             ["admin",     "Admin",        "checkbox",                 "1",                               ($A eq 'A')?"" :($user->{'admin'}  ?"checked":"")]
-  %             )){
-    <%=$f->[1]%> <input class="" name="<%=$f->[0]%>" value="<%=$f->[3]%>" type="<%=$f->[2]%>" <%=$f->[4]%>/>
-  %}
-  %for my $t (@treebanks) {
-      <p>
-        <input type="checkbox" name="<%=$t%>" <%=$A eq 'U' && $user->{'treebanks'}->{$t} ? "checked" : "" %> >
-      %= $t
-      </p>
-  % }  
-
-  
-TODO: tags
-  
-  %= submit_button 'Add'
-  
-</form>
-  -->
   
 <script src="/js/validator.js"></script>
 <form action="/admin/user/<%=(($A eq 'A')?'add':'update')%>" method="post" data-toggle="validator" role="form">
@@ -65,7 +37,7 @@ TODO: tags
     <label for="email" class="control-label">Email</label>
     <div class="input-group">
       <span class="input-group-addon">@</span>
-      <input type="email" class="form-control" name="email" id="email">
+      <input type="email" class="form-control" name="email" id="email" <%=(($A eq 'A')?'':'value='.$user->{'email'})%> >
     </div>
     <span class="help-block with-errors"></span>
   </div>
@@ -83,8 +55,8 @@ TODO: tags
 
   <div class="form-group">
   %for my $f (( ["active",    "Active",       "checkbox",                 "1",                               ($A eq 'A' || $user->{'active'}    ?"checked":"")],
-  %             ["selfupdate","Selfupdatable","checkbox",                 "1",                               ($A eq 'A' || $user->{'selfupdate'}?"checked":"")],
-  %             ["admin",     "Admin",        "checkbox",                 "1",                               ($A eq 'A')?"" :($user->{'admin'}  ?"checked":"")]
+  %             ["selfupdate","Selfupdatable","checkbox",                 "1",                               ($A eq 'A' || $user->{'privs'}->{'selfupdate'}?"checked":"")],
+  %             ["admin",     "Admin",        "checkbox",                 "1",                               ($A eq 'A')?"" :($user->{'privs'}->{'admin'}  ?"checked":"")]
   %             )){
     <div class="<%=$f->[2]%>">
       <label>
@@ -105,12 +77,7 @@ TODO: tags
     </div>
   % }  
   </div>
-
-
-
-  
-
-    <div class="form-group">
+  <div class="form-group">
     <button type="submit" class="btn btn-primary"><%= $A eq 'A' ? 'Add' : 'Update' %></button>
   </div>
 </form>
