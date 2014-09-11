@@ -1,27 +1,27 @@
 package PMLTQ::Server::Controller::Auth;
 use Mojo::Base 'Mojolicious::Controller';
 
-sub login {
-  my $self = shift;
-  # Render template "auth/login.html.ep" with a login form
-  $self->render;
-}
+sub index {
+  my $c = shift;
 
-sub pmltq_logout {
-  my $self = shift;
-  $self->logout();
-  $self->redirect_to( '/' );
-}
-
-sub check {
-  my $self = shift;
-  if($self->authenticate($self->param('username'),$self->param('pass'))){
-    $self->redirect_to('/');
-  } else {
-    $self->flash(err => 'Invalid username or password');
-    $self->redirect_to('/');
+  if ($c->req->method eq 'POST') {
+    if($c->authenticate($c->param('username'),$c->param('password'))){
+      $c->redirect_to($c->url_for('admin_welcome'));
+      return;
+    } else {
+      $c->flash(error => 'Invalid username or password');
+      $c->res->code(400); # 400 Invalid parameters
+    }
   }
 
+  # Render template "auth/login.html.ep" with a login form
+  $c->render(template => 'auth/login');
+}
+
+sub sign_out {
+  my $c = shift;
+  $c->logout();
+  $c->redirect_to( '/' );
 }
 
 1;

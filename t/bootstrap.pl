@@ -30,7 +30,6 @@ unless ($ENV{PMLTQ_SERVER_TESTDB}) {
 
 test_app()->app->db->db->command(dropDatabase => 1);
 
-
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 my $pg_dir = File::Spec->catdir(dirname(__FILE__), 'postgres');
 my $pg_expect_running = -d $pg_dir;

@@ -2,13 +2,11 @@ package PMLTQ::Server::Controller::Admin;
 use Mojo::Base 'Mojolicious::Controller';
 
 use utf8;
-use Unicode::Normalize; 
+use Unicode::Normalize;
 use Encode;
 sub welcome {
-  my $self = shift;
-  #$self->redirect_to("/");
-
-  #$self->render(text=>"LOGGED !!! '". $self->current_user->{'name'}."'");
+  my $c = shift;
+  $c->render(template => 'admin/welcome');
 }
 sub testuserexist {
   my $self = shift;
@@ -29,7 +27,7 @@ sub adduser {
 #  print STDERR " TODO send pass via email if does not exists !!!\n";
 #  print STDERR join(" ",map {$_->{'name'}}  @{$self->treebanks->find->all}),"\n";
 #  print STDERR join(" ",$self->param),"\n";
-  
+
   my %treebanks = map {$_->{'name'}=>1} grep {$self->param($_->{'name'})}  @{$self->treebanks->find->all};
 #  print STDERR "TREEBANKS: ",join(" ",keys(%treebanks)),"\n";
   my %privs = map {$_=>1} grep {$self->param($_)}  qw/admin selfupdate/;
@@ -104,7 +102,7 @@ sub updatetreebank {
 
 
 sub generate_username
-{  
+{
   my $self = shift;
   my $str = shift;
   use Lingua::Translit;
@@ -114,10 +112,10 @@ sub generate_username
   $str = $tr->translit($str);
   #  $str = decode("utf8", $str);
   $str = NFD($str);
-  $str =~ s/\pM//og;  
+  $str =~ s/\pM//og;
   $str =~ tr/A-Z /a-z./;
   $str =~ s/[^A-Za-z0-9\.]//g;
-  
+
   $str =~ s/^\.*//;
   $str =~ s/\.*$//;
   $str =~ s/\.+/\./;
@@ -146,7 +144,7 @@ sub generate_pass
     } else {
       $a =  chr(int(rand( ord('z')-ord('a')+1 )) + ord('a')) ;
     }
-    
+
     $pass.=  $a;
     $i--;
   }
