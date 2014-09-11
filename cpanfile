@@ -1,6 +1,6 @@
 requires 'Mojolicious';
 requires 'Mango';
-requires 'Mandel';
+requires 'Mandel', '0.23';
 requires 'PMLTQ', '0.8.2';
 
 requires 'Mojolicious::Plugin::Bootstrap3';
