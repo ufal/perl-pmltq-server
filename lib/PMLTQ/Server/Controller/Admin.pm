@@ -105,7 +105,7 @@ sub generate_username
 {
   my $self = shift;
   my $str = shift;
-  use Lingua::Translit;
+  # use Lingua::Translit;
   my $tr = new Lingua::Translit("ISO 843"); # greek
   $str = $tr->translit($str);
   $tr = new Lingua::Translit("ISO 9"); # Cyrillic
