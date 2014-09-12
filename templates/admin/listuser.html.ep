@@ -4,12 +4,14 @@
 % my @treebanks = map {$_->{'name'}} @{app->treebanks->find->all};
 
 <h1>List of users</h1>
-<%= link_to '/admin/user/add'=> begin %> Add user <% end %>
-
+<%= link_to '/admin/user/add' => begin %> Add user <% end %>
+<button type="button" class="btn btn-default btn-lg">
+  %= link_to ' Add' => '/admin/user/add' => ( class=>"glyphicon glyphicon-plus-sign")
+</button>
 <table class="table table-hover table-responsive rotate-head-45">
   <thead>
     <tr>
-%for my $k (qw/username name email pass/,@treebanks) {
+  %for my $k ('','','', qw/username name email pass/,@treebanks,'','') {
       <td>
         %= $k
       </td>
@@ -20,6 +22,19 @@
 % for my $u (@{app->users->find->all}){
   
     <tr>
+    <td>
+      % if($u->{'active'} == 1){
+      %= tag 'span' => (class => 'glyphicon glyphicon-ok-sign')
+      % }
+    </td>    
+%for my $p ((['selfupdate','glyphicon glyphicon-pencil'],['admin','glyphicon glyphicon-cog'])) {
+      <td>
+      % if($u->{'privs'}->{$p->[0]} == 1){
+      %= tag 'span' => (class => $p->[1])
+      % }
+      </td>
+  % }
+
   %for my $k (qw/username name email pass/) {
       <td>
       %= $u->{$k}
@@ -28,13 +43,13 @@
   %for my $t (@treebanks) {
       <td>
       %if($u->{'treebanks'}->{$t}) {
-        X
+        %= tag 'span' => (class => 'glyphicon glyphicon-eye-open')
       %}
       </td>
   % }
-  %for my $a (qw/delete update/) {
+  %for my $a ((['update','glyphicon glyphicon-edit'],['delete','glyphicon glyphicon-trash'])) {
       <td>
-      %= link_to $a => url_for("/admin/user/$a")->query(username=>$u->{'username'})->to_abs 
+      %= link_to ''  => url_for("/admin/user/$a->[0]")->query(username=>$u->{'username'})->to_abs => (class => $a->[1])
       </td>
   % }
   

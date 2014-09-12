@@ -48,7 +48,7 @@ sub adduser {
 sub deluser {
   my $self = shift;
   $self->flash(err => 'user does not exist') unless $self->app->deluser($self->param('username'));
-  $self->redirect_to("/admin");
+  $self->redirect_to("/admin/user/list");
 }
 
 sub updateuser {
@@ -84,7 +84,7 @@ sub updateuser_form{
 sub addtreebank {
   my $self = shift;
   $self->flash(err => 'treebank already exists !!!') unless $self->app->addtreebank({name=>$self->param('name'),visible=>$self->param('visible'),public=>$self->param('public'),anonaccess=>$self->param('anonaccess')});
-  $self->redirect_to("/admin");
+  $self->redirect_to("/admin/treebank/list");
 }
 
 
@@ -92,12 +92,12 @@ sub deltreebank {
   my $self = shift;
   $self->flash(err => 'user does not exist') unless $self->app->deltreebank($self->param('username'));
 
-  $self->redirect_to("/admin");
+  $self->redirect_to("/admin/treebank/list");
 }
 sub updatetreebank {
   my $self = shift;
   $self->flash(err => 'TODO: updatetreebank');
-  $self->redirect_to("/admin");
+  $self->redirect_to("/admin/treebank/list");
 }
 
 

@@ -64,6 +64,7 @@ sub register {
   # $self->helper(deltreebank => \&_deltreebank);
   # # UPDATE
   # $self->helper(updateuser     => \&_updateuser);
+
   #ERROR
   $app->helper(status_error => \&_status_error);
 }
@@ -99,6 +100,7 @@ sub _adduser{
   #return 0 if $self->user($username);
   my ($self,$user) = @_;
   return 0 if $self->pmltquser($user->{'username'});
+  $user->{'privs'}->{'selfupdate'} = 1 if $user->{'privs'}->{'admin'};
   $self->users->insert($user);
   return 1;
 }
@@ -137,8 +139,7 @@ sub _updateuser {
   print STDERR "UPDATE: $user\n";
   print STDERR  "\tname=$username\n";
   return 0 unless $user;
-
-
+  $user->{'privs'}->{'selfupdate'} = 1 if $user->{'privs'}->{'admin'};
   $self->users->update({username=>$username},$user);
   return 1;
 }
