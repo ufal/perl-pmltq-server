@@ -11,29 +11,59 @@ use List::Util qw(min);
 
 
 sub register {
-  my ($self, $app) = @_;
+  my ($self, $app, $conf) = @_;
   $app->helper(mango => sub { shift->app->db });
   $app->helper(mandel => sub { shift->app->mandel });
-  $app->app->mandel->initialize;
+  $app->mandel->initialize;
 
   # History
   $app->helper(history_key => \&_history_key);
 
-  # COLLECTIONS
-  $app->helper(users       => sub { shift->app->mango->db->collection('users') });
-  $app->helper(treebanks   => sub { shift->mango->db->collection('treebanks') });
-  # ELEMENT IN COLLECTION
-  $app->helper(pmltquser        => \&_pmltquser);
-  $app->helper(treebank    => \&_treebank);
-  # ADD
-  $app->helper(adduser     => \&_adduser);
+  # Add admin user if not present
+  $app->mandel->collection('user')->count(sub {
+    my ($users, $err, $int) = @_;
 
-  $app->helper(addtreebank => \&_addtreebank);
-  # DELETE
-  $app->helper(deluser     => \&_deluser);
-  $app->helper(deltreebank => \&_deltreebank);
-  # UPDATE
-  $app->helper(updateuser     => \&_updateuser);
+    return unless ($int == 0 && !$err);
+    $app->mandel->collection('permission')->search({name => 'admin'})->single(sub {
+      my($permissions, $err, $admin_permission) = @_;
+      unless ($admin_permission) {
+        $admin_permission = $permissions->create({
+          name => 'admin',
+          comment => 'All powerfull admin'
+        });
+        $admin_permission->save();
+      }
+
+      my $admin = $users->create({
+        name => 'Super Admin',
+        username => 'admin',
+        password => 'admin',
+      });
+
+      $admin->save(sub {
+        my ($admin, $err) = @_;
+
+        $app->log->error("Creating admin user failed: $err") if $err;
+        $admin->push_permissions($admin_permission) if ($admin);
+      });
+    });
+  });
+
+  # # COLLECTIONS
+  # $self->helper(users       => sub { shift->mango->collection('users') });
+  # $self->helper(treebanks   => sub { shift->mango->collection('treebanks') });
+  # # ELEMENT IN COLLECTION
+  # $self->helper(pmltquser        => \&_pmltquser);
+  # $self->helper(treebank    => \&_treebank);
+  # # ADD
+  # $self->helper(adduser     => \&_adduser);
+
+  # $self->helper(addtreebank => \&_addtreebank);
+  # # DELETE
+  # $self->helper(deluser     => \&_deluser);
+  # $self->helper(deltreebank => \&_deltreebank);
+  # # UPDATE
+  # $self->helper(updateuser     => \&_updateuser);
   #ERROR
   $app->helper(status_error => \&_status_error);
 }
