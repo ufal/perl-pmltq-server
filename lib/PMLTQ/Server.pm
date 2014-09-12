@@ -23,6 +23,7 @@ sub startup {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
   $self->plugin('PMLTQ::Server::Helpers');
+  $self->plugin('ParamExpand');
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin(Authentication => {
     autoload_user => 0,
@@ -133,7 +134,7 @@ sub add_resource_shortcut {
 
       # resource routes might be chained, so we need to define an
       # individual id and pass its name to the controller (idname)
-      $resource = $r->bridge("/$name/:id", 'id' => qr/\d+/)->
+      $resource = $r->bridge("/$name/:id", 'id' => qr/[a-z0-9]+/)->
         to(controller => $controller, action => "find_$name", "${name}_id" => 'id');
 
       # GET requests - lists a single resource
