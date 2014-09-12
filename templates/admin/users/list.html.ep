@@ -1,2 +1,40 @@
-% layout 'default';
-% title 'Users';
+% layout 'admin';
+% title 'List of Users';
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="btn-group">
+      <a href="<%= url_for('new_user') %>" class="btn btn-primary">Add New User</a>
+    </div>
+    <div class="table-responsive">
+      <table id="user-list" class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Password</th>
+            <th>Email</th>
+            <th>Is Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for my $user (@$users) { %>
+          <tr>
+            <td><%= $user->name %></td>
+            <td><%= $user->username %></td>
+            <td><%= $user->password %></td>
+            <td><%= $user->email %></td>
+            <td><%= $user->is_active %></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<% content_for javascript => begin %>
+  <%= javascript begin %>
+  $('#user-list').DataTable();
+  <% end %>
+<% end %>

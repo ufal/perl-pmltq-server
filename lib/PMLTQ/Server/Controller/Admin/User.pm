@@ -29,7 +29,9 @@ sub list {
 }
 
 sub new_user {
-  shift->render(template => 'admin/users/form');
+  my $c = shift;
+  $c->stash(user => undef);
+  $c->render(template => 'admin/users/form');
 }
 
 sub create {

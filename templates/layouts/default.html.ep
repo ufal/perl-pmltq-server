@@ -15,8 +15,11 @@
   <!-- Toastr CSS -->
   <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
 
+  <!-- DataTables CSS -->
+  <link href="//cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css" />
+
   <!-- Custom CSS -->
-  <%= stylesheet 'css/pmltq-admin.css' %>
+  <%= stylesheet '/css/pmltq-admin.css' %>
 
   <!-- Custom Fonts -->
   <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
@@ -29,14 +32,21 @@
   <![endif]-->
 </head>
 <body>
-
-  <%= content %>
-
+  <div id="wrapper">
+  <%= content 'header' %>
+  <%= content 'body' %>
+  <%= content 'footer' %>
+  </div>
+  <!-- /#wrapper -->
   <!-- jQuery Version 2.1.1 -->
   <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
 
   <!-- Bootstrap Core JavaScript -->
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+  <!-- DataTables JavaScript -->
+  <script src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+  <script src="//cdn.datatables.net/plug-ins/725b2a2115b/integration/bootstrap/3/dataTables.bootstrap.js"></script>
 
 <% if (session('flash') || session('new_flash')) { %>
   <!-- Latest version of Toastr JavaScript -->
@@ -65,5 +75,6 @@
     <% } %>
   <% end %>
 <% } %>
+  <%= content 'javascript' %>
 </body>
 </html>

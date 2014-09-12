@@ -49,6 +49,12 @@ sub register {
     });
   });
 
+  # Common access helpers
+  $app->helper(users         => sub { shift->mandel->collection('user') });
+  $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
+  $app->helper(permissions   => sub { shift->mandel->collection('permission') });
+  $app->helper(history       => sub { shift->mandel->collection('history') });
+
   # # COLLECTIONS
   # $self->helper(users       => sub { shift->mango->collection('users') });
   # $self->helper(treebanks   => sub { shift->mango->collection('treebanks') });
