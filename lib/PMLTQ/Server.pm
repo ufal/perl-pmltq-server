@@ -23,7 +23,6 @@ sub startup {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
   $self->plugin('PMLTQ::Server::Helpers');
-  $self->plugin('Bootstrap3');
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin(Authentication => {
     autoload_user => 0,
@@ -41,6 +40,7 @@ sub startup {
         username => $username||'',
         password => $password||'',
       })->distinct('_id')};
+      $self->app->log->debug('Authentication failed') unless $user_id;
       return defined $user_id ? "$user_id" : undef;
     }
   });
@@ -77,25 +77,26 @@ sub startup {
   $r->any('/' => sub {
     my $c = shift;
     unless ($c->is_user_authenticated) {
-      $c->redirect_to($c->url_for('auth'));
+      $c->redirect_to($c->url_for('auth_login'));
       return;
     }
     $c->redirect_to($c->url_for('admin_welcome'));
   })->name('home');
 
-  # Autheticate routes
+  # Authetication routes
   my $auth = $r->route('/auth')->to(controller => 'Auth');
   $auth->any([qw/GET POST/])->to(action => 'index')->name('auth_login');
-  $auth->get('/logout')->to(action => 'pmltq_logout')->name('auth_logout');
+  $auth->get('/logout')->to(action => 'sign_out')->name('auth_logout');
 
   my $admin = $r->route('/admin')->over(authenticated => 1, has_priv => 'admin')->to(controller => 'Admin');
   $admin->get->to(action => 'welcome')->name('admin_welcome');
   $admin->resource('user', controller => 'Admin::User');
   $admin->resource('treebank', controller => 'Admin::Treebank');
 
-  my $profile = $r->get('/profile')->over(authenticated => 1)->to('Profile#index');
+  my $profile = $r->get('/profile')->over(authenticated => 1)->to('Profile#index')->name('user_profile');
   $profile->any([qw/GET POST/] => 'update')->over(has_priv => 'selfupdate')->to('Profile#update');
 
+  # Treebank API
   my $treebank = $r->bridge('/:treebank')->
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
   $treebank->get ('metadata')->to('#metadata');
