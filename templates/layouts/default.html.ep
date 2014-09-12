@@ -1,84 +1,69 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    %= asset "bootstrap.css"
-    %= asset "bootstrap.js"
-    <title><%= title %></title>
-  </head>
-  <body>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PML-TQ Server infrastructure">
+  <meta name="author" content="">
 
+  <title>PML-TQ Server</title>
 
-<div class="navbar navbar-default" role="navigation">
+  <!-- Bootstrap Core CSS -->
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 
+  <!-- Toastr CSS -->
+  <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
 
+  <!-- Custom CSS -->
+  <%= stylesheet 'css/pmltq-admin.css' %>
 
-        <div class="container">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-              <span class="sr-only">Navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">PMLTQ SERVER</a>
-          </div>
-          <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-              
-<!--
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
--->           
-              %if (is_user_authenticated and has_priv('admin')){
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Server settings <span class="caret"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                  <li class="dropdown-header">PMLTQ users</li>
-                  <li><%= link_to '/admin/user/add'=> begin %> Add user <% end %></li>
-                  <li><%= link_to '/admin/user/list' => begin %> Users <% end %></li>
-                  <li class="divider"></li>
-                  <li class="dropdown-header">Treebanks</li>
-                  <li><%= link_to '/admin/treebank/add'=> begin %> Add treebank <% end %></li>
-                  <li><%= link_to url_for("/admin/treebank/list")->to_abs => begin %> Treebanks <% end %></li>
-                  
-                </ul>
-              </li>
-             %}
-              
-            </ul>
+  <!-- Custom Fonts -->
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
-             %if (is_user_authenticated){
-            <ul class="nav navbar-nav pull-right">
-             <li> <%= link_to current_user->{'name'} => '/profile'%></li>
-             <li><a href="/logout">Logout</a></li>
-            </ul>
-             %} else {
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
 
-<form class="form-inline navbar-form pull-right" action="/" method="post" role="form">
-  <div class="form-group">
-    <label class="sr-only" for="username">Username</label>
-    <input type="text" class="form-control outline" name="username" placeholder="Username">
-  </div>
-  <div class="form-group">
-    <label class="sr-only" for="pass">Password</label>
-    <input type="password" class="form-control outline" name="pass" placeholder="Password">
-  </div>
-  <button type="submit" class="btn btn-default">Sign in</button>
-</form>             
-             %}   
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
-<div class="container">
-  <div class="page-header">
-    <h1 style="text-align:center"><%= title %></h1>
-  </div>
   <%= content %>
-</div>  
 
-  </body>
+  <!-- jQuery Version 2.1.1 -->
+  <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+
+  <!-- Bootstrap Core JavaScript -->
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+<% if (session('flash') || session('new_flash')) { %>
+  <!-- Latest version of Toastr JavaScript -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+  <%= javascript begin %>
+    toastr.options = {
+      closeButton: true,
+      debug: false,
+      positionClass: 'toast-top-full-width',
+      onclick: null,
+      showDuration: 300,
+      hideDuration: 1000,
+      timeOut: 5000,
+      extendedTimeOut: 15000,
+      showEasing: 'swing',
+      hideEasing: 'linear',
+      showMethod: 'fadeIn',
+      hideMethod: 'fadeOut'
+    }
+    <%
+    my $flash = { %{session('flash')||{}}, %{session('new_flash')||{}} };
+    for my $type (qw/warning success error/) {
+      next unless $flash->{$type};
+    %>
+    toastr['<%= $type %>']('<%= $flash->{$type} %>', '<%= ucfirst($type) %>');
+    <% } %>
+  <% end %>
+<% } %>
+</body>
 </html>
-
-
-

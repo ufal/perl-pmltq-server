@@ -1,123 +1,32 @@
 % layout 'default';
 % title 'PMLTQ Server Login';
 
-
-% if(is_user_authenticated){
-
-%} else {
-
-<div id="login-content">
-
-%= form_for '/' => (method => 'POST') => begin
-  %= label_for username => 'Username'
-  %= text_field 'username'
-  %= label_for pass => 'Password'
-  %= password_field 'pass'
-  %= submit_button 'Sign In'
-  
-% end
-<br>
-% if (my $msg = flash 'err') {
-  <b style="color:red;"><%= $msg %></b><br>
-% }
+<div class="container">
+  <div class="row">
+    <div class="col-md-4 col-md-offset-4">
+      <div class="login-panel panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Please Sign In</h3>
+        </div>
+        <div class="panel-body">
+          <%= form_for url_for('auth'), method => 'post', begin %>
+            <fieldset>
+              <div class="form-group">
+                <%= text_field username => param('username'), class => 'form-control', placeholder => 'Username', autofocus => 'autofocus' %>
+              </div>
+              <div class="form-group">
+                <%= password_field 'password', class => 'form-control', placeholder => 'Password' %>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <%= check_box remember => param('remember') %>Remember Me
+                </label>
+              </div>
+              <input type="submit" class="btn btn-lg btn-success btn-block" value="Login" />
+            </fieldset>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-%}
-
-
-<h1> Realy big table </h1>
-<table class="table table-hover table-responsive">
-  <thead>
-    <tr>
-%for my $k (0..(26*26-1)) {
-      <td>
-        %= $k
-      </td>
-% }
-    </tr>
-  </thead>
-  <tbody>
-% for my $u (0..25){
-  
-    <tr>
-  %for my $k (0..25) {
-  %for my $j (0..25) {
-      <td>
-      %= chr(65+$k).chr(65+$j)
-      </td>
-  % }
-  % }
-  
-    </tr>
-% }
-  </tbody>
-
-</table>
-
-<h1> Temporary content </h1>
-
-
-<h2>Users</h2>
-<table>
-%for my $k (qw/username name email pass/) {
-    <td><b>
-      %= $k
-    </b></td>
-% }
-% for my $u (@{app->users->find->all}){
-  
-  <tr>
-  %for my $k (qw/username name email pass/) {
-    <td>
-      %= $u->{$k}
-    </td>
-  % }
-  %for my $a (qw/delete update/) {
-    <td>
-      %= link_to $a => url_for("/admin/user/$a")->query(username=>$u->{'username'})->to_abs 
-    </td>
-  % }
-  
-  </tr>
-% }
-
-</table>
-
-<h2>Treebanks</h2>
-<table>
-%for my $k (qw/name visible public anonaccess/) {
-    <td><b>
-      %= $k
-    </b></td>
-% }
-% for my $u (@{app->treebanks->find->all}){
-  
-  <tr>
-  %for my $k (qw/name/) {
-    <td>
-      %= $u->{$k}
-      
-    </td>
-  % }
-  %for my $k (qw/visible public anonaccess/) {
-    <td>
-      % if($u->{$k}){
-      %= $u->{$k}
-      % }
-    </td>
-  % }  
-  %for my $a (qw/delete update/) {
-    <td>
-      %= link_to $a => url_for("/admin/treebank/$a")->query(name=>$u->{'name'})->to_abs 
-    </td>
-  % }
-  
-  </tr>
-% }
-
-</table>
-
-<h2>Privs</h2>
-TODO
-
-
-

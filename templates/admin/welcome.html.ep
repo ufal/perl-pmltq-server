@@ -1,11 +1,4 @@
-% layout 'default';
-% title 'PMLTQ Administration';
+% layout 'admin';
+% title 'Overview';
 
-<h1>Welcome <%= current_user->{'name'} %></h1>
 
-%= link_to logout => 'logout'
-<br />
-
-<%= link_to url_for("/admin/user/list")->to_abs => begin %> List of users <% end %>
-<br />
-<%= link_to url_for("/admin/treebank/list")->to_abs => begin %> List of treebanks <% end %>

@@ -3,6 +3,7 @@ package PMLTQ::Server::Controller::Admin::User;
 # ABSTRACT: Managing users in administration
 
 use Mojo::Base 'Mojolicious::Controller';
+use Mango::BSON 'bson_oid';
 
 =head1 METHODS
 
@@ -35,15 +36,17 @@ sub create {
   my $c = shift;
 
   # TODO: validate input
+  my $users = $c->mandel->collection('user');
+  my $user = $users->create($c->param('user'));
 
-  $c->mandel->collection('user')->create($c->param('user'), sub {
-    my($user, $err) = @_;
+  $user->save(sub {
+    my ($user, $err) = @_;
     if ($err) {
       $c->flash(error => "$err");
-      $c->new_user;
+      $c->stash(user => $user);
+      $c->render(template => 'admin/users/form');
     } else {
-      my $redirect_url = $c->url_for('show_user', user_id => $user->id);
-      $c->redirect_to($redirect_url);
+      $c->redirect_to('show_user', id => $user->id);
     }
   });
 
@@ -52,10 +55,10 @@ sub create {
 
 sub find_user {
   my $c = shift;
-  my $user_id = $c->param('user_id');
+  my $user_id = $c->param('id');
 
-  $c->mandel->collection('user')->search({_id => $user_id})->single(sub {
-    my($collection, $err, $user) = @_;
+  $c->mandel->collection('user')->search({_id => bson_oid($user_id)})->single(sub {
+    my($users, $err, $user) = @_;
 
     if ($err) {
       $c->flash(error => "$err");
@@ -91,21 +94,19 @@ sub update {
   $c->render_later;
 }
 
-sub delete {
+sub remove {
   my $c = shift;
   my $user = $c->stash->{user};
 
-  # TODO: validate input
-  $user->patch($c->remove('user'), sub {
+  $user->remove(sub {
     my($user, $err) = @_;
 
     if ($err) {
-      $c->flash(error => "$err") ;
+      $c->flash(error => "$err");
       $c->stash(user => $user);
       $c->render(template => 'admin/users/form');
     } else {
-      my $redirect_url = $c->url_for('list_users');
-      $c->redirect_to($redirect_url);
+      $c->redirect_to('list_users');
     }
   });
 

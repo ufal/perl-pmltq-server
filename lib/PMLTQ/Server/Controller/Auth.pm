@@ -6,10 +6,12 @@ sub index {
 
   if ($c->req->method eq 'POST') {
     if($c->authenticate($c->param('username'),$c->param('password'))){
+      $c->flash(success => 'Successfully logged in');
       $c->redirect_to($c->url_for('admin_welcome'));
       return;
     } else {
       $c->flash(error => 'Invalid username or password');
+      $c->app->log->debug('Invalid credentials');
       $c->res->code(400); # 400 Invalid parameters
     }
   }
@@ -21,7 +23,8 @@ sub index {
 sub sign_out {
   my $c = shift;
   $c->logout();
-  $c->redirect_to( '/' );
+  $c->flash(success => 'Successfully logged out');
+  $c->redirect_to('/');
 }
 
 1;

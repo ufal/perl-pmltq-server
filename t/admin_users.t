@@ -45,15 +45,47 @@ $t->get_ok($new_user_url)
 my $create_user_url = $t->app->url_for('create_user');
 ok ($create_user_url, 'Create user url exists');
 
-my $show_user_url = $t->app->url_for('show_user');
+my %user_data = (
+  name => 'Joe Tester',
+  username => 'joe',
+  password => 's3cret',
+  email => 'joe@example.com',
+);
+
+$t->post_ok($create_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(200);
+
+my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => 's3cret'})->single;
+ok ($user_joe, 'Joe is in the database');
+
+my $show_user_url = $t->app->url_for('show_user', id => $user_joe->id);
 ok ($show_user_url, 'Show url exists');
 
-my $update_user_url = $t->app->url_for('update_user');
+$t->get_ok($show_user_url)
+  ->status_is(200);
+
+my $update_user_url = $t->app->url_for('update_user', id => $user_joe->id);
 ok ($update_user_url, 'Update user url exists');
 
-my $delete_user_url = $t->app->url_for('delete_user');
+$user_data{name} = 'Joe Updated';
+
+$t->put_ok($update_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(200);
+
+my $updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
+ok ($updated_joe, 'Joe is still in the database');
+isnt ($updated_joe->name, $user_joe->name, 'Name has got updated');
+is ($updated_joe->email, $user_joe->email, 'Email has not changed');
+
+$t->ua->max_redirects(0);
+my $delete_user_url = $t->app->url_for('delete_user', id => $user_joe->id);
 ok ($delete_user_url, 'Delete user url exists');
+$t->delete_ok($delete_user_url)
+  ->status_is(302);
 
-
+my $deleted_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
+ok (!$deleted_joe, 'Joe is gone from the database');
 
 done_testing();
