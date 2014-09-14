@@ -1,0 +1,7 @@
+% layout 'admin';
+% title (current_route('update_treebank') ? 'Edit Treebank' : 'New Treebank');
+
+<%= form_for url_for(current_route('update_treebank') ? 'update_treebank' : 'create_treebank', (ref $treebank ? (id => $treebank->id) : ())), method => 'post', begin %>
+
+<% end %>
+
