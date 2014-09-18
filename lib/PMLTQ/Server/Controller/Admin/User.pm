@@ -38,11 +38,14 @@ sub new_user {
 sub create {
   my $c = shift;
   #pozor !!! může být buď reference na pole nebo řetězec, závisí na počtu prvků !!! $c->param('user')->{'permissions'};
-  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY';}
+  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY' or not($c->param('user')->{$_});}
   my @avtree = map {my $id = $_;first {$id eq $_->id} @{$c->treebanks->all}} @{$c->param('user')->{'available_treebanks'}};
   $c->param('user')->{'available_treebanks'} = [];
-  my @perms = map {my $id = $_;
-                  first {$id eq $_->id} @{$c->permissions->all}} 
+  my @perms = map {
+                    my $id = $_;
+                    print STDERR "ID=$id\n";
+                    first {$id eq $_->id} @{$c->permissions->all}
+                  } 
                   @{$c->param('user')->{'permissions'}};
   $c->param('user')->{'permissions'} = [];
   
@@ -94,7 +97,7 @@ sub show {
 sub update {
   my $c = shift;
   my $user = $c->stash->{user};
-  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY';}
+  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY' or not($c->param('user')->{$_});}
   my @avtree = map {my $id = $_;first {$id eq $_->id} @{$c->treebanks->all}} @{$c->param('user')->{'available_treebanks'}};
   $c->param('user')->{'available_treebanks'} = [];
   

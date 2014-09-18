@@ -43,7 +43,7 @@
         <fieldset>
           <div class="form-group">
             <label>Driver: </label>
-            <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}]} @{drivers()}], class => 'form-control' %>
+            <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}, (eval{$treebank->driver} and eval{$treebank->driver} eq $_->{id} ) ? ("selected" => "selected") : () ]} @{drivers()}], class => 'form-control' %>
           </div>          
           <div class="form-group">
             <label>Host:</label>
