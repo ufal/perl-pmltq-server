@@ -2,6 +2,7 @@
 % title ((current_route('update_user') or current_route('show_user')) ? 'Edit User' : 'New User');
 
 <%= form_for url_for((current_route('update_user') or current_route('show_user')) ? 'update_user' : 'create_user', (ref $user ? (id => $user->id) : ())), method => 'post', begin %>
+<%= hidden_field 'user.HACK'=>'HACK' %>
 <div class="row">
   <div class="col-lg-6">
     <div class="panel panel-default">
@@ -37,7 +38,9 @@
         <fieldset>
           <div class="form-group">
             <label>Select Permissions:</label>
-            <%= select_field 'user.permissions' => [map { [$_->name, $_->id] } @{permissions->all}], class => 'form-control', multiple => 'multiple' %>
+            % my $perms = eval{$user->permissions} || [];
+            <%= select_field 'user.permissions' => [map {my $t = $_; [$t->name => $t->id,  (grep {$t->id eq $_->id } @$perms) ? ("selected" => "selected") : () ] } @{permissions->all}], class => 'form-control', multiple => 'multiple' %>
+            
           </div>
         </fieldset>
       </div>
@@ -52,7 +55,8 @@
         <fieldset>
           <div class="form-group">
             <label>Select Treebanks:</label>
-            <%= select_field 'user.treebanks' => [map {my $t = $_; [$t->name => $t->id, selected => ((grep {$t->id == $_->id } @{$user->available_treebanks}) ? "true" : "false") ] } @{treebanks->all}], class => 'form-control', multiple => 'multiple' %>
+            % my $available_treebanks = eval{$user->available_treebanks} || [];
+            <%= select_field 'user.available_treebanks' => [map {my $t = $_; [$t->name => $t->id,  (grep {$t->id eq $_->id } @$available_treebanks) ? ("selected" => "selected") : () ] } @{treebanks->all}], class => 'form-control', multiple => 'multiple' %>
           </div>
         </fieldset>
       </div>

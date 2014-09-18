@@ -4,6 +4,7 @@ package PMLTQ::Server::Controller::Admin::User;
 
 use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
+use List::Util qw(first);
 
 =head1 METHODS
 
@@ -36,7 +37,15 @@ sub new_user {
 
 sub create {
   my $c = shift;
-
+  #pozor !!! může být buď reference na pole nebo řetězec, závisí na počtu prvků !!! $c->param('user')->{'permissions'};
+  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY';}
+  my @avtree = map {my $id = $_;first {$id eq $_->id} @{$c->treebanks->all}} @{$c->param('user')->{'available_treebanks'}};
+  $c->param('user')->{'available_treebanks'} = [];
+  my @perms = map {my $id = $_;
+                  first {$id eq $_->id} @{$c->permissions->all}} 
+                  @{$c->param('user')->{'permissions'}};
+  $c->param('user')->{'permissions'} = [];
+  
   # TODO: validate input
   my $users = $c->mandel->collection('user');
   my $user = $users->create($c->param('user'));
@@ -48,6 +57,8 @@ sub create {
       $c->stash(user => $user);
       $c->render(template => 'admin/users/form');
     } else {
+      $user->push_available_treebanks($_) for (@avtree);
+      $user->push_permissions($_) for (@perms);
       $c->redirect_to('show_user', id => $user->id);
     }
   });
@@ -83,12 +94,20 @@ sub show {
 sub update {
   my $c = shift;
   my $user = $c->stash->{user};
-
+  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY';}
+  my @avtree = map {my $id = $_;first {$id eq $_->id} @{$c->treebanks->all}} @{$c->param('user')->{'available_treebanks'}};
+  $c->param('user')->{'available_treebanks'} = [];
+  
+  my @perms = map {my $id = $_;first {$id eq $_->id} @{$c->permissions->all}} @{$c->param('user')->{'permissions'}};
+  $c->param('user')->{'permissions'} = [];
+  
   # TODO: validate input
   $user->patch($c->param('user'), sub {
     my($user, $err) = @_;
 
     $c->flash(error => "$err") if $err;
+    $user->push_available_treebanks($_) for (@avtree);
+    $user->push_permissions($_) for (@perms);
     $c->stash(user => $user);
     $c->render(template => 'admin/users/form');
   });
