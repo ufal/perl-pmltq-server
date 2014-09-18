@@ -19,15 +19,15 @@
             <%= text_field 'treebank.title' => eval{$treebank->title}, class => 'form-control', placeholder => 'Title' %>
           </div>
           <div class="form-group">
-            %= check_box 'treebank.visible' => 1
+            %= check_box 'treebank.visible' => 1, eval{$treebank->visible} ? (checked=>1):()
             %= label_for 'treebank.visible' => 'Visible'
           </div>
           <div class="form-group">
-            %= check_box 'treebank.public' => 1
+            %= check_box 'treebank.public' => 1, eval{$treebank->public} ? (checked=>1):()
             %= label_for 'treebank.public' => 'Public'
           </div>
           <div class="form-group">
-            %= check_box 'treebank.anonaccess' => 1
+            %= check_box 'treebank.anonaccess' => 1, eval{$treebank->anonaccess} ? (checked=>1):()
             %= label_for 'treebank.anonaccess' => 'Anonymous Access'
           </div>
         </fieldset>
