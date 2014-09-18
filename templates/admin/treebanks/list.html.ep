@@ -33,8 +33,7 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
         <tbody>
           <% for my $treebank (@$treebanks) { %>
           <tr>
-            <td>
-            <%=  link_to $treebank->name =>  url_for('show_treebank', id => $treebank->id) %></td>
+            <td><%=  link_to $treebank->name =>  url_for('show_treebank', id => $treebank->id) %></td>
             <td><%= $treebank->title  %></td>
             <td><%= $treebank->driver %></td>
             <td><%= $treebank->host %></td>

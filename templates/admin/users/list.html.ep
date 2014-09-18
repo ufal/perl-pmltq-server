@@ -20,7 +20,7 @@
         <tbody>
           <% for my $user (@$users) { %>
           <tr>
-            <td><%= $user->name %></td>
+            <td><%=  link_to $user->name =>  url_for('show_user', id => $user->id) %></td>
             <td><%= $user->username %></td>
             <td><%= $user->password %></td>
             <td><%= $user->email %></td>
