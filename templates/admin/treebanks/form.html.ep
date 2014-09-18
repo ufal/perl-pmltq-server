@@ -1,7 +1,83 @@
 % layout 'admin';
-% title (current_route('update_treebank') ? 'Edit Treebank' : 'New Treebank');
+% title ( (current_route('update_treebank') or current_route('show_treebank')) ? 'Edit Treebank' : 'New Treebank');
 
-<%= form_for url_for(current_route('update_treebank') ? 'update_treebank' : 'create_treebank', (ref $treebank ? (id => $treebank->id) : ())), method => 'post', begin %>
+<%= form_for url_for( (current_route('update_treebank') or current_route('show_treebank')) ? 'update_treebank' : 'create_treebank', (ref $treebank ? (id => $treebank->id) : ())), method => 'post', begin %>
+<div class="row">
+  <div class="col-lg-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Basic</h3>
+      </div>
+      <div class="panel-body">
+        <fieldset>
+          <div class="form-group">
+            <label>Name:</label>
+            <%= text_field 'treebank.name' => eval{$treebank->name}, class => 'form-control', placeholder => 'Name' %>
+          </div>
+          <div class="form-group">
+            <label>Title:</label>
+            <%= text_field 'treebank.title' => eval{$treebank->title}, class => 'form-control', placeholder => 'Title' %>
+          </div>
+          <div class="form-group">
+            %= check_box 'treebank.visible' => 1
+            %= label_for 'treebank.visible' => 'Visible'
+          </div>
+          <div class="form-group">
+            %= check_box 'treebank.public' => 1
+            %= label_for 'treebank.public' => 'Public'
+          </div>
+          <div class="form-group">
+            %= check_box 'treebank.anonaccess' => 1
+            %= label_for 'treebank.anonaccess' => 'Anonymous Access'
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Database</h3>
+      </div>
+      <div class="panel-body">
+        <fieldset>
+          <div class="form-group">
+            <label>Driver: </label>
+            <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}]} @{drivers()}], class => 'form-control' %>
+          </div>          
+          <div class="form-group">
+            <label>Host:</label>
+            <%= text_field 'treebank.host' => eval{$treebank->host}, class => 'form-control', placeholder => 'Host' %>
+          </div>
+          <div class="form-group">
+            <label>Port (number):</label>
+            <%= text_field 'treebank.port' => eval{$treebank->port}, class => 'form-control', placeholder => 'Port' %>
+          </div>
+          <div class="form-group">
+            <label>Database:</label>
+            <%= text_field 'treebank.database' => eval{$treebank->database}, class => 'form-control', placeholder => 'Database' %>
+          </div>
+          <div class="form-group">
+            <label>Username:</label>
+            <%= text_field 'treebank.username' => eval{$treebank->username}, class => 'form-control', placeholder => 'Username' %>
+          </div>
+          <div class="form-group">
+            <label>Password:</label>
+            <%= password_field 'treebank.password', class => 'form-control', placeholder => 'Password' %>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-12">
+<%= hidden_field '_method'=>((current_route('update_treebank') or current_route('show_treebank')) ? 'PUT':'GET')%>
+    <button type="submit" class="btn btn-primary" />Save Treebank</button>
+  </div>
+</div>
 
 <% end %>
-
+% if (current_route('update_treebank') or current_route('show_treebank')) {
+<%= form_for url_for('delete_treebank', id => $treebank->id), method => 'post', begin %> <%= hidden_field '_method'=>'DELETE'%> <%= submit_button 'Delete Treebank',class=>'btn btn-danger' %> <% end %>
+%}

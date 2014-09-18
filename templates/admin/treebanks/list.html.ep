@@ -1,5 +1,13 @@
 % layout 'admin';
 % title 'List of Treebanks';
+<!--
+better filtering: 
+https://datatables.net/examples/plug-ins/range_filtering.html
+https://datatables.net/examples/advanced_init/dom_toolbar.html
+http://www.datatables.net/release-datatables/examples/api/row_details.html
+-->
+
+
 
 <div class="row">
   <div class="col-lg-12">
@@ -12,13 +20,30 @@
           <tr>
             <th>Name</th>
             <th>Title</th>
+            <th>Driver</th>
+            <th>Host</th>
+            <th>Port</th>
+            <th>Database</th>
+            <th>Username</th>
+            <th>Pub</th>
+            <th>Vis</th>
+            <th>Anon</th>
           </tr>
         </thead>
         <tbody>
           <% for my $treebank (@$treebanks) { %>
           <tr>
-            <td><%= $treebank->name %></td>
-            <td><%= $treebank->title %></td>
+            <td>
+            <%=  link_to $treebank->name =>  url_for('show_treebank', id => $treebank->id) %></td>
+            <td><%= $treebank->title  %></td>
+            <td><%= $treebank->driver %></td>
+            <td><%= $treebank->host %></td>
+            <td><%= $treebank->port %></td>
+            <td><%= $treebank->database %></td>
+            <td><%= $treebank->username %></td>
+            <td><%= $treebank->public ? "X":"" %><!--<%= $treebank->public ? "public":"" %>--></td>
+            <td><%= $treebank->visible ? "X":"" %></td>
+            <td><%= $treebank->anonaccess ? "X":"" %></td>
           </tr>
           <% } %>
         </tbody>

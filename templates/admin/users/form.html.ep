@@ -1,7 +1,7 @@
 % layout 'admin';
 % title (current_route('update_user') ? 'Edit User' : 'New User');
 
-<%= form_for url_for(current_route('update_user') ? 'update_user' : 'create_user', (ref $user ? (id => $user->id) : ())), method => 'post', begin %>
+<%= form_for url_for((current_route('update_user') or current_route('update_user')) ? 'update_user' : 'create_user', (ref $user ? (id => $user->id) : ())), method => 'post', begin %>
 <div class="row">
   <div class="col-lg-6">
     <div class="panel panel-default">

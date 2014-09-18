@@ -4,7 +4,7 @@ package PMLTQ::Server::Model::Treebank;
 
 use PMLTQ::Server::Document 'treebanks';
 
-use Types::Standard qw(Str ArrayRef HashRef);
+use Types::Standard qw(Str ArrayRef HashRef Bool);
 
 use Digest::SHA qw(sha1_hex);
 use PMLTQ::SQLEvaluator;
@@ -17,6 +17,7 @@ use URI;
 =cut
 
 field [qw/name title driver host port database username password/] => ( isa => Str );
+field [qw/visible public anonaccess/] => (isa => Bool);
 
 field data_sources => ( isa => ArrayRef[HashRef[Str]] );
 
