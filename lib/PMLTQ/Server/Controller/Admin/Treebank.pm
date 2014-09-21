@@ -41,6 +41,7 @@ sub create {
 
   # TODO: validate input
   my $treebanks = $c->mandel->collection('treebank');
+  for (qw/visible public anonaccess/){$c->param('treebank')->{$_} = 0 unless $c->param('treebank')->{$_};}   #### checkboxes
   my $treebank = $treebanks->create($c->param('treebank'));
 
   $treebank->save(sub {
@@ -86,6 +87,7 @@ sub update {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
 
+  for (qw/visible public anonaccess/){$c->param('treebank')->{$_} = 0 unless $c->param('treebank')->{$_};}   #### checkboxes
   # TODO: validate input
   $treebank->patch($c->param('treebank'), sub {
     my($treebank, $err) = @_;
