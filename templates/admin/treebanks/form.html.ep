@@ -13,22 +13,22 @@
         <fieldset>
           <div class="form-group">
             <label>Name:</label>
-            <%= text_field 'treebank.name' => eval{$treebank->name}, class => 'form-control', placeholder => 'Name' %>
+            <%= text_field 'treebank.name' => treebank->name, class => 'form-control', placeholder => 'Name' %>
           </div>
           <div class="form-group">
             <label>Title:</label>
-            <%= text_field 'treebank.title' => eval{$treebank->title}, class => 'form-control', placeholder => 'Title' %>
+            <%= text_field 'treebank.title' => treebank->title, class => 'form-control', placeholder => 'Title' %>
           </div>
           <div class="form-group">
-            %= check_box 'treebank.visible' => 1, eval{$treebank->visible} ? (checked=>1):()
+            %= check_box 'treebank.visible' => 1, treebank->visible ? (checked=>1):()
             %= label_for 'treebank.visible' => 'Visible'
           </div>
           <div class="form-group">
-            %= check_box 'treebank.public' => 1, eval{$treebank->public} ? (checked=>1):()
+            %= check_box 'treebank.public' => 1, treebank->public ? (checked=>1):()
             %= label_for 'treebank.public' => 'Public'
           </div>
           <div class="form-group">
-            %= check_box 'treebank.anonaccess' => 1, eval{$treebank->anonaccess} ? (checked=>1):()
+            %= check_box 'treebank.anonaccess' => 1, treebank->anonaccess ? (checked=>1):()
             %= label_for 'treebank.anonaccess' => 'Anonymous Access'
           </div>
         </fieldset>
@@ -44,23 +44,23 @@
         <fieldset>
           <div class="form-group">
             <label>Driver: </label>
-            <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}, (eval{$treebank->driver} and eval{$treebank->driver} eq $_->{id} ) ? ("selected" => "selected") : () ]} @{drivers()}], class => 'form-control' %>
+            <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}, (treebank->driver eq $_->{id} ) ? ("selected" => "selected") : () ]} @{drivers()}], class => 'form-control' %>
           </div>          
           <div class="form-group">
             <label>Host:</label>
-            <%= text_field 'treebank.host' => eval{$treebank->host}, class => 'form-control', placeholder => 'Host' %>
+            <%= text_field 'treebank.host' => treebank->host, class => 'form-control', placeholder => 'Host' %>
           </div>
           <div class="form-group">
             <label>Port (number):</label>
-            <%= text_field 'treebank.port' => eval{$treebank->port}, class => 'form-control', placeholder => 'Port' %>
+            <%= text_field 'treebank.port' => treebank->port, class => 'form-control', placeholder => 'Port' %>
           </div>
           <div class="form-group">
             <label>Database:</label>
-            <%= text_field 'treebank.database' => eval{$treebank->database}, class => 'form-control', placeholder => 'Database' %>
+            <%= text_field 'treebank.database' => treebank->database, class => 'form-control', placeholder => 'Database' %>
           </div>
           <div class="form-group">
             <label>Username:</label>
-            <%= text_field 'treebank.username' => eval{$treebank->username}, class => 'form-control', placeholder => 'Username' %>
+            <%= text_field 'treebank.username' => treebank->username, class => 'form-control', placeholder => 'Username' %>
           </div>
           <div class="form-group">
             <label>Password:</label>
