@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 use Mango::BSON 'bson_oid';
 use Digest::SHA qw(sha1_hex);
 
-use List::Util qw(min);
+use List::Util qw(min any);
 
 ###   $self->plugin("PMLTQ::Server::Helpers");
 
@@ -50,7 +50,41 @@ sub register {
   });
 
   # Common access helpers
-  $app->helper(users         => sub { shift->mandel->collection('user') });
+  $app->helper(users => sub { shift->mandel->collection('user') });
+  $app->helper(user => sub {
+    my $self = shift;
+    my $user = $self->stash('user');
+    unless ($user) {
+      $user = $self->users->create();
+      $self->stash(user => $user);
+    }
+    return $user;
+  });
+
+  $app->helper(permission_options => sub {
+    my ($self, $selected) = @_;
+    map {
+      my $p = $_;
+      {
+        value => $p->id,
+        label => $p->name,
+        selected => any {$p->id eq $_->id } @$selected
+      }
+    } @{$self->permissions->all}
+  });
+
+  $app->helper(treebank_options => sub {
+    my ($self, $selected) = @_;
+    map {
+      my $p = $_;
+      {
+        value => $p->id,
+        label => $p->name,
+        selected => any {$p->id eq $_->id } @$selected
+      }
+    } @{$self->treebanks->all}
+  });
+
   $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
   $app->helper(permissions   => sub { shift->mandel->collection('permission') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
