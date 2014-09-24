@@ -22,8 +22,8 @@ sub startup {
   $self->plugin('Config' => {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
-  $self->plugin('PMLTQ::Server::Helpers');
   $self->plugin('ParamExpand');
+  $self->plugin(ValidateTiny => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin(Authentication => {
     autoload_user => 0,
@@ -57,6 +57,7 @@ sub startup {
     user_role  => sub { print STDERR 'TODO: user_role\n'; },
   });
 
+  $self->plugin('PMLTQ::Server::Helpers');
   $self->add_resource_shortcut();
 
   # Fake PUT and DELETE methods
