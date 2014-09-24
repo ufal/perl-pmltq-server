@@ -86,6 +86,15 @@ sub register {
   });
 
   $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
+  $app->helper(treebank => sub {
+    my $self = shift;
+    my $treebank = $self->stash('treebank');
+    unless ($treebank) {
+      $treebank = $self->treebanks->create();
+      $self->stash(treebank => $treebank);
+    }
+    return $treebank;
+  });
   $app->helper(permissions   => sub { shift->mandel->collection('permission') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
   $app->helper(drivers       => sub { [{id=>'pg',name=>"PostgreSQL"}] });
