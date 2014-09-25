@@ -61,7 +61,8 @@ sub create {
   }else{
     $c->flash(error => "Can't save invalid treebank" );
     $c->flash(errors => $c->validator_error());
-    $c->render(template => 'admin/treebanks/form');}
+    $c->render(template => 'admin/treebanks/form');
+  }
 }
 
 sub find_treebank {
@@ -92,18 +93,22 @@ sub show {
 sub update {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
-
-  for (qw/visible public anonaccess/){$c->param('treebank')->{$_} = 0 unless $c->param('treebank')->{$_};}   #### checkboxes
-  # TODO: validate input
-  $treebank->patch($c->param('treebank'), sub {
+  if(my $treebank_data = $c->do_validation(_get_treebank_form_validation($c,1), $c->param('treebank')) ){
+    $treebank->patch($c->param('treebank'), sub {
     my($treebank, $err) = @_;
 
     $c->flash(error => "$err") if $err;
     $c->stash(treebank => $treebank);
     $c->render(template => 'admin/treebanks/form');
   });
+    $c->render_later;  
+  }else{
+    $c->flash(error => "Can't save invalid treebank" );
+    $c->flash(errors => $c->validator_error());
+    $c->render(template => 'admin/treebanks/form');
+  }
+  
 
-  $c->render_later;
 }
 
 sub remove {
@@ -130,6 +135,7 @@ sub fetch {}
 
 sub _get_treebank_form_validation{
   my $c = shift;
+  my $update = shift;
   my $treebank_form_validation = {
     fields => [qw/name title driver host port database username password visible public anonaccess/],
     filters => [
@@ -141,7 +147,8 @@ sub _get_treebank_form_validation{
     ],
     checks => [
       [qw/name title username password/] => is_long_at_most(200),
-      [qw/name title driver host port database username password/] => is_required(),
+      [qw/name title driver host port database username/] => is_required(),
+      $update ? () : (password => is_required()),
       port => is_valid_port_number(),
       driver => is_in_str("Driver is not supported", map {$_->{id}} @{$c->drivers}),
       name => is_not_in("Treebank name already exists", map {$_->name} @{$c->treebanks->all})
