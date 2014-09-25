@@ -59,7 +59,8 @@ sub create {
     });
     $c->render_later;  
   }else{
-    $c->flash(error => "Can't save invalid treebank");
+    $c->flash(error => "Can't save invalid treebank" );
+    $c->flash(errors => $c->validator_error());
     $c->render(template => 'admin/treebanks/form');}
 }
 

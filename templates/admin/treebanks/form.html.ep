@@ -1,7 +1,7 @@
 % layout 'admin';
 % my $is_edit = current_route('update_treebank') || current_route('show_treebank');
 % title $is_edit ? 'Edit Treebank' : 'New Treebank';
-
+% my $errors = flash 'errors';
 <%= form_for $is_edit ? url_for('update_treebank', treebank->id) : url_for('create_treebank'), method => 'post', begin %>
 <div class="row">
   <div class="col-lg-6">
@@ -11,25 +11,31 @@
       </div>
       <div class="panel-body">
         <fieldset>
-          <div class="form-group">
-            <label>Name:</label>
+          <div class="form-group <%= ($errors and $errors->{'name'})?'has-error':'' %>"> 
+            <label class="control-label" for="<%='treebank.name'%>">Name:</label>
             <%= text_field 'treebank.name' => treebank->name, class => 'form-control', placeholder => 'Name' %>
           </div>
-          <div class="form-group">
-            <label>Title:</label>
+          <div class="form-group <%= ($errors and $errors->{'title'})?'has-error':'' %>">
+            <label class="control-label" for="<%='treebank.title'%>">Title:</label>
             <%= text_field 'treebank.title' => treebank->title, class => 'form-control', placeholder => 'Title' %>
           </div>
-          <div class="form-group">
-            %= check_box 'treebank.visible' => 1, treebank->visible ? (checked=>1):()
-            %= label_for 'treebank.visible' => 'Visible'
+          <div class="">
+            <div class="radio">
+              %= check_box 'treebank.visible' => 1, treebank->visible ? (checked=>1):()
+              %= label_for 'treebank.visible' => 'Visible'
+            </div>
           </div>
-          <div class="form-group">
-            %= check_box 'treebank.public' => 1, treebank->public ? (checked=>1):()
-            %= label_for 'treebank.public' => 'Public'
+          <div class="">
+           <div class="radio">
+             %= check_box 'treebank.public' => 1, treebank->public ? (checked=>1):()
+             %= label_for 'treebank.public' => 'Public'
+            </div>
           </div>
-          <div class="form-group">
-            %= check_box 'treebank.anonaccess' => 1, treebank->anonaccess ? (checked=>1):()
-            %= label_for 'treebank.anonaccess' => 'Anonymous Access'
+          <div class="">
+            <div class="radio">
+              %= check_box 'treebank.anonaccess' => 1, treebank->anonaccess ? (checked=>1):()
+              %= label_for 'treebank.anonaccess' => 'Anonymous Access'
+            </div>
           </div>
         </fieldset>
       </div>
@@ -42,28 +48,28 @@
       </div>
       <div class="panel-body">
         <fieldset>
-          <div class="form-group">
-            <label>Driver: </label>
+          <div class="form-group <%= ($errors and $errors->{'driver'})?'has-error':'' %>">
+            <label class="control-label" for="<%='treebank.driver'%>">Driver: </label>
             <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}, (treebank->driver eq $_->{id} ) ? ("selected" => "selected") : () ]} @{drivers()}], class => 'form-control' %>
           </div>          
           <div class="form-group">
-            <label>Host:</label>
+            <label class="control-label" for="<%='treebank.host'%>">Host:</label>
             <%= text_field 'treebank.host' => treebank->host, class => 'form-control', placeholder => 'Host' %>
           </div>
           <div class="form-group">
-            <label>Port (number):</label>
+            <label class="control-label" for="<%='treebank.port'%>">Port (number):</label>
             <%= text_field 'treebank.port' => treebank->port, class => 'form-control', placeholder => 'Port' %>
           </div>
           <div class="form-group">
-            <label>Database:</label>
+            <label class="control-label" for="<%='treebank.database'%>">Database:</label>
             <%= text_field 'treebank.database' => treebank->database, class => 'form-control', placeholder => 'Database' %>
           </div>
           <div class="form-group">
-            <label>Username:</label>
+            <label class="control-label" for="<%='treebank.username'%>">Username:</label>
             <%= text_field 'treebank.username' => treebank->username, class => 'form-control', placeholder => 'Username' %>
           </div>
           <div class="form-group">
-            <label>Password:</label>
+            <label class="control-label" for="<%='treebank.password'%>">Password:</label>
             <%= password_field 'treebank.password', class => 'form-control', placeholder => 'Password' %>
           </div>
         </fieldset>
