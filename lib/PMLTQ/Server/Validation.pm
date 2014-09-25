@@ -5,6 +5,7 @@ use Mojo::Util 'monkey_patch';
 use Mango::BSON qw/bson_oid bson_dbref/;
 use Email::Valid;
 use Validate::Tiny;
+use List::Util qw(first);
 
 my @EXPORT_OK = qw/
   convert_to_oids
@@ -12,6 +13,9 @@ my @EXPORT_OK = qw/
   force_bool
   is_valid_email
   list_of_dbrefs
+  is_valid_port_number
+  is_valid_driver
+  is_not_in
 /;
 
 # stuff from Validate::Tiny
@@ -61,4 +65,28 @@ sub is_valid_email {
   }
 }
 
+sub is_valid_port_number {
+  sub {
+    my $port = shift;
+    ($port =~ m/^\d+$/ and $port>=1 and $port <= 65535) ? undef : 'Invalid port number'
+  }
+}
+=x
+sub is_in {
+  my $error = shift;
+  my @list = @_;
+  sub {
+    my $str = shift;
+    ( first {$str eq $_} @list) ? undef : $error
+  }
+}
+=cut
+sub is_not_in {
+  my $error = shift;
+  my @list = @_;
+  sub {
+    my $str = shift;
+    (! first {$str eq $_} @list) ? undef : $error
+  }
+}
 1;

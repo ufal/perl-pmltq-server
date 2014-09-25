@@ -4,6 +4,11 @@ package PMLTQ::Server::Controller::Admin::Treebank;
 
 use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
+use PMLTQ::Server::Validation;
+
+
+my $controller; ### little hack - it allows access to helpers from validation 
+
 
 =head1 METHODS
 
@@ -38,24 +43,24 @@ sub new_treebank {
 
 sub create {
   my $c = shift;
+  if(my $treebank_data = $c->do_validation(_get_treebank_form_validation($c), $c->param('treebank')) ){
+    my $treebanks = $c->mandel->collection('treebank');
+    my $treebank = $treebanks->create($c->param('treebank'));
 
-  # TODO: validate input
-  my $treebanks = $c->mandel->collection('treebank');
-  for (qw/visible public anonaccess/){$c->param('treebank')->{$_} = 0 unless $c->param('treebank')->{$_};}   #### checkboxes
-  my $treebank = $treebanks->create($c->param('treebank'));
-
-  $treebank->save(sub {
-    my ($treebank, $err) = @_;
-    if ($err) {
-      $c->flash(error => "$err");
-      $c->stash(treebank => $treebank);
-      $c->render(template => 'admin/treebanks/form');
-    } else {
-      $c->redirect_to('show_treebank', id => $treebank->id);
-    }
-  });
-
-  $c->render_later;  
+    $treebank->save(sub {
+      my ($treebank, $err) = @_;
+      if ($err) {
+        $c->flash(error => "$err");
+        $c->stash(treebank => $treebank);
+        $c->render(template => 'admin/treebanks/form');
+      } else {
+        $c->redirect_to('show_treebank', id => $treebank->id);
+      }
+    });
+    $c->render_later;  
+  }else{
+    $c->flash(error => "Can't save invalid treebank");
+    $c->render(template => 'admin/treebanks/form');}
 }
 
 sub find_treebank {
@@ -121,5 +126,27 @@ sub remove {
 
 
 sub fetch {}
+
+sub _get_treebank_form_validation{
+  my $c = shift;
+  my $treebank_form_validation = {
+    fields => [qw/name title driver host port database username password visible public anonaccess/],
+    filters => [
+      # Remove spaces from all
+      [qw/name title host port database username password/] => filter(qw/trim strip/),
+      visible => force_bool(),
+      public => force_bool(),
+      anonaccess => force_bool()
+    ],
+    checks => [
+      [qw/name title username password/] => is_long_at_most(200),
+      [qw/name title driver host port database username password/] => is_required(),
+      port => is_valid_port_number(),
+      driver => is_in([$c->drivers,"Driver is not supported"]),
+      name => is_not_in(["Treebank name already exists", map {$_->{name}} @{$c->treebanks->all}])
+    ]
+  };
+  return $treebank_form_validation;
+}
 
 1;
