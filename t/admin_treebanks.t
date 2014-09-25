@@ -30,6 +30,8 @@ $t->post_ok($t->app->url_for('auth_login') => form => {
   password => $tu->password
 })->status_is(200);
 
+######## BASIC FUNCTIONALITY ############
+
 my $list_treebanks_url = $t->app->url_for('list_treebanks');
 ok ($list_treebanks_url, 'List treebanks url exists');
 
@@ -91,5 +93,74 @@ $t->delete_ok($delete_treebank_url)
 
 my $deleted_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
 ok (!$deleted_tb, 'My treebank is gone from the database');
+
+######## VALIDATION ############
+%treebank_data = (
+  name => 'New treebank',
+  title => 'TB',
+  driver => 'pg',
+  host => '127.0.0.1',
+  port => 5000,
+  database => 'mytb',
+  username => 'joe',
+  password => 's3cret'
+);
+
+## CREATE - all fields are required
+
+for my $key (keys %treebank_data){
+  my @fields = grep {!($key eq $_)} keys(%treebank_data);
+  $t->post_ok($t->app->url_for('create_treebank') => form => { map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is(400);
+}
+
+for my $key (qw/driver port/){
+  my @fields = grep {!($key eq $_)} keys(%treebank_data);
+  $t->post_ok($t->app->url_for('create_treebank') => form => {"treebank.$key"=> 'INVALID DATA', map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is(400);
+}
+
+## UPDATE - almost fields are required (password is not required)
+$t->ua->max_redirects(10);
+$t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(200);
+$treebank_data{name}='Second treebank';
+$t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(200);
+$treebank_data{name}='New treebank';
+
+## insert treebank with existing name
+$t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(400);
+
+
+$treebank_tb = $t->app->mandel->collection('treebank')->search({name => 'New treebank'})->single;
+
+for my $key (keys %treebank_data){
+  my @fields = grep {!($key eq $_)} keys(%treebank_data);
+  $t->post_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => {  _method=>"PUT", map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is($key eq 'password' ? 200 : 400);
+}
+for my $key (qw/driver port/){
+  my @fields = grep {!($key eq $_)} keys(%treebank_data);
+  $t->post_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => {  _method=>"PUT", "treebank.$key"=> 'INVALID DATA', map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is(400);
+}
+
+## try to update treebank =>  should cause treebank.name colision
+$treebank_data{name}='Second treebank';
+$t->post_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => {  _method=>"PUT",  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(400);
+
+## test bools
+$treebank_data{name}='New Treebank';
+$treebank_data{visible}=1;
+$t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);
+$updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
+ok ($updated_tb->visible , 'Visibility  not changed');
+ok (!$updated_tb->public, 'Public changed');
+ok (!$updated_tb->anonaccess, 'Anonaccess changed');
+
+$treebank_data{visible}=0;
+$treebank_data{public}=1;
+$treebank_data{anonaccess}=1;
+$t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);
+$updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
+ok (!$updated_tb->visible , 'Visibility  not changed');
+ok ($updated_tb->public, 'Public not changed');
+ok ($updated_tb->anonaccess, 'Anonaccess not changed');
+
 
 done_testing();
