@@ -143,8 +143,8 @@ sub _get_treebank_form_validation{
       [qw/name title username password/] => is_long_at_most(200),
       [qw/name title driver host port database username password/] => is_required(),
       port => is_valid_port_number(),
-      driver => is_in([$c->drivers,"Driver is not supported"]),
-      name => is_not_in(["Treebank name already exists", map {$_->{name}} @{$c->treebanks->all}])
+      driver => is_in_str("Driver is not supported", map {$_->{id}} @{$c->drivers}),
+      name => is_not_in("Treebank name already exists", map {$_->name} @{$c->treebanks->all})
     ]
   };
   return $treebank_form_validation;

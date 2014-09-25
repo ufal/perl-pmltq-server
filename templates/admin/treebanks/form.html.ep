@@ -52,23 +52,23 @@
             <label class="control-label" for="<%='treebank.driver'%>">Driver: </label>
             <%= select_field 'treebank.driver' => [map {[$_->{name} => $_->{id}, (treebank->driver eq $_->{id} ) ? ("selected" => "selected") : () ]} @{drivers()}], class => 'form-control' %>
           </div>          
-          <div class="form-group">
+          <div class="form-group <%= ($errors and $errors->{'host'})?'has-error':'' %>">
             <label class="control-label" for="<%='treebank.host'%>">Host:</label>
             <%= text_field 'treebank.host' => treebank->host, class => 'form-control', placeholder => 'Host' %>
           </div>
-          <div class="form-group">
+          <div class="form-group <%= ($errors and $errors->{'port'})?'has-error':'' %>">
             <label class="control-label" for="<%='treebank.port'%>">Port (number):</label>
             <%= text_field 'treebank.port' => treebank->port, class => 'form-control', placeholder => 'Port' %>
           </div>
-          <div class="form-group">
+          <div class="form-group <%= ($errors and $errors->{'database'})?'has-error':'' %>">
             <label class="control-label" for="<%='treebank.database'%>">Database:</label>
             <%= text_field 'treebank.database' => treebank->database, class => 'form-control', placeholder => 'Database' %>
           </div>
-          <div class="form-group">
+          <div class="form-group <%= ($errors and $errors->{'username'})?'has-error':'' %>">
             <label class="control-label" for="<%='treebank.username'%>">Username:</label>
             <%= text_field 'treebank.username' => treebank->username, class => 'form-control', placeholder => 'Username' %>
           </div>
-          <div class="form-group">
+          <div class="form-group <%= ($errors and $errors->{'password'})?'has-error':'' %>">
             <label class="control-label" for="<%='treebank.password'%>">Password:</label>
             <%= password_field 'treebank.password', class => 'form-control', placeholder => 'Password' %>
           </div>

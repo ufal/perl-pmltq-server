@@ -16,6 +16,7 @@ my @EXPORT_OK = qw/
   is_valid_port_number
   is_valid_driver
   is_not_in
+  is_in_str
 /;
 
 # stuff from Validate::Tiny
@@ -71,8 +72,8 @@ sub is_valid_port_number {
     ($port =~ m/^\d+$/ and $port>=1 and $port <= 65535) ? undef : 'Invalid port number'
   }
 }
-=x
-sub is_in {
+
+sub is_in_str {
   my $error = shift;
   my @list = @_;
   sub {
@@ -80,13 +81,13 @@ sub is_in {
     ( first {$str eq $_} @list) ? undef : $error
   }
 }
-=cut
+
 sub is_not_in {
   my $error = shift;
   my @list = @_;
   sub {
     my $str = shift;
-    (! first {$str eq $_} @list) ? undef : $error
+    (! (first {$str eq $_} @list)) ? undef : $error
   }
 }
 1;
