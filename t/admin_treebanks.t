@@ -9,7 +9,7 @@ use Data::Dumper;
 use List::Util qw(first all);
 
 use lib dirname(__FILE__);
-
+use Carp::Always;
 require 'bootstrap.pl';
 
 my $t = test_app();
@@ -165,20 +165,29 @@ ok ($updated_tb->anonaccess, 'Anonaccess not changed');
 
 ## remove dbref of treebank from user
 my $tb_id = $treebank_tb->id;
-
+my $tb2_id = $t->app->mandel->collection('treebank')->search({name => 'Second treebank'})->single->id;
+print STDERR "\nTB IDS:\t$tb_id \n\t$tb2_id\n";
 my %user_data = (
   name => 'Joe Tester',
   username => 'joe',
   password => 's3cret',
   email => 'joe@example.com',
-  available_treebanks => $tb_id
+  available_treebanks => [$tb_id,$tb2_id]
 );
+print STDERR "\n",scalar(@{$t->app->mandel->collection('treebank')->all}),"\t",join(" ",map {$_->id} @{$t->app->mandel->collection('treebank')->all}),"\n";
+print STDERR "*";
 $t->post_ok($t->app->url_for('create_user') => form => { map { ("user.$_" => $user_data{$_}) } keys %user_data })->status_is(200);
+print STDERR "*";
 my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => 's3cret'})->single;
-ok(first {$treebank_tb->id eq $_->id} @{$user_joe->available_treebanks},"Treebank not inserted");
+print STDERR "*".scalar(@{$user_joe->available_treebanks}),"   ",@{$user_joe->available_treebanks},"\n";
+ok((first {$tb_id eq $_->id} @{$user_joe->available_treebanks}),"Treebank not inserted");
+print STDERR "*";
 $t->ua->max_redirects(0);
+print STDERR "*";
 $t->delete_ok($t->app->url_for('delete_treebank', id => $tb_id))->status_is(302);
+print STDERR "*";
 $t->ua->max_redirects(10);
+print STDERR "*";
 
 $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => 's3cret'})->single;
 ok(not(grep {!defined($_) or $tb_id eq $_->id} @{$user_joe->available_treebanks}),"dbRef to treebank exists");
