@@ -115,7 +115,7 @@ sub update {
 sub remove {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
-
+  # TODO remove treebank from users !!!
   $treebank->remove(sub {
     my($treebank, $err) = @_;
 

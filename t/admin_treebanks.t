@@ -6,6 +6,7 @@ use Mojo::URL;
 use File::Basename 'dirname';
 use File::Spec;
 use Data::Dumper;
+use List::Util qw(first all);
 
 use lib dirname(__FILE__);
 
@@ -90,6 +91,7 @@ my $delete_treebank_url = $t->app->url_for('delete_treebank', id => $treebank_tb
 ok ($delete_treebank_url, 'Delete treebank url exists');
 $t->delete_ok($delete_treebank_url)
   ->status_is(302);
+$t->ua->max_redirects(10);
 
 my $deleted_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
 ok (!$deleted_tb, 'My treebank is gone from the database');
@@ -119,7 +121,6 @@ for my $key (qw/driver port/){
 }
 
 ## UPDATE - almost fields are required (password is not required)
-$t->ua->max_redirects(10);
 $t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(200);
 $treebank_data{name}='Second treebank';
 $t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(200);
@@ -162,5 +163,24 @@ ok (!$updated_tb->visible , 'Visibility  not changed');
 ok ($updated_tb->public, 'Public not changed');
 ok ($updated_tb->anonaccess, 'Anonaccess not changed');
 
+## remove dbref of treebank from user
+my $tb_id = $treebank_tb->id;
 
+my %user_data = (
+  name => 'Joe Tester',
+  username => 'joe',
+  password => 's3cret',
+  email => 'joe@example.com',
+  available_treebanks => $tb_id
+);
+$t->post_ok($t->app->url_for('create_user') => form => { map { ("user.$_" => $user_data{$_}) } keys %user_data })->status_is(200);
+my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => 's3cret'})->single;
+ok(first {$treebank_tb->id eq $_->id} @{$user_joe->available_treebanks},"Treebank not inserted");
+$t->ua->max_redirects(0);
+$t->delete_ok($t->app->url_for('delete_treebank', id => $tb_id))->status_is(302);
+$t->ua->max_redirects(10);
+
+$user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => 's3cret'})->single;
+ok(not(grep {!defined($_) or $tb_id eq $_->id} @{$user_joe->available_treebanks}),"dbRef to treebank exists");
+  
 done_testing();
