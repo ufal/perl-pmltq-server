@@ -5,6 +5,7 @@ use Mango::BSON 'bson_oid';
 use Digest::SHA qw(sha1_hex);
 
 use List::Util qw(min any);
+use Scalar::Util ();
 
 ###   $self->plugin("PMLTQ::Server::Helpers");
 
@@ -99,26 +100,72 @@ sub register {
   $app->helper(history       => sub { shift->mandel->collection('history') });
   $app->helper(drivers       => sub { [{id=>'pg',name=>"PostgreSQL"}] });
 
-  # # COLLECTIONS
-  # $self->helper(users       => sub { shift->mango->collection('users') });
-  # $self->helper(treebanks   => sub { shift->mango->collection('treebanks') });
-  # # ELEMENT IN COLLECTION
-  # $self->helper(pmltquser        => \&_pmltquser);
-  # $self->helper(treebank    => \&_treebank);
-  # # ADD
-  # $self->helper(adduser     => \&_adduser);
+  # HTML
+  $app->helper(form_field => sub {
+    my ($c, $type, $name, $field_name) = (shift, shift, shift, shift);
+    my @args = @_;
 
-  # $self->helper(addtreebank => \&_addtreebank);
-  # # DELETE
-  # $self->helper(deluser     => \&_deluser);
-  # $self->helper(deltreebank => \&_deltreebank);
-  # # UPDATE
-  # $self->helper(updateuser     => \&_updateuser);
+    my $id = _dom_id($name);
+    my $value = _lookup_stash_value($c, $name);
+    my $error = $c->validator_error(lc $field_name);
+    $c->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
+      my $content = $c->tag('label', for => $id, ucfirst $field_name . ':');
+      $content .= $c->$type($name => $value, class => 'form-control', placeholder => ucfirst $field_name, @args);
+      $content .= $c->tag('p', class => 'text-danger', $error) if $error;
+      return $content;
+    });  
+  });
+  $app->helper(password_field_with_value => sub {
+    my ($c, $name, $value) = (shift, shift, shift);
+    $c->tag('input', type => 'password', name => $name, value => $value, @_); 
+  });
 
-  #ERROR
+  # ERROR
   $app->helper(status_error => \&_status_error);
 }
 
+sub _lookup_stash_value {
+  my ($c, $name) = @_;
+
+  my $object = $c->stash;
+  my @path = split /\Q./, $name;
+
+  while(defined(my $accessor = shift @path) && $object) {
+    my $isa = ref($object);
+
+    # We don't handle the case where one of these return an array
+    if(Scalar::Util::blessed($object) && $object->can($accessor)) {
+      $object = $object->$accessor;
+    } elsif($isa eq 'HASH') {
+      # If blessed and !can() do we _really_ want to look inside?
+      $object = $object->{$accessor};
+    } elsif($isa eq 'ARRAY') {
+      die "Field: $name non-numeric index '$accessor' used to access an ARRAY"
+          unless $accessor =~ /^\d+$/;
+
+      $object = $object->[$accessor];
+    } else {
+      my $type = $isa || 'type that is not a reference';
+      die "Field: $name cannot use '$accessor' on a $type";
+    }
+  }
+
+  return $object;
+}
+
+sub _dom_id
+{
+  my @name = @_;
+  s/[^\w]+/-/g for @name;
+  join '-', @name;
+}
+ 
+sub _default_label
+{
+  my $label = (split /\Q./, shift)[-1];
+  $label =~ s/[^-a-z0-9]+/ /ig;
+  ucfirst $label;
+}
 
 sub _history_key {
   my $self = shift;
