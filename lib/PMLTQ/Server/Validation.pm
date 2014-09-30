@@ -63,6 +63,7 @@ sub list_of_dbrefs {
 sub is_valid_email {
   sub {
     my $email = shift;
+    return undef unless $email;
     Email::Valid->address($email) ? undef : 'Invalid email'
   }
 }

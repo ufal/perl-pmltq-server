@@ -10,22 +10,6 @@ use PMLTQ::Server::Validation;
 use PMLTQ::Server::Model::Permission ();
 use PMLTQ::Server::Model::Treebank ();
 
-my $user_form_validation = {
-  fields => [qw/name username password email is_active available_treebanks permissions/],
-  filters => [
-    # Remove spaces from all
-    [qw/name username password email/] => filter(qw/trim strip/),
-    is_active => force_bool(),
-    available_treebanks => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name),
-    permissions => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name)
-  ],
-  checks => [
-    [qw/name username password email/] => is_long_at_most(200),
-    [qw/username password/] => is_required(),
-    email => is_valid_email(),
-  ]
-};
-
 =head1 METHODS
 
 =head2 list
@@ -58,7 +42,7 @@ sub new_user {
 sub create {
   my $c = shift;
 
-  if ( my $user_data = $c->do_validation($user_form_validation, $c->param('user')) ) {
+  if ( my $user_data = $c->_validate_user($c->param('user')) ) {
     my $users = $c->mandel->collection('user');
     my $user = $users->create($user_data);
 
@@ -90,7 +74,7 @@ sub find_user {
     if ($err) {
       $c->flash(error => "$err");
       $c->render_not_found;
-      return;
+      return 0;
     }
 
     $c->stash(user => $user);
@@ -108,25 +92,21 @@ sub show {
 sub update {
   my $c = shift;
   my $user = $c->stash->{user};
-  for (qw/available_treebanks permissions/){$c->param('user')->{$_} = [$c->param('user')->{$_}] unless ref($c->param('user')->{$_}) eq 'ARRAY' or not($c->param('user')->{$_});}
-  my @avtree = map {my $id = $_;first {$id eq $_->id} @{$c->treebanks->all}} @{$c->param('user')->{'available_treebanks'}};
-  $c->param('user')->{'available_treebanks'} = [];
 
-  my @perms = map {my $id = $_;first {$id eq $_->id} @{$c->permissions->all}} @{$c->param('user')->{'permissions'}};
-  $c->param('user')->{'permissions'} = [];
+  if ( my $user_data = $c->_validate_user($c->param('user')) ) {
+    $user->patch($user_data, sub {
+      my($user, $err) = @_;
 
-  # TODO: validate input
-  $user->patch($c->param('user'), sub {
-    my($user, $err) = @_;
+      $c->flash(error => "$err") if $err;
+      $c->stash(user => $user);
+      $c->render(template => 'admin/users/form');
+    });
 
-    $c->flash(error => "$err") if $err;
-    $user->push_available_treebanks($_) for (@avtree);
-    $user->push_permissions($_) for (@perms);
-    $c->stash(user => $user);
-    $c->render(template => 'admin/users/form');
-  });
-
-  $c->render_later;
+    $c->render_later;
+  } else {
+    $c->flash(error => "Can't save invalid user");
+    $c->render(template => 'admin/users/form', status => 400);
+  }
 }
 
 sub remove {
@@ -146,6 +126,28 @@ sub remove {
   });
 
   $c->render_later;
+}
+
+sub _validate_user {
+  my ($c, $user_data) = @_;
+
+  my $rules = {
+    fields => [qw/name username password email is_active available_treebanks permissions/],
+    filters => [
+      # Remove spaces from all
+      [qw/name username password email/] => filter(qw/trim strip/),
+      is_active => force_bool(),
+      available_treebanks => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name),
+      permissions => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name)
+    ],
+    checks => [
+      [qw/name username password email/] => is_long_at_most(200),
+      [qw/username password/] => is_required(),
+      email => is_valid_email(),
+    ]
+  };
+
+  $c->do_validation($rules, $user_data);
 }
 
 1;
