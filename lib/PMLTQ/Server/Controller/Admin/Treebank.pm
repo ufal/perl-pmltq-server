@@ -3,7 +3,7 @@ package PMLTQ::Server::Controller::Admin::Treebank;
 # ABSTRACT: Handling everything related to treebanks
 
 use Mojo::Base 'Mojolicious::Controller';
-use Mango::BSON 'bson_oid';
+use Mango::BSON qw/bson_oid bson_dbref/;
 use PMLTQ::Server::Validation;
 
 
@@ -17,8 +17,6 @@ my $controller; ### little hack - it allows access to helpers from validation
 Bridge for other routes. Saves current treebank to stash under 'tb' key.
 
 =cut
-
-
 
 sub list {
   my $c = shift;
@@ -95,7 +93,7 @@ sub update {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
 
-  if(my $treebank_data = $c->do_validation(_get_treebank_form_validation($c,$treebank->id), $c->param('treebank')) ){
+  if (my $treebank_data = $c->do_validation(_get_treebank_form_validation($c,$treebank->id), $c->param('treebank')) ){
     $treebank->patch($treebank_data, sub {
       my($treebank, $err) = @_;
       $c->flash(error => "$err") if $err;
@@ -103,19 +101,17 @@ sub update {
       $c->render(template => 'admin/treebanks/form');
     });
     $c->render_later;  
-  }else{
+  } else {
     $c->flash(error => "Can't save invalid treebank" );
     $c->flash(errors => $c->validator_error());
     $c->render(template => 'admin/treebanks/form', status => 400);
   }
-  
-
 }
 
 sub remove {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
-  # TODO remove treebank from users !!!
+
   $treebank->remove(sub {
     my($treebank, $err) = @_;
 
@@ -123,16 +119,21 @@ sub remove {
       $c->flash(error => "$err");
       $c->stash(treebank => $treebank);
       $c->render(template => 'admin/treebanks/form');
-    } else {
-      $c->redirect_to('list_treebanks');
+      return;
     }
+
+    $c->users->_storage_collection->update(
+      {}, 
+      { '$pull' => { available_treebanks => bson_dbref($treebank->model->collection_name, $treebank->id) } },
+      { multi => 1 },
+      sub {
+        $c->redirect_to('list_treebanks');
+      }
+    );
   });
 
   $c->render_later;
 }
-
-
-sub fetch {}
 
 sub _get_treebank_form_validation{
   my $c = shift;

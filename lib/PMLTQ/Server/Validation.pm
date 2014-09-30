@@ -53,7 +53,8 @@ sub convert_to_oids { sub { $_[0] && @$_[0] > 0 ? [map { bson_oid($_) } @$_[0]] 
 sub list_of_dbrefs {
   my $collection_name = shift;
   sub {
-    my @list = $_[0] ? (ref($_[0]) eq 'ARRAY' ? @$_[0] : ($_[0])) : ();
+    my $arg = shift;
+    my @list = $arg ? (ref($arg) eq 'ARRAY' ? @$arg : ($arg)) : ();
     @list = map { bson_oid($_) } @list if @list > 0 && !UNIVERSAL::isa($list[0], 'Mango::BSON::ObjectID');
     return [ map { bson_dbref($collection_name, $_) } @list ];
   }
