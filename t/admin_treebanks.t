@@ -153,7 +153,7 @@ ok ($updated_tb->visible , 'Visibility  not changed');
 ok (!$updated_tb->public, 'Public changed');
 ok (!$updated_tb->anonaccess, 'Anonaccess changed');
 
-$treebank_data{visible}=0;
+delete $treebank_data{visible};
 $treebank_data{public}=1;
 $treebank_data{anonaccess}=1;
 $t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);

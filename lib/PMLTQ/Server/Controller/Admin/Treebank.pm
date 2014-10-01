@@ -92,8 +92,9 @@ sub show {
 sub update {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
-
-  if (my $treebank_data = $c->do_validation(_get_treebank_form_validation($c,$treebank->id), $c->param('treebank')) ){
+  my $validator = _get_treebank_form_validation($c,$treebank->id);
+  # PMLTQ::Server::Validation::fix_fields($validator, $c->param('treebank'));
+  if (my $treebank_data = $c->do_validation($validator, $c->param('treebank')) ){
     $treebank->patch($treebank_data, sub {
       my($treebank, $err) = @_;
       $c->flash(error => "$err") if $err;

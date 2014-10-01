@@ -2,6 +2,8 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Test::Deep;
+
 use Mojo::URL;
 use File::Basename 'dirname';
 use File::Spec;
@@ -79,6 +81,45 @@ ok ($updated_joe, 'Joe is still in the database');
 isnt ($updated_joe->name, $user_joe->name, 'Name has got updated');
 is ($updated_joe->email, $user_joe->email, 'Email has not changed');
 
+my %treebank_data = (
+  name => 'My treebank',
+  title => 'TB',
+  driver => 'pg',
+  host => '127.0.0.1',
+  port => 5000,
+  database => 'mytb',
+  username => 'joe',
+  password => 's3cret'
+);
+
+$t->post_ok($t->app->url_for('create_treebank') => form => {
+  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
+})->status_is(200);
+my $tb1 = $t->app->mandel->collection('treebank')->search({name => 'My treebank'})->single;
+$treebank_data{name} = 'My treebank 2';
+$t->post_ok($t->app->url_for('create_treebank') => form => {
+  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
+})->status_is(200);
+my $tb2 = $t->app->mandel->collection('treebank')->search({name => 'My treebank'})->single;
+$user_data{'available_treebanks.0'} = $tb1->id,
+$user_data{'available_treebanks.1'} = $tb2->id,
+
+$t->put_ok($update_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(200);
+$updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
+ok ($updated_joe, 'Joe is still in the database');
+ok(cmp_deeply($updated_joe->available_treebanks, subsetof($tb1,$tb2)), 'All treebanks added');
+delete $treebank_data{'available_treebanks.0'};
+delete $treebank_data{'available_treebanks.1'};
+$t->put_ok($update_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(200);
+$updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
+ok ($updated_joe, 'Joe is still in the database');
+is(@{$updated_joe->available_treebanks}, 0, 'All treebanks were deleted from user');
+
+
 $t->ua->max_redirects(0);
 my $delete_user_url = $t->app->url_for('delete_user', id => $user_joe->id);
 ok ($delete_user_url, 'Delete user url exists');
@@ -89,3 +130,4 @@ my $deleted_joe = $t->app->mandel->collection('user')->search({_id => $user_joe-
 ok (!$deleted_joe, 'Joe is gone from the database');
 
 done_testing();
+use Test::Deep;

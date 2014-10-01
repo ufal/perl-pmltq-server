@@ -7,6 +7,8 @@ use Email::Valid;
 use Validate::Tiny;
 use List::Util qw(first);
 
+use Scalar::Util 'refaddr';
+
 my @EXPORT_OK = qw/
   convert_to_oids
   force_arrayref
@@ -44,6 +46,33 @@ sub import {
   Mojo::Base->import(-strict);
 }
 
+=xxx
+experiments
+sub fix_fields {
+  my ($validator,$params) = @_;
+  my %required;
+  my $req = \&is_required;
+  my %checks = @{$validator->{checks}};
+  print STDERR "<<< \n";
+  
+  for my $check (keys %checks){
+    print STDERR "$check $checks{$check}>> ",$req,"\n";
+    #print STDERR "TODO refaddr ",refaddr($checks{$check})," ",refaddr($req),"\n";
+   # if{refaddr($checks{$check}) == refaddr($req)} {
+      print " ";  
+      #$required{$_}=1 for (@{ref($check) eq 'ARRAY' ? $check : [$check]});
+   # }
+
+  }
+
+  for my $field (@{$validator->{fields}}){
+    # TODO dont fix if not required
+    
+    $params->{$field}=undef if not exists $params->{$field} and exists $required{$field};
+    print STDERR "$field $params->{$field}\n";
+  }
+}
+=cut
 sub force_bool { sub { !!$_[0] ? 1 : 0 } }
 
 sub force_arrayref { sub { $_[0] ? (ref($_[0]) eq 'ARRAY' ? $_[0] : [$_[0]]) : [] } }
