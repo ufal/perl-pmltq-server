@@ -50,7 +50,7 @@ ok ($create_treebank_url, 'Create treebank url exists');
 my %treebank_data = (
   name => 'My treebank',
   title => 'TB',
-  driver => 'pg',
+  driver => 'Pg',
   host => '127.0.0.1',
   port => 5000,
   database => 'mytb',
@@ -99,7 +99,7 @@ ok (!$deleted_tb, 'My treebank is gone from the database');
 %treebank_data = (
   name => 'New treebank',
   title => 'TB',
-  driver => 'pg',
+  driver => 'Pg',
   host => '127.0.0.1',
   port => 5000,
   database => 'mytb',

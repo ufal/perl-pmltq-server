@@ -131,6 +131,14 @@ sub remove {
 sub _validate_user {
   my ($c, $user_data) = @_;
 
+  $user_data ||= {};
+
+  $user_data = {
+    available_treebanks => [],
+    permissions => [],
+    %$user_data
+  };
+
   my $rules = {
     fields => [qw/name username password email is_active available_treebanks permissions/],
     filters => [

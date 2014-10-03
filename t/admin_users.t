@@ -84,7 +84,7 @@ is ($updated_joe->email, $user_joe->email, 'Email has not changed');
 my %treebank_data = (
   name => 'My treebank',
   title => 'TB',
-  driver => 'pg',
+  driver => 'Pg',
   host => '127.0.0.1',
   port => 5000,
   database => 'mytb',
@@ -110,11 +110,12 @@ $t->put_ok($update_user_url => form => {
 $updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
 ok ($updated_joe, 'Joe is still in the database');
 ok(cmp_deeply($updated_joe->available_treebanks, subsetof($tb1,$tb2)), 'All treebanks added');
-delete $treebank_data{'available_treebanks.0'};
-delete $treebank_data{'available_treebanks.1'};
+delete $user_data{'available_treebanks.0'};
+delete $user_data{'available_treebanks.1'};
 $t->put_ok($update_user_url => form => {
   map { ("user.$_" => $user_data{$_}) } keys %user_data
 })->status_is(200);
+
 $updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
 ok ($updated_joe, 'Joe is still in the database');
 is(@{$updated_joe->available_treebanks}, 0, 'All treebanks were deleted from user');
