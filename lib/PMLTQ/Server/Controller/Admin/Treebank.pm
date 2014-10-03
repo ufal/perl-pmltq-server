@@ -41,7 +41,7 @@ sub new_treebank {
 
 sub create {
   my $c = shift;
-  if(my $treebank_data = $c->do_validation(_get_treebank_form_validation($c), $c->param('treebank')) ){
+  if(my $treebank_data = $c->_validate_treebank($c->param('treebank')) ){
     my $treebanks = $c->mandel->collection('treebank');
     my $treebank = $treebanks->create($treebank_data);
 
@@ -92,9 +92,9 @@ sub show {
 sub update {
   my $c = shift;
   my $treebank = $c->stash->{treebank};
-  my $validator = _get_treebank_form_validation($c,$treebank->id);
+  #my $validator = _get_treebank_form_validation($c,$treebank->id);
   # PMLTQ::Server::Validation::fix_fields($validator, $c->param('treebank'));
-  if (my $treebank_data = $c->do_validation($validator, $c->param('treebank')) ){
+  if (my $treebank_data = $c->_validate_treebank($c->param('treebank'), $treebank->id) ){
     $treebank->patch($treebank_data, sub {
       my($treebank, $err) = @_;
       $c->flash(error => "$err") if $err;
@@ -136,10 +136,12 @@ sub remove {
   $c->render_later;
 }
 
-sub _get_treebank_form_validation{
+sub _validate_treebank {
   my $c = shift;
+  my $treebank_data = shift;
   my $id = shift;
-  my $treebank_form_validation = {
+
+  my $rules = {
     fields => [qw/name title driver host port database username password visible public anonaccess/],
     filters => [
       # Remove spaces from all
@@ -157,7 +159,8 @@ sub _get_treebank_form_validation{
       name => is_not_in("Treebank name already exists", map {$_->name} grep {! $id or !($id eq $_->id)} @{$c->treebanks->all})
     ]
   };
-  return $treebank_form_validation;
+
+  return $c->do_validation($rules, $treebank_data);
 }
 
 1;
