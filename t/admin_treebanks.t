@@ -149,18 +149,18 @@ $treebank_data{name}='New Treebank';
 $treebank_data{visible}=1;
 $t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);
 $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
-ok ($updated_tb->visible , 'Visibility  not changed');
-ok (!$updated_tb->public, 'Public changed');
-ok (!$updated_tb->anonaccess, 'Anonaccess changed');
+ok ($updated_tb->visible , 'Visible true');
+ok (!$updated_tb->public, 'Public false');
+ok (!$updated_tb->anonaccess, 'Anonaccess false');
 
 delete $treebank_data{visible};
 $treebank_data{public}=1;
 $treebank_data{anonaccess}=1;
 $t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);
 $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
-ok (!$updated_tb->visible , 'Visibility  not changed');
-ok ($updated_tb->public, 'Public not changed');
-ok ($updated_tb->anonaccess, 'Anonaccess not changed');
+ok ($updated_tb->visible , 'Visible false');
+ok ($updated_tb->public, 'Public true');
+ok ($updated_tb->anonaccess, 'Anonaccess true');
 
 ## remove dbref of treebank from user
 my $tb_id = $treebank_tb->id;
