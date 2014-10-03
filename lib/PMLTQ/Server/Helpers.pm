@@ -52,38 +52,17 @@ sub register {
 
   # Common access helpers
   $app->helper(users => sub { shift->mandel->collection('user') });
-  $app->helper(user => sub {
-    my $self = shift;
-    my $user = $self->stash('user');
-    unless ($user) {
-      $user = $self->users->create();
-      $self->stash(user => $user);
+
+  $app->helper(field_options => sub {
+    my ($self, $name, $id_accessor, $label_accessor) = @_;
+    $id_accessor //= 'id';
+    $label_accessor //= 'label';
+
+    return {
+      map {
+        ($_->$id_accessor => $_->$label_accessor)
+      } @{$self->mandel->collection($name)->all}
     }
-    return $user;
-  });
-
-  $app->helper(permission_options => sub {
-    my ($self, $selected) = @_;
-    map {
-      my $p = $_;
-      {
-        value => $p->id,
-        label => $p->name,
-        selected => any {$p->id eq $_->id } @$selected
-      }
-    } @{$self->permissions->all}
-  });
-
-  $app->helper(treebank_options => sub {
-    my ($self, $selected) = @_;
-    map {
-      my $p = $_;
-      {
-        value => $p->id,
-        label => $p->name,
-        selected => any {$p->id eq $_->id } @$selected
-      }
-    } @{$self->treebanks->all}
   });
 
   $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
@@ -102,19 +81,24 @@ sub register {
 
   # HTML
   $app->helper(form_field => sub {
-    my ($c, $type, $name, $field_name) = (shift, shift, shift, shift);
+    my ($c, $type, $name) = (shift, shift, shift);
     my @args = @_;
 
     my $id = _dom_id($name);
-    my $value = _lookup_stash_value($c, $name);
-    my $error = $c->validator_error(lc $field_name);
+    my @path = split /\Q./, $name;
+    my $value = _lookup_stash_value($c, @path);
+    shift @path if @path > 1;
+    my $field_name = join '.', @path;
+    my $label = join ' ', map { ucfirst } @path;
+    my $error = $c->validator_error($field_name);
     $c->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
-      my $content = $c->tag('label', for => $id, ucfirst $field_name . ':');
-      $content .= $c->$type($name => $value, class => 'form-control', placeholder => ucfirst $field_name, @args);
+      my $content = $c->tag('label', for => $id, $label . ':');
+      $content .= $c->$type($name => $value, class => 'form-control', placeholder => $label, @args);
       $content .= $c->tag('p', class => 'text-danger', $error) if $error;
       return $content;
     });  
   });
+
   $app->helper(password_field_with_value => sub {
     my ($c, $name, $value) = (shift, shift, shift);
     $c->tag('input', type => 'password', name => $name, value => $value, @_); 
@@ -125,10 +109,9 @@ sub register {
 }
 
 sub _lookup_stash_value {
-  my ($c, $name) = @_;
+  my ($c, @path) = @_;
 
   my $object = $c->stash;
-  my @path = split /\Q./, $name;
 
   while(defined(my $accessor = shift @path) && $object) {
     my $isa = ref($object);
@@ -140,13 +123,13 @@ sub _lookup_stash_value {
       # If blessed and !can() do we _really_ want to look inside?
       $object = $object->{$accessor};
     } elsif($isa eq 'ARRAY') {
-      die "Field: $name non-numeric index '$accessor' used to access an ARRAY"
+      die "non-numeric index '$accessor' used to access an ARRAY"
           unless $accessor =~ /^\d+$/;
 
       $object = $object->[$accessor];
     } else {
       my $type = $isa || 'type that is not a reference';
-      die "Field: $name cannot use '$accessor' on a $type";
+      die "cannot use '$accessor' on a $type";
     }
   }
 

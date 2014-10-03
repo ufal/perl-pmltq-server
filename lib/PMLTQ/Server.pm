@@ -58,6 +58,7 @@ sub startup {
   });
 
   $self->plugin('PMLTQ::Server::Helpers');
+  $self->plugin('PMLTQ::Server::FormHelpers');
   $self->add_resource_shortcut();
 
   # Fake PUT and DELETE methods
