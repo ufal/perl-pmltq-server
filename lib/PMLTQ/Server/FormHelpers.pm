@@ -112,7 +112,8 @@ sub checkbox_field { shift->_form_field('checkbox', @_) }
 
 sub checkbox_options {
   my $self = shift;
-  my $options = shift;
+  my %attrs = @_;
+  my $options = delete $attrs{options};
 
   my $value = $self->_lookup_value;
   $value = [$value] if defined $value && ref $value ne 'ARRAY';
@@ -186,8 +187,7 @@ sub select {
 
   if (defined $c->param($name)) {
     $field = $c->select_field($name, $options, %attr);
-  }
-  else {
+  } else {
     # Make select_field select the value
     $c->param($name, $self->_lookup_value);
     $field = $c->select_field($name, $options, %attr);
@@ -196,6 +196,27 @@ sub select {
 
   $field;
 }
+
+sub select_option {
+  my $self = shift;
+  my %attrs = @_;
+  my $options = delete $attrs{options};
+  my $value = $self->_lookup_value;
+
+  $self->{c}->tag('select', @_, sub {
+    my $content = Mojo::ByteStream->new;
+    for my $option (@$options) {
+      $$content .= $self->{c}->tag('option',
+        value => $option->[0], 
+        ($value eq $option->[0] ? (selected => 'selected') : ()),
+        $option->[1]
+      )
+    }
+    return $content
+  });
+}
+
+sub select_option_field { shift->_form_field('select_option', @_) }
 
 sub password {
   my ($self, %options) = @_;
@@ -381,7 +402,8 @@ my @methods = @PMLTQ::Server::FormHelpers::Field::TEXT_FIELD_TYPES;
 push @methods, "${_}_field" for (@PMLTQ::Server::FormHelpers::Field::TEXT_FIELD_TYPES);
 
 for my $m (@methods, qw(fields file hidden input label password password_field 
-  checkbox checkbox_field checkbox_options radio radio_field select textarea)) {
+  checkbox checkbox_field checkbox_options radio radio_field select textarea
+  select_option select_option_field)) {
   no strict 'refs';
   *$m = sub {
     my $self = shift;

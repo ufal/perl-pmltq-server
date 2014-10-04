@@ -77,7 +77,7 @@ sub register {
   });
   $app->helper(permissions   => sub { shift->mandel->collection('permission') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
-  $app->helper(drivers       => sub { [{id=>'Pg',name=>"PostgreSQL"}] });
+  $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'] ] });
 
   # HTML
   $app->helper(form_field => sub {

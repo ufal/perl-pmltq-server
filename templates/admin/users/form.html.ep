@@ -26,7 +26,7 @@
       </div>
       <div class="panel-body">
         <fieldset>
-          <%= $user->checkbox_options('permissions', field_options('permission', id => 'name'))  %>
+          <%= $user->checkbox_options('permissions', options => field_options('permission', id => 'name'))  %>
         </fieldset>
       </div>
     </div>
@@ -38,7 +38,7 @@
       </div>
       <div class="panel-body">
         <fieldset>
-          <%= $user->checkbox_options('available_treebanks', field_options('treebank', id => 'name'))  %>
+          <%= $user->checkbox_options('available_treebanks', options =>  field_options('treebank', id => 'name'))  %>
         </fieldset>
       </div>
     </div>
@@ -51,7 +51,3 @@
 </div>
 <% end %>
 
-
-% if (current_route('update_user') or current_route('show_user')) {
-<%= form_for url_for('delete_user', id => user->id), method => 'post', begin %> <%= hidden_field '_method'=>'DELETE'%> <%= submit_button 'Delete User',class=>'btn btn-danger' %> <% end %>
-%}

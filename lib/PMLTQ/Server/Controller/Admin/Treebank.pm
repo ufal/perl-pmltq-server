@@ -155,7 +155,7 @@ sub _validate_treebank {
       [qw/name title driver host port database username/] => is_required(),
       $id ? () : (password => is_required()),
       port => is_valid_port_number(),
-      driver => is_in_str("Driver is not supported", map {$_->{id}} @{$c->drivers}),
+      driver => is_in_str("Driver is not supported", map {$_->[0]} @{$c->drivers}),
       name => is_not_in("Treebank name already exists", map {$_->name} grep {! $id or !($id eq $_->id)} @{$c->treebanks->all})
     ]
   };
