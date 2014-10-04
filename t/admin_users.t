@@ -131,4 +131,3 @@ my $deleted_joe = $t->app->mandel->collection('user')->search({_id => $user_joe-
 ok (!$deleted_joe, 'Joe is gone from the database');
 
 done_testing();
-use Test::Deep;
