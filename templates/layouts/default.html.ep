@@ -68,6 +68,8 @@
     }
     <%
     my $flash = { %{session('flash')||{}}, %{session('new_flash')||{}} };
+    # remove logic from the template
+    delete session->{flash}; delete session->{new_flash};
     for my $type (qw/warning success error/) {
       next unless $flash->{$type};
     %>
