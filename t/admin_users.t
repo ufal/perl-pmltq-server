@@ -7,7 +7,6 @@ use Test::Deep;
 use Mojo::URL;
 use File::Basename 'dirname';
 use File::Spec;
-use Data::Dumper;
 
 use lib dirname(__FILE__);
 
