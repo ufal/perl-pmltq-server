@@ -41,7 +41,7 @@ sub startup {
         username => $username||'',
         password => $password||'',
       })->distinct('_id')};
-      $self->app->log->debug('Authentication failed') unless $user_id;
+      $self->app->log->debug("Authentication failed: ${username}:${password}") unless $user_id;
       return defined $user_id ? "$user_id" : undef;
     }
   });
@@ -153,4 +153,5 @@ sub add_resource_shortcut {
     }
   );
 }
+
 1;

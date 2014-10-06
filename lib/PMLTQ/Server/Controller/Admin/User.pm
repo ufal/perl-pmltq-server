@@ -60,7 +60,7 @@ sub create {
     $c->render_later;
   } else {
     $c->flash(error => "Can't save invalid user");
-    $c->render(template => 'admin/users/form');
+    $c->render(template => 'admin/users/form', status => 400);
   }
 }
 
@@ -93,7 +93,7 @@ sub update {
   my $c = shift;
   my $user = $c->stash->{user};
 
-  if ( my $user_data = $c->_validate_user($c->param('user')) ) {
+  if ( my $user_data = $c->_validate_user($c->param('user'), $user) ) {
     $user->patch($user_data, sub {
       my($user, $err) = @_;
 
@@ -129,7 +129,7 @@ sub remove {
 }
 
 sub _validate_user {
-  my ($c, $user_data) = @_;
+  my ($c, $user_data, $user) = @_;
 
   $user_data ||= {};
 
@@ -140,22 +140,33 @@ sub _validate_user {
   };
 
   my $rules = {
-    fields => [qw/name username password email is_active available_treebanks permissions/],
+    fields => [qw/name username password password_confirm email is_active available_treebanks permissions/],
     filters => [
       # Remove spaces from all
-      [qw/name username password email/] => filter(qw/trim strip/),
+      [qw/name username email/] => filter(qw/trim strip/),
       is_active => force_bool(),
       available_treebanks => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name),
       permissions => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name)
     ],
     checks => [
-      [qw/name username password email/] => is_long_at_most(200),
-      [qw/username password/] => is_required(),
+      [qw/name username password password_confirm email/] => is_long_at_most(200),
+      username => is_required(),
+      (!$user ? ([qw/password password_confirm/] => is_required()) : ()),
+      password => is_equal(password_confirm => "Passwords don't match"),
       email => is_valid_email(),
     ]
   };
 
-  $c->do_validation($rules, $user_data);
+  $user_data = $c->do_validation($rules, $user_data);
+  return $user_data unless $user_data; # Fail if not valid
+
+  unless ($user_data->{password}) {
+    $user_data->{password} = $user->password if $user;
+  } else {
+    $user_data->{password} = $c->encrypt_password($user_data->{password});
+  }
+
+  return $user_data;
 }
 
 1;

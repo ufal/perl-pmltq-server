@@ -12,17 +12,10 @@
         <div class="panel-body">
           <%= form_for url_for('auth'), method => 'post', begin %>
             <fieldset>
-              <div class="form-group">
-                <%= text_field username => param('username'), class => 'form-control', placeholder => 'Username', autofocus => 'autofocus' %>
-              </div>
-              <div class="form-group">
-                <%= password_field 'password', class => 'form-control', placeholder => 'Password' %>
-              </div>
-              <div class="checkbox">
-                <label>
-                  <%= check_box remember => param('remember') %>Remember Me
-                </label>
-              </div>
+              % my $auth = fields('auth');
+              <%= $auth->text_field('username') %>
+              <%= $auth->password_field('password') %>
+              <%= $auth->checkbox_field('remember') %>
               <input type="submit" class="btn btn-lg btn-success btn-block" value="Login" />
             </fieldset>
           <% end %>

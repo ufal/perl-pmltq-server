@@ -3,23 +3,14 @@ package PMLTQ::Server::Validation;
 use Mojo::Base -strict;
 use Mojo::Util 'monkey_patch';
 use Mango::BSON qw/bson_oid bson_dbref/;
+use Crypt::Eksblowfish::Bcrypt ();
+use Encode qw(is_utf8 encode_utf8);
 use Email::Valid;
 use Validate::Tiny;
 use List::Util qw(first);
+use Exporter 'import';
 
 use Scalar::Util 'refaddr';
-
-my @EXPORT_OK = qw/
-  convert_to_oids
-  force_arrayref
-  force_bool
-  is_valid_email
-  list_of_dbrefs
-  is_valid_port_number
-  is_valid_driver
-  is_not_in
-  is_in_str
-/;
 
 # stuff from Validate::Tiny
 my @VALIDATE_TINY_EXPORT = (qw/
@@ -35,16 +26,25 @@ my @VALIDATE_TINY_EXPORT = (qw/
   is_in
 /);
 
-sub import {
-  my $class = shift;
-  my $caller = caller;
-
+for (@VALIDATE_TINY_EXPORT) {
   no strict 'refs';
-  *{"$caller\::$_"} = \&{"$class\::$_"} for @EXPORT_OK;
-  *{"$caller\::$_"} = \&{"Validate::Tiny\::$_"} for @VALIDATE_TINY_EXPORT;
-
-  Mojo::Base->import(-strict);
+  *$_ = \&{"Validate::Tiny\::$_"}
 }
+
+our @EXPORT_OK = (qw/
+  convert_to_oids
+  force_arrayref
+  force_bool
+  is_valid_email
+  list_of_dbrefs
+  encrypt_text
+  is_valid_port_number
+  is_valid_driver
+  is_not_in
+  is_in_str
+/, @VALIDATE_TINY_EXPORT);
+
+our @EXPORT = @EXPORT_OK;
 
 =xxx
 experiments
@@ -54,12 +54,12 @@ sub fix_fields {
   my $req = \&is_required;
   my %checks = @{$validator->{checks}};
   print STDERR "<<< \n";
-  
+
   for my $check (keys %checks){
     print STDERR "$check $checks{$check}>> ",$req,"\n";
     #print STDERR "TODO refaddr ",refaddr($checks{$check})," ",refaddr($req),"\n";
    # if{refaddr($checks{$check}) == refaddr($req)} {
-      print " ";  
+      print " ";
       #$required{$_}=1 for (@{ref($check) eq 'ARRAY' ? $check : [$check]});
    # }
 
@@ -67,7 +67,7 @@ sub fix_fields {
 
   for my $field (@{$validator->{fields}}){
     # TODO dont fix if not required
-    
+
     $params->{$field}=undef if not exists $params->{$field} and exists $required{$field};
     print STDERR "$field $params->{$field}\n";
   }
@@ -86,6 +86,33 @@ sub list_of_dbrefs {
     my @list = $arg ? (ref($arg) eq 'ARRAY' ? @$arg : ($arg)) : ();
     @list = map { bson_oid($_) } @list if @list > 0 && !UNIVERSAL::isa($list[0], 'Mango::BSON::ObjectID');
     return [ map { bson_dbref($collection_name, $_) } @list ];
+  }
+}
+
+sub encrypt_text {
+  my ($salt, $options) = @_;
+  $options ||= {};
+
+  my $cost = exists $options->{cost}    ? $options->{cost}    : 8;
+  my $nul  = exists $options->{key_nul} ? $options->{key_nul} : 1;
+
+  $nul = $nul ? 'a' : '';
+  $cost = sprintf("%02i", 0+$cost);
+  if ($salt) {
+    my $l = length $salt;
+    $l = (int($l / 8)+1)*8 if $l % 8;
+    $salt = sprintf("%${l}s", $salt);
+  } else {
+    $salt = join('', map { chr(int(rand(256))) } 1 .. 16) unless $salt;
+  }
+
+  my $settings_str = join('','$2',$nul,'$',$cost, '$', Crypt::Eksblowfish::Bcrypt::en_base64($salt));
+
+  sub {
+    my $plain_text = shift;
+
+    $plain_text = encode_utf8($plain_text) if is_utf8($plain_text); #  Bcrypt expects octets
+    Crypt::Eksblowfish::Bcrypt::bcrypt($plain_text, $settings_str);
   }
 }
 

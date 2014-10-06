@@ -6,6 +6,7 @@ use Digest::SHA qw(sha1_hex);
 
 use List::Util qw(min any);
 use Scalar::Util ();
+use PMLTQ::Server::Validation 'encrypt_text';
 
 ###   $self->plugin("PMLTQ::Server::Helpers");
 
@@ -15,40 +16,46 @@ sub register {
   my ($self, $app, $conf) = @_;
   $app->helper(mango => sub { shift->app->db });
   $app->helper(mandel => sub { shift->app->mandel });
-  $app->mandel->initialize;
 
   # History
   $app->helper(history_key => \&_history_key);
 
-  # Add admin user if not present
-  $app->mandel->collection('user')->count(sub {
-    my ($users, $err, $int) = @_;
-
-    return unless ($int == 0 && !$err);
-    $app->mandel->collection('permission')->search({name => 'admin'})->single(sub {
-      my($permissions, $err, $admin_permission) = @_;
-      unless ($admin_permission) {
-        $admin_permission = $permissions->create({
-          name => 'admin',
-          comment => 'All powerfull admin'
-        });
-        $admin_permission->save();
-      }
-
-      my $admin = $users->create({
-        name => 'Super Admin',
-        username => 'admin',
-        password => 'admin',
-      });
-
-      $admin->save(sub {
-        my ($admin, $err) = @_;
-
-        $app->log->error("Creating admin user failed: $err") if $err;
-        $admin->push_permissions($admin_permission) if ($admin);
-      });
-    });
+  # Encrypt password
+  my $encoder = encrypt_text($app->config->{password_salt});
+  $app->helper(encrypt_password => sub {
+    my $self = shift;
+    $encoder->(shift())
   });
+
+  # Add admin user if not present
+  # $app->mandel->collection('user')->count(sub {
+  #   my ($users, $err, $int) = @_;
+
+  #   return unless ($int == 0 && !$err);
+  #   $app->mandel->collection('permission')->search({name => 'admin'})->single(sub {
+  #     my($permissions, $err, $admin_permission) = @_;
+  #     unless ($admin_permission) {
+  #       $admin_permission = $permissions->create({
+  #         name => 'admin',
+  #         comment => 'All powerfull admin'
+  #       });
+  #       $admin_permission->save();
+  #     }
+
+  #     my $admin = $users->create({
+  #       name => 'Super Admin',
+  #       username => 'admin',
+  #       password => 'admin',
+  #     });
+
+  #     $admin->save(sub {
+  #       my ($admin, $err) = @_;
+
+  #       $app->log->error("Creating admin user failed: $err") if $err;
+  #       $admin->push_permissions($admin_permission) if ($admin);
+  #     });
+  #   });
+  # });
 
   # Common access helpers
   $app->helper(users => sub { shift->mandel->collection('user') });
@@ -96,16 +103,19 @@ sub register {
       $content .= $c->$type($name => $value, class => 'form-control', placeholder => $label, @args);
       $content .= $c->tag('p', class => 'text-danger', $error) if $error;
       return $content;
-    });  
+    });
   });
 
   $app->helper(password_field_with_value => sub {
     my ($c, $name, $value) = (shift, shift, shift);
-    $c->tag('input', type => 'password', name => $name, value => $value, @_); 
+    $c->tag('input', type => 'password', name => $name, value => $value, @_);
   });
 
   # ERROR
   $app->helper(status_error => \&_status_error);
+
+  # init after we have all helpers available
+  $app->mandel->initialize($app);
 }
 
 sub _lookup_stash_value {
@@ -142,7 +152,7 @@ sub _dom_id
   s/[^\w]+/-/g for @name;
   join '-', @name;
 }
- 
+
 sub _default_label
 {
   my $label = (split /\Q./, shift)[-1];
