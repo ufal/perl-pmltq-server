@@ -7,7 +7,6 @@ use File::Basename 'dirname';
 use File::Spec;
 use Data::Dumper;
 use List::Util qw(first all);
-use Carp::Always;
 
 use lib dirname(__FILE__);
 require 'bootstrap.pl';
