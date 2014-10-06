@@ -33,7 +33,7 @@ sub register {
     # Content
     my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
     my $content = @_ % 2 ? pop : undef;
-   
+
     my $value = $c->stash($name);
     my $is_edit = $c->current_route("update_$name") || $c->current_route("show_$name");
     my $url = $is_edit ? $c->url_for("update_$name", $value->id) : $c->url_for("create_$name");
@@ -125,8 +125,8 @@ sub checkbox_options {
   my $content = Mojo::ByteStream->new;
   for my $option (keys %$options) {
     $$content .= $self->checkbox_field(
-      $options->{$option}, 
-      value => $option, 
+      $options->{$option},
+      value => $option,
       ($lookup{$option} ? (checked => 'checked') : ())
     )
   }
@@ -200,14 +200,15 @@ sub select {
 sub select_option {
   my $self = shift;
   my %attrs = @_;
+  $attrs{id} //= $self->_dom_id;
   my $options = delete $attrs{options};
   my $value = $self->_lookup_value;
 
-  $self->{c}->tag('select', @_, sub {
+  $self->{c}->tag('select', %attrs, sub {
     my $content = Mojo::ByteStream->new;
     for my $option (@$options) {
       $$content .= $self->{c}->tag('option',
-        value => $option->[0], 
+        value => $option->[0],
         ($value eq $option->[0] ? (selected => 'selected') : ()),
         $option->[1]
       )
@@ -276,9 +277,9 @@ sub _dom_id {
   my $value = '';
   $value = '-' . join('-', @_) if (@_ > 0);
   unless ($self->{dom_id}) {
-    my @path = @{$self->{path}}; 
+    my @path = @{$self->{path}};
     s/[^\w]+/-/g for @path;
-    $self->{dom_id} = join '-', @path;    
+    $self->{dom_id} = join '-', @path;
   }
   return $self->{dom_id} . $value;
 }
@@ -357,11 +358,11 @@ sub _form_field {
   if ($type eq 'radio' || $type eq 'checkbox') {
     $c->tag('div', class => $type, sub {
       my $content = $self->label(sub {
-        $self->$type(%options) . ' ' . xml_escape($label);  
+        $self->$type(%options) . ' ' . xml_escape($label);
       });
       $content .= $c->tag('p', class => 'text-danger', $error) if $error;
       return $content;
-    });    
+    });
   } else {
     $c->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
       my $content = $self->label($label . ':');
@@ -401,7 +402,7 @@ sub object { shift->_lookup_value }
 my @methods = @PMLTQ::Server::FormHelpers::Field::TEXT_FIELD_TYPES;
 push @methods, "${_}_field" for (@PMLTQ::Server::FormHelpers::Field::TEXT_FIELD_TYPES);
 
-for my $m (@methods, qw(fields file hidden input label password password_field 
+for my $m (@methods, qw(fields file hidden input label password password_field
   checkbox checkbox_field checkbox_options radio radio_field select textarea
   select_option select_option_field)) {
   no strict 'refs';
