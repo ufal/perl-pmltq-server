@@ -4,7 +4,6 @@ use File::Basename 'dirname';
 use File::Spec;
 
 use Test::More;
-use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', '..', 'Test-postgresql', 'lib'));
 use Test::PostgreSQL;
 use Test::Mojo;
 use Mojo::Util qw(b64_decode hmac_sha1_sum);
