@@ -15,7 +15,7 @@ sub initialize {
   unless ($permissions->count) {
     my @permissions = (
       { name => 'admin', comment => 'Can access everything including administration backend' },
-      { name => 'treebanks', comment => 'Can access all treebanks' },
+      { name => 'all_treebanks', comment => 'Can access all treebanks' },
       { name => 'shibboleth', comment => 'User added by Shibboleth and can only login through Shibboleth' },
     );
 
