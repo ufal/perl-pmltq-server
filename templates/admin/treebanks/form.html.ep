@@ -1,6 +1,6 @@
 % layout 'admin';
 % semantic_title 'treebank';
-
+<script src="//cdn.ckeditor.com/4.4.5/standard/ckeditor.js"></script>
 <%= semantic_form_for 'treebank', begin %>
 <div class="row">
   <div class="col-lg-6">
@@ -13,9 +13,14 @@
           % my $treebank = fields('treebank');
           <%= $treebank->text_field('name') %>
           <%= $treebank->text_field('title') %>
-          <%= $treebank->checkbox_field('visible') %>
+          <%= $treebank->url_field('homepage') %>
+          <%= $treebank->textarea('description',class => 'ckeditor form-control') %>
+          <%= $treebank->textarea('data_sources',class => 'form-control') %>
+          <%= $treebank->textarea('documentation',class => 'form-control') %>
+          
           <%= $treebank->checkbox_field('public') %>
           <%= $treebank->checkbox_field('anonaccess') %>
+          
         </fieldset>
       </div>
     </div>
@@ -43,4 +48,8 @@
     <button type="submit" class="btn btn-primary" />Save Treebank</button>
   </div>
 </div>
+
+
 <% end %>
+
+
