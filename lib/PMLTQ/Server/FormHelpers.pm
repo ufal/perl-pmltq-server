@@ -120,7 +120,7 @@ sub checkbox_options {
   $value = [] unless defined $value;
 
   # turn into hash map
-  my %lookup = map { $_->id => 1 } @$value;
+  my %lookup = map { ($_ ? $_->id : $_) => 1 } @$value;
 
   my $content = Mojo::ByteStream->new;
   for my $option (keys %$options) {

@@ -142,11 +142,10 @@ sub _validate_treebank {
   my $id = shift;
 
   my $rules = {
-    fields => [qw/name title driver host port database username password visible public anonaccess/],
+    fields => [qw/name title driver host port database username password public anonaccess/],
     filters => [
       # Remove spaces from all
       [qw/name title host port database username password/] => filter(qw/trim strip/),
-      visible => force_bool(),
       public => force_bool(),
       anonaccess => force_bool()
     ],
