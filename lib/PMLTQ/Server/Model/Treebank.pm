@@ -16,10 +16,11 @@ use URI;
 
 =cut
 
-field [qw/name title driver host port database username password/] => ( isa => Str );
+field [qw/name title driver host port database username password homepage description/] => ( isa => Str );
 field [qw/visible public anonaccess/] => (isa => Bool);
 
-field data_sources => ( isa => ArrayRef[HashRef[Str]] );
+field documentation => ( isa => ArrayRef[HashRef[Str]] ); ## in XML file:  '//dbi/documentation/LM/'   @title  : text()
+field data_sources => ( isa => HashRef[Str] );            ## in XML file:  '//dbi/sources/AM/'         @schema : text()
 
 has_many histories => 'PMLTQ::Server::Model::History';
 
