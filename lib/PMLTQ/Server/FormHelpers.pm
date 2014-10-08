@@ -255,24 +255,6 @@ sub textarea {
   $self->{c}->text_area($self->{name}, %options, sub { $self->_lookup_value || '' });
 }
 
-sub text_area {
-  my $self = shift;
-  my $c = $self->{c};
-  my $label;
-  $label = shift if @_ % 2;
-  $label //= $self->_default_label;
-  my %options = @_;
-  #my $error = $c->validator_error($self->{name});
-  my $error = $c->validator_error($self->{path}->[-1]);
-  $c->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
-    my $content = $self->label($label . ':');
-    $content .= "";### deep recursion: $self->text_area(class => 'form-control', placeholder => $label, %options);
-    $content .= $c->tag('p', class => 'text-danger', $error) if $error;
-    return $content;
-  });
-  
-}
-
 sub each {
   my $self = shift;
   my $block = pop;
