@@ -26,7 +26,6 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
             <th>Database</th>
             <th>Username</th>
             <th>Pub</th>
-            <th>Vis</th>
             <th>Anon</th>
           </tr>
         </thead>
@@ -41,7 +40,6 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
             <td><%= $treebank->database %></td>
             <td><%= $treebank->username %></td>
             <td><%= $treebank->public ? "X":"" %><!--<%= $treebank->public ? "public":"" %>--></td>
-            <td><%= $treebank->visible ? "X":"" %></td>
             <td><%= $treebank->anonaccess ? "X":"" %></td>
           </tr>
           <% } %>
