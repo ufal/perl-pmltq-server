@@ -184,7 +184,6 @@ sub select {
   my $c = $self->{c};
   my $name = $self->{name};
   my $field;
-
   if (defined $c->param($name)) {
     $field = $c->select_field($name, $options, %attr);
   } else {
@@ -201,6 +200,7 @@ sub select_option {
   my $self = shift;
   my %attrs = @_;
   $attrs{id} //= $self->_dom_id;
+  $attrs{name} = $self->{name};
   my $options = delete $attrs{options};
   my $value = $self->_lookup_value;
 
@@ -251,8 +251,30 @@ sub textarea {
     $options{rows} = $1;
     $options{cols} = $2;
   }
+  my $fields = delete $options{show_fields};
+  my $error = $self->{c}->validator_error($self->{path}->[-1]);
+  $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)} );
+  my $label = $self->_default_label;
+  $self->{c}->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
+      my $content = $self->label($label . ':');
+      $content .= $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)}); 
+      $content .= $self->{c}->tag('p', class => 'text-danger', $error) if $error;
+      return $content;
+    });  
+}
 
-  $self->{c}->text_area($self->{name}, %options, sub { $self->_lookup_value || '' });
+sub get_structured_data {
+  my ($self,$fields)=@_; 
+  my $val = $self->_lookup_value;
+  return '' unless $val;
+  return join("\n",map {"[$_]($val->{$_})"} keys %$val)if ref $val eq 'HASH';
+  
+  if(ref $val eq 'ARRAY') {
+    return '' unless $fields;
+    my ($k1,$k2) = @$fields;
+    return join('\n',map {"[$_->{$k1}]($_->{$k2})"} @$val);
+  }
+  return $val;
 }
 
 sub each {

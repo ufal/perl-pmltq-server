@@ -7,7 +7,7 @@ use Crypt::Eksblowfish::Bcrypt ();
 use Encode qw(is_utf8 encode_utf8);
 use Email::Valid;
 use Validate::Tiny;
-use List::Util qw(first);
+use List::Util qw(first all);
 use Exporter 'import';
 
 use Scalar::Util 'refaddr';
@@ -35,6 +35,8 @@ our @EXPORT_OK = (qw/
   convert_to_oids
   force_arrayref
   force_bool
+  to_hash
+  to_array_of_hash
   is_valid_email
   list_of_dbrefs
   encrypt_text
@@ -42,6 +44,8 @@ our @EXPORT_OK = (qw/
   is_valid_driver
   is_not_in
   is_in_str
+  is_array_of_hash
+  is_hash
 /, @VALIDATE_TINY_EXPORT);
 
 our @EXPORT = @EXPORT_OK;
@@ -87,6 +91,32 @@ sub list_of_dbrefs {
     @list = map { bson_oid($_) } @list if @list > 0 && !UNIVERSAL::isa($list[0], 'Mango::BSON::ObjectID');
     return [ map { bson_dbref($collection_name, $_) } @list ];
   }
+}
+
+sub to_hash {
+  my $delim = shift;
+  my $pattern = shift;  
+  sub {
+    my $text = shift;
+    my %h = map {m/$pattern/ ? ($1=>$2) : ('ERROR'=>undef)} split($delim,$text);
+    return undef if exists($h{'ERROR'}) and not defined($h{'ERROR'});
+    return \%h;
+  }  
+}
+sub to_array_of_hash {
+  my $fields = shift;
+  my $delim = shift;
+  my $pattern = shift;
+  sub {
+    my $text = shift;
+    my @a = map { my @matched = m/$pattern/;
+                  (@matched and @matched == @$fields) 
+                                 ? ({map {$fields->[$_] => $matched[$_]} [0..$#$fields]}) 
+                                 : (undef)
+                } split($delim,$text);
+    return undef if first {not defined($_)} @a;
+    return \@a;
+  }  
 }
 
 sub encrypt_text {
@@ -146,6 +176,22 @@ sub is_not_in {
   sub {
     my $str = shift;
     (! (first {$str eq $_} @list)) ? undef : $error
+  }
+}
+
+sub is_hash {
+  my $error = shift;
+  sub {
+    my $h = shift;
+    ($h and ref($h) eq 'HASH') ? undef : $error
+  }
+}
+
+sub is_array_of_hash {
+  my $error = shift;
+  sub {
+    my $a = shift;
+    ($a and ref($a) eq 'ARRAY' and all {$_ and ref($_) eq 'HASH'} @$a) ? undef : $error
   }
 }
 1;
