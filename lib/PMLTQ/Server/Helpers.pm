@@ -6,44 +6,21 @@ use Digest::SHA qw(sha1_hex);
 
 use List::Util qw(min any);
 use Scalar::Util ();
+use PMLTQ::Server::Validation 'encrypt_text';
 
 sub register {
   my ($self, $app, $conf) = @_;
   $app->helper(mango => sub { shift->app->db });
   $app->helper(mandel => sub { shift->app->mandel });
-  $app->mandel->initialize;
 
   # History
   $app->helper(history_key => \&_history_key);
 
-  # Add admin user if not present
-  $app->mandel->collection('user')->count(sub {
-    my ($users, $err, $int) = @_;
-
-    return unless ($int == 0 && !$err);
-    $app->mandel->collection('permission')->search({name => 'admin'})->single(sub {
-      my($permissions, $err, $admin_permission) = @_;
-      unless ($admin_permission) {
-        $admin_permission = $permissions->create({
-          name => 'admin',
-          comment => 'All powerfull admin'
-        });
-        $admin_permission->save();
-      }
-
-      my $admin = $users->create({
-        name => 'Super Admin',
-        username => 'admin',
-        password => 'admin',
-      });
-
-      $admin->save(sub {
-        my ($admin, $err) = @_;
-
-        $app->log->error("Creating admin user failed: $err") if $err;
-        $admin->push_permissions($admin_permission) if ($admin);
-      });
-    });
+  # Encrypt password
+  my $encoder = encrypt_text($app->config->{password_salt});
+  $app->helper(encrypt_password => sub {
+    my $self = shift;
+    $encoder->(shift())
   });
 
   # Generate field options from database collection
@@ -65,10 +42,13 @@ sub register {
   $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
   $app->helper(permissions   => sub { shift->mandel->collection('permission') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
-  $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'] ] });
+  $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'],[Oracle => 'Oracle'] ] });
 
   # ERROR
   $app->helper(status_error => \&_status_error);
+
+  # init after we have all helpers available
+  $app->mandel->initialize($app);
 }
 
 sub _history_key {
@@ -108,6 +88,5 @@ sub _status_error {
     });
   }
 }
-
 
 1;

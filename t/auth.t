@@ -37,7 +37,7 @@ $t->post_ok($auth_url => form => {
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($auth_url => form => {
   username => $tu->username,
-  password => $tu->password
+  password => 'tester'
 })->status_is(404);
 
 my $admin_permission = $t->app->mandel->collection('permission')->create({
@@ -51,7 +51,7 @@ $tu->push_permissions($admin_permission);
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($auth_url => form => {
   username => $tu->username,
-  password => $tu->password
+  password => 'tester'
 })->status_is(200);
 
 done_testing();

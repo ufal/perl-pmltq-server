@@ -4,7 +4,6 @@ use File::Basename 'dirname';
 use File::Spec;
 
 use Test::More;
-use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', '..', 'Test-postgresql', 'lib'));
 use Test::PostgreSQL;
 use Test::Mojo;
 use Mojo::Util qw(b64_decode hmac_sha1_sum);
@@ -28,7 +27,7 @@ unless ($ENV{PMLTQ_SERVER_TESTDB}) {
   $ENV{PMLTQ_SERVER_TESTDB} = Mojo::URL->new($ENV{PMLTQ_SERVER_TESTDB})->path("/$mongo_database")->to_string;
 }
 
-test_app()->app->db->db->command(dropDatabase => 1);
+#test_app()->app->db->db->command(dropDatabase => 1);
 
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 my $pg_dir = File::Spec->catdir(dirname(__FILE__), 'postgres');
@@ -76,7 +75,7 @@ sub start_postgres {
 
 Treex::PML::AddResourcePathAsFirst(File::Spec->catdir($test_files, 'resources'));
 
-my ($app, $test_tb, $test_user);
+my ($app, $test_tb, $test_user, $admin_user);
 
 sub test_app {
   return $app ||= Test::Mojo->new('PMLTQ::Server');
@@ -117,13 +116,23 @@ sub test_user {
   $test_user = $users->create({
     name => 'Joe Tester',
     username => 'tester',
-    password => 'secret',
+    password => test_app()->app->build_controller->encrypt_password('tester'),
     email => 'joe@happytesting.com'
   });
 
   $test_user->save();
 
   return $test_user
+}
+
+sub test_admin {
+  return $admin_user if $admin_user;
+
+  my $users = test_app()->app->mandel->collection('user');
+  $admin_user = $users->search({username => 'admin'})->single;
+
+  die 'No admin, hey?' unless $admin_user;
+  return $admin_user;
 }
 
 my $print_server_pid;

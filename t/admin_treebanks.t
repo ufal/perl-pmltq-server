@@ -12,22 +12,14 @@ use lib dirname(__FILE__);
 require 'bootstrap.pl';
 
 my $t = test_app();
-my $tu = test_user();
-
-my $admin_permission = $t->app->mandel->collection('permission')->create({
-  name => 'admin',
-  comment => 'All powerfull admin'
-});
-$admin_permission->save();
-
-$tu->push_permissions($admin_permission);
+my $admin = test_admin();
 
 # Login
 $t->ua->max_redirects(10);
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($t->app->url_for('auth_login') => form => {
-  username => $tu->username,
-  password => $tu->password
+  username => $admin->username,
+  password => 'admin'
 })->status_is(200);
 
 ######## BASIC FUNCTIONALITY ############
@@ -146,19 +138,16 @@ $t->post_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form 
 
 ## test bools
 $treebank_data{name}='New Treebank';
-$treebank_data{visible}=1;
+$treebank_data{public}=1;
 $t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);
 $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
-ok ($updated_tb->visible , 'Visible true');
-ok (!$updated_tb->public, 'Public false');
+ok ($updated_tb->public, 'Public true');
 ok (!$updated_tb->anonaccess, 'Anonaccess false');
 
-delete $treebank_data{visible};
 $treebank_data{public}=1;
 $treebank_data{anonaccess}=1;
 $t->put_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data })->status_is(200);
 $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
-ok ($updated_tb->visible , 'Visible false');
 ok ($updated_tb->public, 'Public true');
 ok ($updated_tb->anonaccess, 'Anonaccess true');
 
@@ -166,24 +155,26 @@ ok ($updated_tb->anonaccess, 'Anonaccess true');
 my $tb_id = $treebank_tb->id;
 my $tb2_id = $t->app->mandel->collection('treebank')->search({name => 'Second treebank'})->single->id;
 
+my $password_hash = $t->app->build_controller->encrypt_password('s3cret');
 my %user_data = (
   name => 'Joe Tester',
   username => 'joe2',
   password => 's3cret',
+  password_confirm => 's3cret',
   email => 'joe@example.com',
   'available_treebanks.0' => $tb_id,
   'available_treebanks.1' => $tb2_id,
 );
 
 $t->post_ok($t->app->url_for('create_user') => form => { map { ("user.$_" => $user_data{$_}) } keys %user_data })->status_is(200);
-my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe2', password => 's3cret'})->single;
+my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe2', password => $password_hash})->single;
 ok((first {$tb_id eq $_->id} @{$user_joe->available_treebanks}), "Treebank not inserted");
 
 $t->ua->max_redirects(0);
 $t->delete_ok($t->app->url_for('delete_treebank', id => $tb_id))->status_is(302);
 $t->ua->max_redirects(10);
 
-$user_joe = $t->app->mandel->collection('user')->search({username => 'joe2', password => 's3cret'})->single;
+$user_joe = $t->app->mandel->collection('user')->search({username => 'joe2', password => $password_hash})->single;
 
 ok(not(grep { $tb_id eq $_->id } @{$user_joe->available_treebanks}), "dbRef to treebank exists");
 

@@ -33,7 +33,7 @@ sub register {
     # Content
     my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
     my $content = @_ % 2 ? pop : undef;
-   
+
     my $value = $c->stash($name);
     my $is_edit = $c->current_route("update_$name") || $c->current_route("show_$name");
     my $url = $is_edit ? $c->url_for("update_$name", $value->id) : $c->url_for("create_$name");
@@ -76,7 +76,7 @@ for my $name (@TEXT_FIELD_TYPES) {
   my $field = "${name}_field";
   no strict 'refs';
   *$name = sub { shift->input($name, @_) };
-  *$field = sub { shift->_form_field($name, @_) };
+  *$field = sub { shift->_form_field($name, @_)}
 }
 
 sub new {
@@ -120,13 +120,13 @@ sub checkbox_options {
   $value = [] unless defined $value;
 
   # turn into hash map
-  my %lookup = map { $_ => 1 } @$value;
+  my %lookup = map { ($_ ? $_->id : $_) => 1 } @$value;
 
   my $content = Mojo::ByteStream->new;
   for my $option (keys %$options) {
     $$content .= $self->checkbox_field(
-      $options->{$option}, 
-      value => $option, 
+      $options->{$option},
+      value => $option,
       ($lookup{$option} ? (checked => 'checked') : ())
     )
   }
@@ -184,7 +184,6 @@ sub select {
   my $c = $self->{c};
   my $name = $self->{name};
   my $field;
-
   if (defined $c->param($name)) {
     $field = $c->select_field($name, $options, %attr);
   } else {
@@ -200,14 +199,16 @@ sub select {
 sub select_option {
   my $self = shift;
   my %attrs = @_;
+  $attrs{id} //= $self->_dom_id;
+  $attrs{name} = $self->{name};
   my $options = delete $attrs{options};
   my $value = $self->_lookup_value;
 
-  $self->{c}->tag('select', @_, sub {
+  $self->{c}->tag('select', %attrs, sub {
     my $content = Mojo::ByteStream->new;
     for my $option (@$options) {
       $$content .= $self->{c}->tag('option',
-        value => $option->[0], 
+        value => $option->[0],
         ($value eq $option->[0] ? (selected => 'selected') : ()),
         $option->[1]
       )
@@ -250,8 +251,30 @@ sub textarea {
     $options{rows} = $1;
     $options{cols} = $2;
   }
+  my $fields = delete $options{show_fields};
+  my $error = $self->{c}->validator_error($self->{path}->[-1]);
+  $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)} );
+  my $label = $self->_default_label;
+  $self->{c}->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
+      my $content = $self->label($label . ':');
+      $content .= $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)}); 
+      $content .= $self->{c}->tag('p', class => 'text-danger', $error) if $error;
+      return $content;
+    });  
+}
 
-  $self->{c}->text_area($self->{name}, %options, sub { $self->_lookup_value || '' });
+sub get_structured_data {
+  my ($self,$fields)=@_; 
+  my $val = $self->_lookup_value;
+  return '' unless $val;
+  return join("\n",map {"[$_]($val->{$_})"} keys %$val)if ref $val eq 'HASH';
+  
+  if(ref $val eq 'ARRAY') {
+    return '' unless $fields;
+    my ($k1,$k2) = @$fields;
+    return join('\n',map {"[$_->{$k1}]($_->{$k2})"} @$val);
+  }
+  return $val;
 }
 
 sub each {
@@ -276,9 +299,9 @@ sub _dom_id {
   my $value = '';
   $value = '-' . join('-', @_) if (@_ > 0);
   unless ($self->{dom_id}) {
-    my @path = @{$self->{path}}; 
+    my @path = @{$self->{path}};
     s/[^\w]+/-/g for @path;
-    $self->{dom_id} = join '-', @path;    
+    $self->{dom_id} = join '-', @path;
   }
   return $self->{dom_id} . $value;
 }
@@ -357,11 +380,11 @@ sub _form_field {
   if ($type eq 'radio' || $type eq 'checkbox') {
     $c->tag('div', class => $type, sub {
       my $content = $self->label(sub {
-        $self->$type(%options) . ' ' . xml_escape($label);  
+        $self->$type(%options) . ' ' . xml_escape($label);
       });
       $content .= $c->tag('p', class => 'text-danger', $error) if $error;
       return $content;
-    });    
+    });
   } else {
     $c->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
       my $content = $self->label($label . ':');
@@ -401,7 +424,7 @@ sub object { shift->_lookup_value }
 my @methods = @PMLTQ::Server::FormHelpers::Field::TEXT_FIELD_TYPES;
 push @methods, "${_}_field" for (@PMLTQ::Server::FormHelpers::Field::TEXT_FIELD_TYPES);
 
-for my $m (@methods, qw(fields file hidden input label password password_field 
+for my $m (@methods, qw(fields file hidden input label password password_field
   checkbox checkbox_field checkbox_options radio radio_field select textarea
   select_option select_option_field)) {
   no strict 'refs';

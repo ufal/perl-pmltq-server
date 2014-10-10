@@ -140,15 +140,17 @@ sub _validate_treebank {
   my $c = shift;
   my $treebank_data = shift;
   my $id = shift;
-
+  my $markup_linkpattern = qr/^\s*\[(.+)\]\s*\((.+)\)\s*$/;
   my $rules = {
-    fields => [qw/name title driver host port database username password visible public anonaccess/],
+    fields => [qw/name title home driver host port database username password public anonaccess description data_sources documentation/],
     filters => [
       # Remove spaces from all
       [qw/name title host port database username password/] => filter(qw/trim strip/),
-      visible => force_bool(),
       public => force_bool(),
-      anonaccess => force_bool()
+      anonaccess => force_bool(),
+      data_sources => to_hash("\n",$markup_linkpattern),
+      documentation => to_array_of_hash([qw/title link/],"\n",$markup_linkpattern)
+      ## todo desctiptioun should be html with no unsafe code !!!
     ],
     checks => [
       [qw/name title username password/] => is_long_at_most(200),
@@ -156,7 +158,9 @@ sub _validate_treebank {
       $id ? () : (password => is_required()),
       port => is_valid_port_number(),
       driver => is_in_str("Driver is not supported", map {$_->[0]} @{$c->drivers}),
-      name => is_not_in("Treebank name already exists", map {$_->name} grep {! $id or !($id eq $_->id)} @{$c->treebanks->all})
+      name => is_not_in("Treebank name already exists", map {$_->name} grep {! $id or !($id eq $_->id)} @{$c->treebanks->all}),
+      data_sources => is_hash(),
+      documentation => is_array_of_hash()
     ]
   };
 

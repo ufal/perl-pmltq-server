@@ -28,7 +28,7 @@ $t->ua->max_redirects(10);
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($t->app->url_for('auth_login') => form => {
   username => $tu->username,
-  password => $tu->password
+  password => 'tester'
 })->status_is(200);
 
 my $list_users_url = $t->app->url_for('list_users');
@@ -46,10 +46,12 @@ $t->get_ok($new_user_url)
 my $create_user_url = $t->app->url_for('create_user');
 ok ($create_user_url, 'Create user url exists');
 
+my $password_hash = $t->app->build_controller->encrypt_password('s3cret');
 my %user_data = (
   name => 'Joe Tester',
   username => 'joe',
   password => 's3cret',
+  password_confirm => 's3cret',
   email => 'joe@example.com',
 );
 
@@ -57,7 +59,7 @@ $t->post_ok($create_user_url => form => {
   map { ("user.$_" => $user_data{$_}) } keys %user_data
 })->status_is(200);
 
-my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => 's3cret'})->single;
+my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => $password_hash})->single;
 ok ($user_joe, 'Joe is in the database');
 
 my $show_user_url = $t->app->url_for('show_user', id => $user_joe->id);
