@@ -38,7 +38,7 @@ sub register {
     my $is_edit = $c->current_route("update_$name") || $c->current_route("show_$name");
     my $url = $is_edit ? $c->url_for("update_$name", $value->id) : $c->url_for("create_$name");
 
-    return $c->tag('form', action => $url, method => 'POST', @_, sub {
+    return $c->tag('form', action => $url, method => 'POST', name => $name, @_, sub {
       my $form;
       $form .= $c->hidden_field(_method => 'PUT') if $is_edit;
       $form .= $cb->() if $cb;
@@ -123,10 +123,11 @@ sub checkbox_options {
   my %lookup = map { ($_ ? $_->id : $_) => 1 } @$value;
 
   my $content = Mojo::ByteStream->new;
-  for my $option (keys %$options) {
+  for my $option (sort { $options->{$a} cmp $options->{$b} } keys %$options) {
     $$content .= $self->checkbox_field(
       $options->{$option},
       value => $option,
+      id => $self->_dom_id($option),
       ($lookup{$option} ? (checked => 'checked') : ())
     )
   }
@@ -379,7 +380,9 @@ sub _form_field {
 
   if ($type eq 'radio' || $type eq 'checkbox') {
     $c->tag('div', class => $type, sub {
-      my $content = $self->label(sub {
+      my %label_options = ();
+      $label_options{for} = $options{id} if $options{id};
+      my $content = $self->label(%label_options, sub {
         $self->$type(%options) . ' ' . xml_escape($label);
       });
       $content .= $c->tag('p', class => 'text-danger', $error) if $error;
