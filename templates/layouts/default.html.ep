@@ -7,7 +7,7 @@
   <meta name="description" content="PML-TQ Server infrastructure">
   <meta name="author" content="">
 
-  <title>PML-TQ Server</title>
+  <title><% if (title) { %><%= title %> &ndash; <% } %>PML-TQ Server</title>
 
   <!-- Bootstrap Core CSS -->
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">

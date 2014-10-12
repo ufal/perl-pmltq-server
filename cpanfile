@@ -17,5 +17,8 @@ requires 'Mojolicious::Plugin::Authorization';
 
 on 'test' => sub {
   requires 'Test::More';
-  requires 'Test::PostgreSQL'
+  requires 'Test::PostgreSQL';
+  requires 'Test::Deep';
+  requires 'HTML::Lint::Pluggable', '0.03';
+  requires 'Test::WWW::Mechanize::Mojo'
 };
