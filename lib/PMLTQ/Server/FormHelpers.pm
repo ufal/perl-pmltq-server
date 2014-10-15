@@ -391,7 +391,7 @@ sub _form_field {
   } else {
     $c->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
       my $content = $self->label($label . ':');
-      $content .= $self->$type(class => 'form-control', placeholder => $label, %options);
+      $content .= $self->$type(class => 'form-control', $type eq 'select_option' ? ():(placeholder => $label), %options);
       $content .= $c->tag('p', class => 'text-danger', $error) if $error;
       return $content;
     });
