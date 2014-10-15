@@ -60,11 +60,11 @@ my %treebank_data = (
   password => 's3cret'
 );
 
-for my $key (keys %treebank_data){  
+for my $key (grep {!("driver" eq $_)}keys %treebank_data){  
   # passes only the first iteration, the following are affected by fields which has been filled in preceding iteration
   # it fills preceding value to form
   my @fields = grep {!($key eq $_)} keys(%treebank_data);
-  print STDERR "NOTFILL:$key\n",join(" ",keys(%$mech)),"\n","\n\n";
+  $mech->field("treebank.$key", '');
   $mech->submit_form(
     form_name => 'treebank',
     fields => { map { ("treebank.$_" => $treebank_data{$_}) } @fields}
@@ -80,21 +80,6 @@ $mech->submit_form_ok({
   form_name => 'treebank',
   fields => { map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data }  
 }, 'Add treebank without error');
-
-####### bug in test - the smallest instance ######
-# firstli send valid data
-$mech->submit_form_ok({
-  form_name => 'treebank',
-  fields => { map { ("treebank.$_" => ($_ eq "name" ? "BUG " : "").$treebank_data{$_}) } keys %treebank_data }  
-}, 'Add treebank without error');
-# secondly send nothing
-$mech->submit_form({
-  form_name => 'treebank',
-});
-is($mech->status, 400, "Attempt to send empty form");
-##################################################
-
-
 
 # navigate back to the List of treebanks
 $mech->follow_link_ok({ text_regex => qr/treebanks/i }, 'Click on Treebanks');
