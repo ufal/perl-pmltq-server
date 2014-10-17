@@ -5,6 +5,7 @@ use Mango;
 use Mango::BSON 'bson_oid';
 use Lingua::EN::Inflect 1.895 qw/PL/;
 use PMLTQ::Server::Model;
+use PMLTQ::Server::Validation 'check_password';
 
 has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
 
@@ -37,11 +38,11 @@ sub startup {
     validate_user => sub {
       my ($app, $username, $password, $extradata) = @_;
 
-      my $user_id = shift @{$app->mandel->collection('user')->search({
-        username => $username||'',
-        password => $password||'',
-      })->distinct('_id')};
-      $self->app->log->debug("Authentication failed: ${username}:${password}") unless $user_id;
+      my $user = $app->mandel->collection('user')->search({
+        username => $username,
+      })->single;
+      my $user_id = $user && check_password($user->password, $password) ? $user->id : undef;
+      $self->app->log->debug("Authentication failed for: ${username}") unless $user;
       return defined $user_id ? "$user_id" : undef;
     }
   });

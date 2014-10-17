@@ -138,12 +138,12 @@ sub _validate_user {
     permissions => [],
     %$user_data
   };
-
   my $rules = {
     fields => [qw/name username password password_confirm email is_active available_treebanks permissions/],
     filters => [
       # Remove spaces from all
       [qw/name username email/] => filter(qw/trim strip/),
+      ($user_data->{password} ? (password => encrypt_password()) : ()),
       is_active => force_bool(),
       available_treebanks => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name),
       permissions => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name)
@@ -151,19 +151,19 @@ sub _validate_user {
     checks => [
       [qw/name username password password_confirm email/] => is_long_at_most(200),
       username => is_required(),
-      (!$user ? ([qw/password password_confirm/] => is_required()) : ()),
-      password => is_equal(password_confirm => "Passwords don't match"),
+      [qw/password password_confirm/] => is_required_if(!$user),
+      password => is_password_equal(password_confirm => "Passwords don't match"),
       email => is_valid_email(),
     ]
   };
 
   $user_data = $c->do_validation($rules, $user_data);
+
   return $user_data unless $user_data; # Fail if not valid
 
+  # Replace empty password if possible
   unless ($user_data->{password}) {
     $user_data->{password} = $user->password if $user;
-  } else {
-    $user_data->{password} = $c->encrypt_password($user_data->{password});
   }
 
   return $user_data;

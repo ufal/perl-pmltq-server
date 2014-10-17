@@ -46,7 +46,6 @@ $t->get_ok($new_user_url)
 my $create_user_url = $t->app->url_for('create_user');
 ok ($create_user_url, 'Create user url exists');
 
-my $password_hash = $t->app->build_controller->encrypt_password('s3cret');
 my %user_data = (
   name => 'Joe Tester',
   username => 'joe',
@@ -59,7 +58,7 @@ $t->post_ok($create_user_url => form => {
   map { ("user.$_" => $user_data{$_}) } keys %user_data
 })->status_is(200);
 
-my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe', password => $password_hash})->single;
+my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe'})->single;
 ok ($user_joe, 'Joe is in the database');
 
 my $show_user_url = $t->app->url_for('show_user', id => $user_joe->id);

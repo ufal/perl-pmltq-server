@@ -6,7 +6,6 @@ use Digest::SHA qw(sha1_hex);
 
 use List::Util qw(min any);
 use Scalar::Util ();
-use PMLTQ::Server::Validation 'encrypt_text';
 
 sub register {
   my ($self, $app, $conf) = @_;
@@ -15,13 +14,6 @@ sub register {
 
   # History
   $app->helper(history_key => \&_history_key);
-
-  # Encrypt password
-  my $encoder = encrypt_text($app->config->{password_salt});
-  $app->helper(encrypt_password => sub {
-    my $self = shift;
-    $encoder->(shift())
-  });
 
   # Generate field options from database collection
   # Example: field_options('user', values_accessor => label_accessor)

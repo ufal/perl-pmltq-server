@@ -5,6 +5,7 @@ package PMLTQ::Server::Model;
 use Mojo::Base 'Mandel';
 
 use Mango::BSON qw/bson_oid bson_dbref/;
+use PMLTQ::Server::Validation 'encrypt_password';
 
 sub initialize {
   my $self = shift;
@@ -30,7 +31,7 @@ sub initialize {
     my $admin = $users->create({
       name => 'Super Admin',
       username => 'admin',
-      password => $app->encrypt_password('admin'),
+      password => encrypt_password()->('admin'),
       permissions => [bson_dbref($permissions->model->collection_name, shift @{$permissions->search({name => 'admin'})->distinct('_id')})]
     });
     $admin->save;

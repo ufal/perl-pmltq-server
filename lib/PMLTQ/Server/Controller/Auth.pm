@@ -38,10 +38,9 @@ sub _validate_auth {
     fields => [qw/username password/],
     filters => [
       username => filter(qw/trim strip/),
-      password => sub { $c->encrypt_password(@_) }
     ],
     checks => [
-      [qw/username password/] => is_required()
+      [qw/username password/] => is_required(),
     ]
   };
 

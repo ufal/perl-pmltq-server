@@ -116,13 +116,20 @@ sub test_user {
   $test_user = $users->create({
     name => 'Joe Tester',
     username => 'tester',
-    password => test_app()->app->build_controller->encrypt_password('tester'),
+    password => encrypt_password('tester'),
     email => 'joe@happytesting.com'
   });
 
   $test_user->save();
 
   return $test_user
+}
+
+sub encrypt_password {
+  my $password = shift;
+
+  require PMLTQ::Server::Validation;
+  PMLTQ::Server::Validation::encrypt_password()->($password);
 }
 
 sub test_admin {
