@@ -99,8 +99,12 @@ sub startup {
   my $profile = $r->get('/profile')->over(authenticated => 1)->to('Profile#index')->name('user_profile');
   $profile->any([qw/GET POST/] => 'update')->over(has_priv => 'selfupdate')->to('Profile#update');
 
-  # Treebank API
-  my $treebank = $r->bridge('/:treebank')->
+  # Treebank API version 1
+  my $api = $r->under('/v1');
+  $api->get('/treebanks')->to(controller => 'Treebank', action => 'list');
+  $api->get('/history')->to(controller => 'History', action => 'list');
+
+  my $treebank = $api->bridge('/treebanks/:treebank')->
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
   $treebank->get ('metadata')->to('#metadata');
   $treebank->post('suggest')->to('#suggest');

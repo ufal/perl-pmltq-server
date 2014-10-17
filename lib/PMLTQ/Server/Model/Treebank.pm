@@ -26,6 +26,19 @@ has_many histories => 'PMLTQ::Server::Model::History';
 
 =head1 METHODS
 
+=head2 metadata
+
+=cut
+
+sub metadata {
+  my $self = shift;
+
+  return {
+    id => $self->_id,
+    map { ( $_ => $self->$_ ) } qw/name title description homepage/
+  }
+}
+
 =head2 get_evaluator
 
 Instantiate L<PMLTQ::SQLEvaluator> based on treebank settings, takes no
