@@ -1,16 +1,13 @@
 package PMLTQ::Server::Validation;
 
 use Mojo::Base -strict;
-use Mojo::Util 'monkey_patch';
 use Mango::BSON qw/bson_oid bson_dbref/;
-use Crypt::Eksblowfish::Bcrypt ();
+use Crypt::Eksblowfish::Bcrypt qw(en_base64 bcrypt);
 use Encode qw(is_utf8 encode_utf8);
 use Email::Valid;
 use Validate::Tiny;
 use List::Util qw(first all);
 use Exporter 'import';
-
-use Scalar::Util 'refaddr';
 
 # stuff from Validate::Tiny
 my @VALIDATE_TINY_EXPORT = (qw/
@@ -50,33 +47,6 @@ our @EXPORT_OK = (qw/
 
 our @EXPORT = @EXPORT_OK;
 
-=xxx
-experiments
-sub fix_fields {
-  my ($validator,$params) = @_;
-  my %required;
-  my $req = \&is_required;
-  my %checks = @{$validator->{checks}};
-  print STDERR "<<< \n";
-
-  for my $check (keys %checks){
-    print STDERR "$check $checks{$check}>> ",$req,"\n";
-    #print STDERR "TODO refaddr ",refaddr($checks{$check})," ",refaddr($req),"\n";
-   # if{refaddr($checks{$check}) == refaddr($req)} {
-      print " ";
-      #$required{$_}=1 for (@{ref($check) eq 'ARRAY' ? $check : [$check]});
-   # }
-
-  }
-
-  for my $field (@{$validator->{fields}}){
-    # TODO dont fix if not required
-
-    $params->{$field}=undef if not exists $params->{$field} and exists $required{$field};
-    print STDERR "$field $params->{$field}\n";
-  }
-}
-=cut
 sub force_bool { sub { !!$_[0] ? 1 : 0 } }
 
 sub force_arrayref { sub { $_[0] ? (ref($_[0]) eq 'ARRAY' ? $_[0] : [$_[0]]) : [] } }
@@ -136,13 +106,13 @@ sub encrypt_text {
     $salt = join('', map { chr(int(rand(256))) } 1 .. 16) unless $salt;
   }
 
-  my $settings_str = join('','$2',$nul,'$',$cost, '$', Crypt::Eksblowfish::Bcrypt::en_base64($salt));
+  my $settings_str = join('','$2',$nul,'$',$cost, '$', en_base64($salt));
 
   sub {
     my $plain_text = shift;
 
     $plain_text = encode_utf8($plain_text) if is_utf8($plain_text); #  Bcrypt expects octets
-    Crypt::Eksblowfish::Bcrypt::bcrypt($plain_text, $settings_str);
+    bcrypt($plain_text, $settings_str);
   }
 }
 
