@@ -58,6 +58,11 @@ $t->post_ok($create_user_url => form => {
   map { ("user.$_" => $user_data{$_}) } keys %user_data
 })->status_is(200);
 
+$t->post_ok($create_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(400)
+  ->content_like(qr/\QUsername &#39;joe&#39; already exists/);
+
 my $user_joe = $t->app->mandel->collection('user')->search({username => 'joe'})->single;
 ok ($user_joe, 'Joe is in the database');
 

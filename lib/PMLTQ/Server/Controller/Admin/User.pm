@@ -150,7 +150,14 @@ sub _validate_user {
     ],
     checks => [
       [qw/name username password password_confirm email/] => is_long_at_most(200),
-      username => is_required(),
+      username => [is_required(), sub {
+        my $username = shift;
+        my $count = $c->mandel->collection('user')->search({
+          username => $username, 
+          ($user ? (_id => { '$ne' => $user->id }) : ())
+        })->count;
+        return $count > 0 ? "Username '$username' already exists" : undef;  
+      }],
       [qw/password password_confirm/] => is_required_if(!$user),
       password => is_password_equal(password_confirm => "Passwords don't match"),
       email => is_valid_email(),
