@@ -140,6 +140,14 @@ sub _validate_treebank {
   my $c = shift;
   my $treebank_data = shift;
   my $id = shift;
+  $treebank_data ||= {};
+
+  $treebank_data = {
+    description => '',
+    data_sources => '',
+    documentation => '',
+    %$treebank_data
+  };
   my $markup_linkpattern = qr/^\s*\[(.+)\]\s*\((.+)\)\s*$/;
   my $rules = {
     fields => [qw/name title home driver host port database username password public anonaccess description data_sources documentation/],
@@ -159,11 +167,10 @@ sub _validate_treebank {
       port => is_valid_port_number(),
       driver => is_in_str("Driver is not supported", map {$_->[0]} @{$c->drivers}),
       name => is_not_in("Treebank name already exists", map {$_->name} grep {! $id or !($id eq $_->id)} @{$c->treebanks->all}),
-      data_sources => is_hash(),
-      documentation => is_array_of_hash()
+      data_sources => is_hash("invalid data_sources format"),
+      documentation => is_array_of_hash("invalid documentation format")
     ]
   };
-
   return $c->do_validation($rules, $treebank_data);
 }
 

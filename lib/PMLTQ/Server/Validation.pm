@@ -92,13 +92,20 @@ sub to_array_of_hash {
   my $pattern = shift;
   sub {
     my $text = shift;
-    my @a    = map {
-      my @matched = m/$pattern/;
-      ( @matched and @matched == @$fields )
-        ? ( { map { $fields->[$_] => $matched[$_] }[ 0 .. $#$fields ] } )
-        : (undef)
-    } split( $delim, $text );
-    return undef if first { not defined($_) } @a;
+    my @a = ();
+    for my $line (split( $delim, $text ))
+    {
+      next if $line =~ m/^\s$/;
+      my @matched = $line =~ m/$pattern/;
+      if(@matched and @matched == @$fields)  
+      {
+        push @a, { map { $fields->[$_] => $matched[$_] } ( 0 .. $#$fields ) };
+      }
+      else
+      {
+        return undef;  
+      }
+    }
     return \@a;
   };
 }

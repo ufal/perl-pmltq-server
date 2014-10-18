@@ -2,6 +2,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Test::Deep;
 use Mojo::URL;
 use File::Basename 'dirname';
 use File::Spec;
@@ -10,6 +11,8 @@ use List::Util qw(first all);
 
 use lib dirname(__FILE__);
 require 'bootstrap.pl';
+
+my @required = qw/name title driver host port database username password/;
 
 my $t = test_app();
 my $admin = test_admin();
@@ -101,33 +104,37 @@ ok (!$deleted_tb, 'My treebank is gone from the database');
 
 ## CREATE - all fields are required
 
-for my $key (keys %treebank_data){
+for my $key (@required){
   my @fields = grep {!($key eq $_)} keys(%treebank_data);
   $t->post_ok($t->app->url_for('create_treebank') => form => { map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is(400);
 }
 
-for my $key (qw/driver port/){
+for my $key (qw/driver port data_sources documentation/){
   my @fields = grep {!($key eq $_)} keys(%treebank_data);
   $t->post_ok($t->app->url_for('create_treebank') => form => {"treebank.$key"=> 'INVALID DATA', map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is(400);
 }
 
-## UPDATE - almost fields are required (password is not required)
+## UPDATE - almost all fields are required (password is not required)
+$treebank_data{data_sources} = "[title1](path/to/data1)\n[title2](path/to/data2)";
+$treebank_data{documentation} = "[doc1](http://link.to/data1)\n[doc2](http://link.to/data2)";
 $t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(200);
 $treebank_data{name}='Second treebank';
 $t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(200);
 $treebank_data{name}='New treebank';
 
+## testing documentation and data_sources insertion
+$treebank_tb = $t->app->mandel->collection('treebank')->search({name => 'New treebank'})->single;
+ok(cmp_deeply($treebank_tb->data_sources,{title1 => 'path/to/data1', title2 => 'path/to/data2'}),"Testing data_sources");
+ok(cmp_deeply($treebank_tb->documentation,[{title => "doc1",link=>'http://link.to/data1'},{title =>'doc2',link => 'http://link.to/data2'}]),"Testing documentation");
+
 ## insert treebank with existing name
 $t->post_ok($t->app->url_for('create_treebank') => form => {  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data})->status_is(400);
 
-
-$treebank_tb = $t->app->mandel->collection('treebank')->search({name => 'New treebank'})->single;
-
-for my $key (keys %treebank_data){
+for my $key (@required){
   my @fields = grep {!($key eq $_)} keys(%treebank_data);
   $t->post_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => {  _method=>"PUT", map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is($key eq 'password' ? 200 : 400);
 }
-for my $key (qw/driver port/){
+for my $key (qw/driver port data_sources documentation/){
   my @fields = grep {!($key eq $_)} keys(%treebank_data);
   $t->post_ok($t->app->url_for('update_treebank', id => $treebank_tb->id) => form => {  _method=>"PUT", "treebank.$key"=> 'INVALID DATA', map { ("treebank.$_" => $treebank_data{$_}) } @fields})->status_is(400);
 }
