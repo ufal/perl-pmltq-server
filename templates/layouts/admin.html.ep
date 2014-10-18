@@ -61,6 +61,12 @@
             Users
           </a>
         </li>
+        <li>
+          <a<% if (current_route('list_stickers')) { %> class="active"<% } %> href="<%= url_for 'list_stickers' %>">
+            <i class="fa fa-tags fa-fw"></i>
+            Stickers
+          </a>
+        </li>
       </ul>
     </div>
   <!-- /.sidebar-collapse -->

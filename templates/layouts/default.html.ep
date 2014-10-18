@@ -18,9 +18,12 @@
   <!-- DataTables CSS -->
   <link href="//cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css" />
 
+  <!-- tagger -->
+  <%= stylesheet '/TAGGER/bootstrap-tagsinput.css' %>
+  
   <!-- Custom CSS -->
   <%= stylesheet '/css/pmltq-admin.css' %>
-
+  
   <!-- Custom Fonts -->
   <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
@@ -47,6 +50,14 @@
   <!-- DataTables JavaScript -->
   <script src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
   <script src="//cdn.datatables.net/plug-ins/725b2a2115b/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+
+      <!-- tagger -->
+  <script type="text/javascript" src="/TAGGER/bootstrap-tagsinput.min.js"></script>
+
+  <!-- typeahead -->
+  <script src="/TAGGER/bootstrap3-typeahead.js"/>
+
+  
 
 <% if (session('flash') || session('new_flash')) { %>
   <!-- Latest version of Toastr JavaScript -->
