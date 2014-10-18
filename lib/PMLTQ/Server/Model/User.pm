@@ -17,6 +17,8 @@ list_of available_treebanks => 'PMLTQ::Server::Model::Treebank';
 
 list_of permissions => 'PMLTQ::Server::Model::Permission';
 
+list_of stickers => 'PMLTQ::Server::Model::Sticker';
+
 sub has_permission {
   my ($self, $permission) = @_;
 

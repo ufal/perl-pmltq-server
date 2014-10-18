@@ -22,6 +22,8 @@ field [qw/public anonaccess/] => (isa => Bool);
 field documentation => ( isa => ArrayRef[HashRef[Str]] ); ## in XML file:  '//dbi/documentation/LM/'   @title  : text()
 field data_sources => ( isa => HashRef[Str] );            ## in XML file:  '//dbi/sources/AM/'         @schema : text()
 
+list_of stickers => 'PMLTQ::Server::Model::Sticker';
+
 has_many histories => 'PMLTQ::Server::Model::History';
 
 =head1 METHODS
