@@ -55,7 +55,7 @@
   <script type="text/javascript" src="/TAGGER/bootstrap-tagsinput.min.js"></script>
 
   <!-- typeahead -->
-  <script src="/TAGGER/bootstrap3-typeahead.js"/>
+  <script src="/TAGGER/bootstrap3-typeahead.js"></script>
 
   
 
