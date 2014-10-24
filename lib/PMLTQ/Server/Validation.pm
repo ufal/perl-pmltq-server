@@ -45,6 +45,7 @@ my @VALIDATE_EXPORT = qw/
   list_of_dbrefs
   to_array_of_hash
   to_hash
+  to_dbref
   /;
 
 our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
@@ -72,6 +73,14 @@ sub list_of_dbrefs {
     my @list = $arg ? ( ref($arg) eq 'ARRAY' ? @$arg : ($arg) ) : ();
     @list = map { bson_oid($_) } @list if @list > 0 && !UNIVERSAL::isa( $list[0], 'Mango::BSON::ObjectID' );
     return [ map { bson_dbref( $collection_name, $_ ) } @list ];
+  };
+}
+
+sub to_dbref {
+  my $collection_name = shift;
+  sub {
+    my $arg = shift;
+    return  bson_dbref( $collection_name, bson_oid($arg) ) ;
   };
 }
 

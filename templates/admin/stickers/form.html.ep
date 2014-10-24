@@ -21,11 +21,11 @@
   <div class="col-lg-6">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Stickers</h3>
+        <h3 class="panel-title">Parent Sticker</h3>
       </div>
       <div class="panel-body">
         <fieldset>
-<input type="text" class="form-control" id="tokenfield"/>
+<input type="text" class="form-control" id="tokenfield" name="parent"/>
         </fieldset>
       </div>
     </div>
@@ -40,31 +40,61 @@
 <% end %>
 
 
-
+<% print STDERR @{stickers->all};%>
 <% content_for javascript => begin %>
   <%= javascript begin %>
+  
+$('#tokenfield').tagsinput({
+  itemValue: 'id',
+  maxTags: 1,
+  itemText: 'fullName',
+  typeahead :{source: [ 
+          <% for my $s (grep {not($sticker->_id eq $_->{_id})} @{stickers->all} ) { %>
+           {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
+          <% } %>
+]}
+  });  
+<% if($sticker->parent){ %>  
+$('#tokenfield').tagsinput('add',{"id":"<%=$sticker->parent->id%>" , "fullName": "<%=$sticker->parent->full_name%>"});  
+<% } %>  
+$('.bootstrap-tagsinput').addClass('form-control');
+
+
+  /*
 $('#tokenfield').tagsinput({
   itemValue: 'value',
-  itemText: 'text',
-  typeahead :{source: [ { "value": 1 , "text": "Amsterdam"   , "continent": "Europe"    },
-  { "value": 2 , "text": "London"      , "continent": "Europe"    },
-  { "value": 3 , "text": "Paris"       , "continent": "Europe"    },
-  { "value": 4 , "text": "Washington"  , "continent": "America"   },
-  { "value": 5 , "text": "Mexico City" , "continent": "America"   },
-  { "value": 6 , "text": "Buenos Aires", "continent": "America"   },
-  { "value": 7 , "text": "Sydney"      , "continent": "Australia" },
-  { "value": 8 , "text": "Wellington"  , "continent": "Australia" },
-  { "value": 9 , "text": "Canberra"    , "continent": "Australia" },
-  { "value": 10, "text": "Beijing"     , "continent": "Asia"      },
-  { "value": 11, "text": "New Delhi"   , "continent": "Asia"      },
-  { "value": 12, "text": "Kathmandu"   , "continent": "Asia"      },
-  { "value": 13, "text": "Cairo"       , "continent": "Africa"    },
-  { "value": 14, "text": "Cape Town"   , "continent": "Africa"    },
-  { "value": 15, "text": "Kinshasa"    , "continent": "Africa"    }
+  maxTags: 1,
+  itemText: function(item) {
+    return item.text;
+  },
+  typeahead :{source: [ 
+  { "value": 20 , "text": "Europe", "level":0},
+  { "value": 1 , "text": "Amsterdam"   , "level":1    },
+  { "value": 2 , "text": "London"      , "level":1    },
+  { "value": 3 , "text": "Paris"       , "level":1    },
+  { "value": 21 , "text": "America", "level":0},
+  { "value": 4 , "text": "Washington"  , "level":1},
+  { "value": 5 , "text": "Mexico City" , "level":1},
+  { "value": 6 , "text": "Buenos Aires", "level":1},
+  { "value": 22 , "text": "Australia", "level":0},
+  { "value": 7 , "text": "Sydney"      , "level":1},
+  { "value": 8 , "text": "Wellington"  , "level":1},
+  { "value": 9 , "text": "Canberra"    , "level":1},
+  { "value": 23 , "text": "Asia", "level":0},
+  { "value": 10, "text": "Beijing"     , "level":1      },
+  { "value": 11, "text": "New Delhi"   , "level":1      },
+  { "value": 12, "text": "Kathmandu"   , "level":1      },
+  { "value": 24 , "text": "Africa", "level":0},
+  { "value": 13, "text": "Cairo"       , "level":1    },
+  { "value": 14, "text": "Cape Town"   , "level":1    },
+  { "value": 15, "text": "Kinshasa"    , "level":1    }
 ]}
   });
-$('#tokenfield').tagsinput('add',{ "value": 9 , "text": "Canberra"    , "continent": "Australia" });
-$('#tokenfield').tagsinput('add',{ "value": 13, "text": "Cairo"       , "continent": "Africa"    });
+$('#tokenfield').tagsinput('add',{ "value": 9 , "text": "Canberra"    , "level":1});
+$('#tokenfield').tagsinput('add',{ "value": 13, "text": "Cairo"       , "level":1    });
+*/
+
+
   <% end %>
 <% end %>
 

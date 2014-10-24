@@ -4,7 +4,7 @@ use PMLTQ::Server::Document 'stickers';
 use Types::Standard qw(Str ArrayRef);
 
 field [qw/name comment/] => (isa => Str);
-list_of stickers => 'PMLTQ::Server::Model::Sticker'; ############   ATTENTION - THE STRUCTURE OF STICKERS CAN BE RECURSIVE
+field parent => 'PMLTQ::Server::Model::Sticker'; ############   ATTENTION - THE STRUCTURE OF STICKERS CAN BE RECURSIVE
 
 sub has_sticker {
   my ($self, $sticker) = @_;
@@ -20,6 +20,13 @@ sub has_sticker {
     }
   }
   return 0;
+}
+
+sub full_name {
+  my ($self) = @_;
+  my $name = "/".$self->name;
+  $name = $self->parent->full_name . $name if $self->parent;
+  return $name;
 }
 
 

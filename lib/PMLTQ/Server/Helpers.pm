@@ -33,6 +33,7 @@ sub register {
   $app->helper(users         => sub { shift->mandel->collection('user') });
   $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
   $app->helper(permissions   => sub { shift->mandel->collection('permission') });
+  $app->helper(stickers      => sub { shift->mandel->collection('sticker') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
   $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'],[Oracle => 'Oracle'] ] });
 
