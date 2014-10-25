@@ -21,6 +21,7 @@ sub list {
     $c->render(json => [ map {
       my $m = $_->metadata;
       $m->{url} = $c->url_for('treebank', treebank => $_->name);
+      $m
     } @$treebanks ]);
   });
 

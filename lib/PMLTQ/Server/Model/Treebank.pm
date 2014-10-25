@@ -36,7 +36,7 @@ sub metadata {
   my $self = shift;
 
   return {
-    id => $self->_id,
+    id => $self->id,
     map { ( $_ => $self->$_ ) } qw/name title description homepage/
   }
 }
