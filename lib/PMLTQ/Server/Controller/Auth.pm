@@ -27,6 +27,32 @@ sub sign_in {
   }
 }
 
+# TODO: check Shibboleth attributes to actually create user accounts
+sub sign_in_shibboleth {
+  my $self = shift;
+
+  my $req = $self->req;
+
+  if ($req->header('shib-session-id')) {
+    my $organization = $req->header('shib-identity-provider');
+
+    my $persistent_token = first {defined} map { $req->header($_) }
+      qw(eppn persistent-id mail);
+
+    return $self->status_error({
+      code => 400,
+      message => "Your shibboleth provider does't expose required attributes"
+    }) unless $persistent_token;
+
+    if ($self->authenticate('', '', { persistent_token => $persistent_token })) {
+      # User exists
+      return $self->render(json => $self->current_user->json());
+    } else {
+
+    }
+  }
+}
+
 sub sign_out {
   my $c = shift;
   $c->logout();
