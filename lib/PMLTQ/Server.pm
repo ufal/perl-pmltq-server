@@ -103,6 +103,12 @@ sub startup {
 
   # Treebank API version 1
   my $api = $r->under('/v1');
+
+  my $api_auth = $api->route('/auth')->to(controller => 'Auth');
+  $api_auth->get->to(action => 'check')->name('auth_check');
+  $api_auth->post->to(action => 'sign_in')->name('auth_sign_in');
+  $api_auth->delete->to(action => 'sign_out')->name('auth_sign_out');
+
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list');
   $api->get('/history')->to(controller => 'History', action => 'list');
 

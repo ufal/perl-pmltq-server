@@ -27,4 +27,15 @@ sub has_permission {
   any { $_->name||'' eq $permission } @{$permissions};
 }
 
+sub TO_JSON {
+  my $self = shift;
+
+  my $data = { %{$self->data} }; # shallow clone of the hash
+  delete $data->{password};
+  $data->{permissions} = $self->permissions;
+  $data->{available_treebanks} = $self->available_treebanks;
+  # TODO add stickers
+  return $data;
+}
+
 1;

@@ -226,3 +226,5 @@ sub resolve_data_path {
   }
   return $path;
 }
+
+1;
