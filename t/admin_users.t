@@ -26,7 +26,7 @@ $tu->push_permissions($admin_permission);
 # Login
 $t->ua->max_redirects(10);
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
-$t->post_ok($t->app->url_for('auth_login') => form => {
+$t->post_ok($t->app->url_for('admin_login') => form => {
   username => $tu->username,
   password => 'tester'
 })->status_is(200);

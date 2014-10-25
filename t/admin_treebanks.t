@@ -7,7 +7,7 @@ use Mojo::URL;
 use File::Basename 'dirname';
 use File::Spec;
 use Data::Dumper;
-use List::Util qw(first all);
+use List::Util qw(first);
 
 use lib dirname(__FILE__);
 require 'bootstrap.pl';
@@ -20,7 +20,7 @@ my $admin = test_admin();
 # Login
 $t->ua->max_redirects(10);
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
-$t->post_ok($t->app->url_for('auth_login') => form => {
+$t->post_ok($t->app->url_for('admin_login') => form => {
   username => $admin->username,
   password => 'admin'
 })->status_is(200);

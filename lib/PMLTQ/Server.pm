@@ -81,16 +81,16 @@ sub startup {
   $r->any('/' => sub {
     my $c = shift;
     unless ($c->is_user_authenticated) {
-      $c->redirect_to($c->url_for('auth_login'));
+      $c->redirect_to($c->url_for('admin_login'));
       return;
     }
     $c->redirect_to($c->url_for('admin_welcome'));
   })->name('home');
 
   # Authetication routes
-  my $auth = $r->route('/auth')->to(controller => 'Auth');
-  $auth->any([qw/GET POST/])->to(action => 'index')->name('auth_login');
-  $auth->get('/logout')->to(action => 'sign_out')->name('auth_logout');
+  my $auth = $r->route('/auth')->to(controller => 'Admin::Auth');
+  $auth->any([qw/GET POST/])->to(action => 'index')->name('admin_login');
+  $auth->get('/logout')->to(action => 'sign_out')->name('admin_logout');
 
   my $admin = $r->route('/admin')->over(authenticated => 1, has_priv => 'admin')->to(controller => 'Admin');
   $admin->get->to(action => 'welcome')->name('admin_welcome');

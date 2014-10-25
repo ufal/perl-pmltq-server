@@ -17,7 +17,7 @@ my $tu = test_user();
 $t->ua->max_redirects(10);
 
 ok $t->app->routes->find('auth'), 'Auth route exists';
-my $auth_url = $t->app->url_for('auth_login');
+my $auth_url = $t->app->url_for('admin_login');
 ok ($auth_url, 'Has auth url');
 
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);

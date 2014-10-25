@@ -10,7 +10,7 @@
           <h3 class="panel-title"><%= title %></h3>
         </div>
         <div class="panel-body">
-          <%= form_for url_for('auth'), method => 'post', name => 'auth', begin %>
+          <%= form_for url_for('admin_login'), method => 'post', name => 'auth', begin %>
             <fieldset>
               % my $auth = fields('auth');
               <%= $auth->text_field('username') %>
