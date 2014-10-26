@@ -90,6 +90,41 @@ $tb->search(
   ];
   ok(cmp_deeply(\@results, $expected_result), 'Result is ok');
 }
+
+## Locating files
+{
+  my @files = qw(sample0 sample1);
+  my @layers = qw(a m t w);
+
+  for my $filebase (@files) {
+    for my $layer (@layers) {
+      my $filename = "${filebase}.${layer}.gz";
+      my $schema = $layer =~ m/(m|w)/ ? 'adata' : "${layer}data";
+      my ($schema_name,$data_dir,$new_filename) = $tb->locate_file($filename);
+      is($schema_name, $schema, "${schema} schema ok");
+      #is($data_dir, '/ha/work/projects/pmltq/data/pdt20_mini/data', 'Data dir ok');
+    }
+  }
+
+  my $data_base = File::Spec->catdir(qw/t test_files pdt20_mini data/);
+  for my $filebase (@files) {
+    for my $layer (@layers) {
+      my $filename = "${filebase}.${layer}.gz";
+
+      my $path = $tb->resolve_data_path($filename);
+      $path =~ s{^(/|\\)}{};
+      is($path, File::Spec->catfile($data_base, $filename), "$filename path is ok");
+    }
+  }
+
+  # Locate all schema files
+  for my $layer (qw(a t)) {
+    my $schema_file = "${layer}data_schema.xml";
+    my $path = $tb->resolve_data_path($schema_file);
+    is($path, "/ha/work/projects/pmltq/data/pdt20_mini/resources/$schema_file", "$schema_file path is ok");
+  }
+}
+
 # Test routes
 ok $t->app->routes->find('treebanks'), 'Treebanks route exists';
 my $treebanks_url = $t->app->url_for('treebanks');
