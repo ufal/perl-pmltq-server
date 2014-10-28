@@ -35,7 +35,7 @@ my $pg_expect_running = -d $pg_dir;
 my ($pg_running, $pg_restore, $pgsql, $pg_port);
 
 sub start_postgres {
-  $pg_port = $ENV{PG_PORT} || 11543;
+  $pg_port = $ENV{PG_PORT} || Mojo::IOLoop::Server->generate_port;
 
   my $test_dsn = "DBI:Pg:dbname=test;host=127.0.0.1;port=$pg_port;user=postgres";
 
