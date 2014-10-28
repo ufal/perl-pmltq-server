@@ -111,7 +111,6 @@ $tb->search(
       my $filename = "${filebase}.${layer}.gz";
 
       my $path = $tb->resolve_data_path($filename);
-      $path =~ s{^(/|\\)}{};
       ok(-e $path, "$filename path exists");
     }
   }
