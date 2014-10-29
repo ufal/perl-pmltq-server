@@ -140,7 +140,7 @@ sub _validate_sticker {
     filters => [
       # Remove spaces from all
       name => filter(qw/trim strip/),
-      parent => to_dbref("sticker")
+      parent => to_dbref(PMLTQ::Server::Model::Sticker->model->collection_name)
 
     ],
     checks => [

@@ -4,7 +4,7 @@ use PMLTQ::Server::Document 'stickers';
 use Types::Standard qw(Str ArrayRef);
 
 field [qw/name comment/] => (isa => Str);
-has_one parent => 'PMLTQ::Server::Model::Sticker'; ############   ATTENTION - THE STRUCTURE OF STICKERS CAN BE RECURSIVE
+field parent => 'PMLTQ::Server::Model::Sticker'; ############   ATTENTION - THE STRUCTURE OF STICKERS CAN BE RECURSIVE
 
 sub has_sticker { ## CHANGE - sticker has a tree structure
   my ($self, $sticker) = @_;
@@ -23,7 +23,8 @@ sub has_sticker { ## CHANGE - sticker has a tree structure
 sub full_name {
   my ($self) = @_;
   my $name = "/".$self->name;
-  $name = $self->parent->full_name . $name if $self->parent;
+  my $parent = $self->mandelize($self->parent); # unknown subrutine problem (needs to call helper)
+  $name = $parent->full_name . $name if $parent;  
   return $name;
 }
 

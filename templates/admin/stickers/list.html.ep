@@ -26,8 +26,7 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
         <tbody>
           <% for my $sticker (@$stickers) { %>
           <tr>
-            <td><%=  link_to $sticker->name =>  url_for('show_sticker', id => $sticker->id) %></td>
-            <td><%= $sticker->name  %></td>
+            <td><%= link_to $sticker->name =>  url_for('show_sticker', id => $sticker->id) %></td>
             <td><%= $sticker->comment %></td>
             <td><%= $sticker->full_name %></td>
           </tr>

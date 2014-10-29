@@ -59,7 +59,7 @@ $('#tokenfield').tagsinput({
   });  
 <% if($sticker and $sticker->parent){ %> 
 
-<% print STDERR "PARENT: " , $sticker->parent->{_id},"\n"; %>
+<% print STDERR "PARENT: " , $sticker->parent,"\n"; %>
 <% my ($parent)  = grep {$sticker->parent->{_id} eq $_->id} @{stickers->all}; %>
 <% print STDERR grep {$sticker->parent->{_id} eq $_->id} @{stickers->all}; %>
 $('#tokenfield').tagsinput('add',{"id":"<%=$parent->id%>" , "fullName": "<%=$parent->full_name()%>"});  

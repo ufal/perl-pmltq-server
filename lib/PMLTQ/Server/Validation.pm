@@ -80,6 +80,7 @@ sub to_dbref {
   my $collection_name = shift;
   sub {
     my $arg = shift;
+    return undef unless $arg;
     return  bson_dbref( $collection_name, bson_oid($arg) ) ;
   };
 }
