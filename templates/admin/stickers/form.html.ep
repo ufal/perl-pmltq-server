@@ -25,7 +25,7 @@
       </div>
       <div class="panel-body">
         <fieldset>
-        <%= $sticker->text_field('parent', id =>"tokenfield" ) %> 
+        <%= $sticker->text_field('parent', id =>"tokenfield" ) %>
         </fieldset>
       </div>
     </div>
@@ -45,25 +45,25 @@
 <% print STDERR @{stickers->all};%>
 <% content_for javascript => begin %>
   <%= javascript begin %>
-  
+
 $('#tokenfield').tagsinput({
   itemValue: 'id',
   maxTags: 1,
   itemText: 'fullName',
-  typeahead :{source: [ 
+  typeahead :{source: [
           <% for my $s (grep {not($sticker) or($sticker and not($sticker->id eq $_->id))} @{stickers->all} ) { %>
            {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
            <% print STDERR "$s   ";   %>
           <% } %>
 ]}
-  });  
-<% if($sticker and $sticker->parent){ %> 
+  });
+<% if($sticker and $sticker->parent){ %>
 
 <% print STDERR "PARENT: " , $sticker->parent,"\n"; %>
-<% my ($parent)  = grep {$sticker->parent->{_id} eq $_->id} @{stickers->all}; %>
-<% print STDERR grep {$sticker->parent->{_id} eq $_->id} @{stickers->all}; %>
-$('#tokenfield').tagsinput('add',{"id":"<%=$parent->id%>" , "fullName": "<%=$parent->full_name()%>"});  
-<% } %>  
+<% my ($parent)  = grep {$sticker->parent && $sticker->parent->id eq $_->id} @{stickers->all}; %>
+<% print STDERR grep {$sticker->parent->id eq $_->id} @{stickers->all}; %>
+$('#tokenfield').tagsinput('add',{"id":"<%=$parent->id%>" , "fullName": "<%=$parent->full_name()%>"});
+<% } %>
 $('.bootstrap-tagsinput').addClass('form-control');
 
 
@@ -74,7 +74,7 @@ $('#tokenfield').tagsinput({
   itemText: function(item) {
     return item.text;
   },
-  typeahead :{source: [ 
+  typeahead :{source: [
   { "value": 20 , "text": "Europe", "level":0},
   { "value": 1 , "text": "Amsterdam"   , "level":1    },
   { "value": 2 , "text": "London"      , "level":1    },
