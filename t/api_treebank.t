@@ -132,13 +132,7 @@ ok ($treebanks_url, 'Treebanks url');
 $t->get_ok($treebanks_url)
   ->status_is(200);
 
-# use Data::Dumper;
-# print STDERR Dumper($t->tx->res->json);
-
 $t->json_is("/0/$_", $tb->$_) for (qw/id name title description homepage/);
 $t->json_is('/0/url', $t->app->url_for('treebank', treebank => $tb->name));
-
-
-
 
 done_testing();

@@ -200,21 +200,17 @@ sub resolve_data_path {
   if (defined($schema_name) and defined($data_dir)) {
     $f = $new_filename if defined $new_filename;
     my ($sources) = map $_->{path}, grep { $_->{schema} eq $schema_name } @{$self->data_sources};
-
     if ($sources) {
-      $path = URI::file->new($f)->abs(URI::file->new($sources.'/'))->file;
-      #print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
+      $path = File::Spec->rel2abs($f, $sources);
     } else {
-      $path = URI::file->new($f)->abs(URI::file->new($data_dir.'/'))->file;
-      #print STDERR "F: schema '$schema_name', file: $f, located: $path in data-dir\n";
+      $path = File::Spec->rel2abs($f, $data_dir);
     }
   } else {
-    #print STDERR "did not find $f in the database\n";
     my $uri = URI->new($f);
-    if (!$uri->scheme) { # it must be a relative URI
+    unless ($uri->scheme) { # it must be a relative URI
       $uri->scheme('file'); # convert it to file URI
       my $file = $uri->file;
-      unless (File::Spec->file_name_is_absolute($file)) { # must be a relative path
+      unless (File::Spec->file_name_is_absolute($file) && -e $file) { # must be a relative path
         ($path) = Treex::PML::FindInResources($file, {strict=>1});
         if (!defined($path) or $path eq $file) {  # must be in resource dir
           (undef,undef,$file)=File::Spec->splitpath($file);
