@@ -5,6 +5,7 @@ package PMLTQ::Server::Controller::Admin::Sticker;
 use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
 use PMLTQ::Server::Validation;
+use PMLTQ::Server::Model::Sticker ();
 
 =head1 METHODS
 
@@ -44,7 +45,6 @@ sub create {
   if ( my $sticker_data = $c->_validate_sticker($c->param('sticker')) ) {
     my $stickers = $c->mandel->collection('sticker');
     my $sticker = $stickers->create($sticker_data);
-
     $sticker->save(sub {
       my ($sticker, $err) = @_;
       if ($err) {
@@ -140,18 +140,17 @@ sub _validate_sticker {
     filters => [
       # Remove spaces from all
       name => filter(qw/trim strip/),
-      parent => to_dbref("sticker")
-
+      parent => to_dbref(PMLTQ::Server::Model::Sticker->model->collection_name)
     ],
     checks => [
       [qw/name comment/] => is_long_at_most(200),
       name => [is_required(), sub {
         my $stickername = shift;
         my $count = $c->mandel->collection('sticker')->search({
-          stickername => $stickername, 
+          stickername => $stickername,
           ($sticker ? (_id => { '$ne' => $sticker->id }) : ())
         })->count;
-        return $count > 0 ? "sticker name '$stickername' already exists" : undef;  
+        return $count > 0 ? "sticker name '$stickername' already exists" : undef;
       }],
     ]
   };

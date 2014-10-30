@@ -36,7 +36,13 @@ sub register {
   $app->helper(stickers      => sub { shift->mandel->collection('sticker') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
   $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'],[Oracle => 'Oracle'] ] });
-
+  
+  $app->helper(mandelize     => sub { 
+                                      my $a=shift; 
+                                      my $obj = shift;  
+                                      return unless $obj;
+                                      return $a->mandel->collection($obj->{'$ref'})->find_one({_id => $obj->{'$id'}}) 
+                                    });
   # ERROR
   $app->helper(status_error => \&_status_error);
 
