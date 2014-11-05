@@ -4,8 +4,11 @@ use Mojo::Base 'Mojolicious';
 use Mango;
 use Mango::BSON 'bson_oid';
 use Lingua::EN::Inflect 1.895 qw/PL/;
+use Treex::PML;
+use PMLTQ;
 use PMLTQ::Server::Model;
 use PMLTQ::Server::Validation 'check_password';
+use File::Spec;
 
 has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
 
@@ -19,6 +22,9 @@ has mandel => sub {
 # This method will run once at server start
 sub startup {
   my $self = shift;
+
+  # Setup resources directory
+  Treex::PML::AddResourcePathAsFirst(PMLTQ->resources_dir);
 
   $self->plugin('Config' => {
     file => $self->home->rel_file('config/pmltq_server.conf')
@@ -116,6 +122,12 @@ sub startup {
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
   $treebank->get ('metadata')->to('#metadata');
   $treebank->post('suggest')->to('#suggest');
+  $treebank->get ('data')->to('#data');
+  $treebank->get ('node')->to('#node');
+  $treebank->get ('type')->to('#type');
+  $treebank->get ('node-types')->to('#node_types');
+  $treebank->get ('relations')->to('#relations');
+  $treebank->get ('relation-target-types')->to('#relation_target_types');
   $treebank->get ('history', 'treebank_history')->to(controller => 'History', action => 'list');
   $treebank->post('query')->to(controller => 'Query', action => 'query');
   $treebank->post('query/svg', 'query_svg')->to(controller => 'Query', action => 'query_svg');
