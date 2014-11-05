@@ -8,16 +8,14 @@ belongs_to parent => 'PMLTQ::Server::Model::Sticker'; ############   ATTENTION -
 
 has_many children => 'PMLTQ::Server::Model::Sticker';
 
-sub has_sticker { ## CHANGE - sticker has a tree structure
+sub has_sticker { 
   my ($self, $sticker) = @_;
   my %seen;
-  my @sticker_list = ($self->stickers);
-  while(my $stickers = shift @sticker_list) {
-    return 1 if any { $_->name||'' eq $sticker } @{$stickers};
-    for my $s (@{$stickers}) {
-      push @sticker_list, $s unless defined $seen{$s->name};
-      $seen{$s->name}=1;
-    }
+  my $parent = $self;
+  while($parent and not defined $seen{$parent->id}) {
+    return 1 if $parent->id eq $sticker->id ;
+    $seen{$parent->id}=1;
+    $parent = ($parent->parent and not defined $seen{$parent->parent->id}) ? $parent->parent : undef;
   }
   return 0;
 }
@@ -26,7 +24,12 @@ sub full_name {
   my ($self) = @_;
   my $name = "/".$self->name;
   my $parent = $self->parent;
-  $name = $parent->full_name . $name if $parent;
+  my %seen;
+  while($parent and not defined $seen{$parent->id}) {
+    $seen{$parent->id}=1;
+    $name = "/".$parent->name.$name;
+    $parent = ($parent->parent and not defined $seen{$parent->parent->id}) ? $parent->parent : undef;
+  }
   return $name;
 }
 

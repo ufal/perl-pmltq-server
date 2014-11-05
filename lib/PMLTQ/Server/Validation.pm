@@ -218,4 +218,6 @@ sub is_array_of_hash {
     ( $a and ref($a) eq 'ARRAY' and all { $_ and ref($_) eq 'HASH' } @$a ) ? undef : $error;
   };
 }
+
+
 1;

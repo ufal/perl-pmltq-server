@@ -58,48 +58,13 @@ $('#tokenfield').tagsinput({
 ]}
   });
 <% if($sticker and $sticker->parent){ %>
-
-<% print STDERR "PARENT: " , $sticker->parent,"\n"; %>
-<% my ($parent)  = grep {$sticker->parent && $sticker->parent->id eq $_->id} @{stickers->all}; %>
-<% print STDERR grep {$sticker->parent->id eq $_->id} @{stickers->all}; %>
+  <% my ($parent)  = grep {$sticker->parent && $sticker->parent->id eq $_->id} @{stickers->all}; %>
 $('#tokenfield').tagsinput('add',{"id":"<%=$parent->id%>" , "fullName": "<%=$parent->full_name()%>"});
 <% } %>
 $('.bootstrap-tagsinput').addClass('form-control');
 
 
-  /*
-$('#tokenfield').tagsinput({
-  itemValue: 'value',
-  maxTags: 1,
-  itemText: function(item) {
-    return item.text;
-  },
-  typeahead :{source: [
-  { "value": 20 , "text": "Europe", "level":0},
-  { "value": 1 , "text": "Amsterdam"   , "level":1    },
-  { "value": 2 , "text": "London"      , "level":1    },
-  { "value": 3 , "text": "Paris"       , "level":1    },
-  { "value": 21 , "text": "America", "level":0},
-  { "value": 4 , "text": "Washington"  , "level":1},
-  { "value": 5 , "text": "Mexico City" , "level":1},
-  { "value": 6 , "text": "Buenos Aires", "level":1},
-  { "value": 22 , "text": "Australia", "level":0},
-  { "value": 7 , "text": "Sydney"      , "level":1},
-  { "value": 8 , "text": "Wellington"  , "level":1},
-  { "value": 9 , "text": "Canberra"    , "level":1},
-  { "value": 23 , "text": "Asia", "level":0},
-  { "value": 10, "text": "Beijing"     , "level":1      },
-  { "value": 11, "text": "New Delhi"   , "level":1      },
-  { "value": 12, "text": "Kathmandu"   , "level":1      },
-  { "value": 24 , "text": "Africa", "level":0},
-  { "value": 13, "text": "Cairo"       , "level":1    },
-  { "value": 14, "text": "Cape Town"   , "level":1    },
-  { "value": 15, "text": "Kinshasa"    , "level":1    }
-]}
-  });
-$('#tokenfield').tagsinput('add',{ "value": 9 , "text": "Canberra"    , "level":1});
-$('#tokenfield').tagsinput('add',{ "value": 13, "text": "Cairo"       , "level":1    });
-*/
+
 
 
   <% end %>

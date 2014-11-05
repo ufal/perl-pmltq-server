@@ -152,6 +152,15 @@ sub _validate_sticker {
         })->count;
         return $count > 0 ? "sticker name '$stickername' already exists" : undef;
       }],
+      parent => sub {
+        my $parent = shift;
+        return undef unless $sticker;
+        return undef unless $parent;
+        $parent = $c->mandel->collection('sticker')->search({_id  => $parent->{'$id'} })->single;
+        
+        return ($parent->has_sticker($sticker)) ? "sticker structure is not tree" : undef; 
+        
+      }
     ]
   };
 
