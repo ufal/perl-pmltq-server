@@ -51,7 +51,7 @@ $('#tokenfield').tagsinput({
   maxTags: 1,
   itemText: 'fullName',
   typeahead :{source: [
-          <% for my $s (grep {not($sticker) or($sticker and not($sticker->id eq $_->id))} @{stickers->all} ) { %>
+          <% for my $s (grep {not($sticker) or ($sticker and  not($_->has_sticker($sticker)))} @{stickers->all} ) { %>
            {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
            <% print STDERR "$s   ";   %>
           <% } %>
