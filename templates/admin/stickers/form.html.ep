@@ -39,10 +39,6 @@
 </div>
 <% end %>
 
-<% print STDERR "STICKERS: ",@{stickers->all},"\n"; %>
-<% print STDERR "STICKERS: ",map($_->id,@{stickers->all}),"\n"; %>
-
-<% print STDERR @{stickers->all};%>
 <% content_for javascript => begin %>
   <%= javascript begin %>
 
@@ -53,7 +49,6 @@ $('#tokenfield').tagsinput({
   typeahead :{source: [
           <% for my $s (grep {not($sticker) or ($sticker and  not($_->has_sticker($sticker)))} @{stickers->all} ) { %>
            {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
-           <% print STDERR "$s   ";   %>
           <% } %>
 ]}
   });

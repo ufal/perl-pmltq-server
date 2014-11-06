@@ -147,10 +147,10 @@ sub _validate_sticker {
       name => [is_required(), sub {
         my $stickername = shift;
         my $count = $c->mandel->collection('sticker')->search({
-          stickername => $stickername,
+          name => $stickername,
           ($sticker ? (_id => { '$ne' => $sticker->id }) : ())
         })->count;
-        return $count > 0 ? "sticker name '$stickername' already exists" : undef;
+        return $count > 0 ? "name '$stickername' already exists" : undef;
       }],
       parent => sub {
         my $parent = shift;
