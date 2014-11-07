@@ -20,7 +20,7 @@ Bridge for other routes. Saves current treebank to stash under 'tb' key.
 
 sub list {
   my $c = shift;
-
+print STDERR "LIST TREEBANK\n";
   $c->mandel->collection('treebank')->all(sub {
     my($collection, $err, $treebanks) = @_;
 
@@ -156,7 +156,7 @@ sub _validate_treebank {
       public => force_bool(),
       anonaccess => force_bool(),
       data_sources => to_hash("\n",$markup_linkpattern),
-      documentation => to_array_of_hash([qw/title link/],"\n",$markup_linkpattern)
+      documentation => to_array_of_hash([qw/title link/],"\n",$markup_linkpattern),
       stickers => list_of_dbrefs(PMLTQ::Server::Model::Sticker->model->collection_name)
       ## todo desctiptioun should be html with no unsafe code !!!
     ],
