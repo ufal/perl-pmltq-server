@@ -17,7 +17,7 @@
           <%= $user->password_field('password_confirm', 'Confirm password') %>
           <%= $user->email_field('email') %>
           <%= $user->checkbox_field('is_active') %>
-          <%= $user->text_field('stickers', id =>"tokenfield" ) %>
+          <%= $user->text_field('stickers', id =>"tokenfield",value=>"" ) %>
         </fieldset>
       </div>
     </div>

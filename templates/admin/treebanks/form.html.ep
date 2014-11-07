@@ -23,7 +23,7 @@
           
           <%= $treebank->checkbox_field('public') %>
           <%= $treebank->checkbox_field('anonaccess') %>
-          <%= $treebank->text_field('stickers', id =>"tokenfield" ) %>          
+          <%= $treebank->text_field('stickers', id =>"tokenfield", value=>"") %>          
         </fieldset>
       </div>
     </div>
