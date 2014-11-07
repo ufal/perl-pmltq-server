@@ -41,7 +41,8 @@
 
 <% content_for javascript => begin %>
   <%= javascript begin %>
-
+    %{
+      %  no strict 'vars';
 $('#tokenfield').tagsinput({
   itemValue: 'id',
   maxTags: 1,
@@ -52,11 +53,12 @@ $('#tokenfield').tagsinput({
           <% } %>
 ]}
   });
-<% if($sticker and $sticker->parent){ %>
-  <% my ($parent)  = grep {$sticker->parent && $sticker->parent->id eq $_->id} @{stickers->all}; %>
+      <% if($sticker and $sticker->parent){ %>
+        <% my ($parent)  = grep {$sticker->parent && $sticker->parent->id eq $_->id} @{stickers->all}; %>
 $('#tokenfield').tagsinput('add',{"id":"<%=$parent->id%>" , "fullName": "<%=$parent->full_name()%>"});
-<% } %>
+      <% } %>
 $('.bootstrap-tagsinput').addClass('form-control');
+    % }
   <% end %>
 <% end %>
 

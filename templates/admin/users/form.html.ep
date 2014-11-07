@@ -54,7 +54,8 @@
 
 <% content_for javascript => begin %>
   <%= javascript begin %>
-
+    %{
+      %  no strict 'vars';
 $('#tokenfield').tagsinput({
   itemValue: 'id',
   itemText: 'fullName',
@@ -70,6 +71,7 @@ $('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_
       <% } %>
     <% } %>
 $('.bootstrap-tagsinput').addClass('form-control');
+    % }
   <% end %>
 <% end %>
 
