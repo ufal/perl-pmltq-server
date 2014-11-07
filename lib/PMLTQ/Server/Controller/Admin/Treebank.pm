@@ -49,7 +49,6 @@ sub create {
       my ($treebank, $err) = @_;
       if ($err) {
         $c->flash(error => "$err");
-        print STDERR "ERROR $err\n";
         $c->stash(treebank => $treebank);
         $c->render(template => 'admin/treebanks/form');
       } else {
