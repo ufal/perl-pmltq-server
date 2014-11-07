@@ -23,7 +23,7 @@
           
           <%= $treebank->checkbox_field('public') %>
           <%= $treebank->checkbox_field('anonaccess') %>
-          
+          <%= $treebank->text_field('stickers', id =>"tokenfield" ) %>          
         </fieldset>
       </div>
     </div>
@@ -55,4 +55,24 @@
 
 <% end %>
 
+<% content_for javascript => begin %>
+  <%= javascript begin %>
+
+$('#tokenfield').tagsinput({
+  itemValue: 'id',
+  itemText: 'fullName',
+  typeahead :{source: [
+          <% for my $s ( @{stickers->all} ) { %>
+           {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
+          <% } %>
+]}
+  });
+    <% if($treebank){ %>
+      <% for my $s ( @{$treebank->stickers} ) { %>  
+$('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name()%>"});
+      <% } %>
+    <% } %>
+$('.bootstrap-tagsinput').addClass('form-control');
+  <% end %>
+<% end %>
 
