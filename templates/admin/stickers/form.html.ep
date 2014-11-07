@@ -57,11 +57,6 @@ $('#tokenfield').tagsinput({
 $('#tokenfield').tagsinput('add',{"id":"<%=$parent->id%>" , "fullName": "<%=$parent->full_name()%>"});
 <% } %>
 $('.bootstrap-tagsinput').addClass('form-control');
-
-
-
-
-
   <% end %>
 <% end %>
 

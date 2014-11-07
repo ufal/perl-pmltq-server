@@ -17,6 +17,7 @@
           <%= $user->password_field('password_confirm', 'Confirm password') %>
           <%= $user->email_field('email') %>
           <%= $user->checkbox_field('is_active') %>
+          <%= $user->text_field('stickers', id =>"tokenfield" ) %>
         </fieldset>
       </div>
     </div>
@@ -50,4 +51,27 @@
   </div>
 </div>
 <% end %>
+
+<% content_for javascript => begin %>
+  <%= javascript begin %>
+
+$('#tokenfield').tagsinput({
+  itemValue: 'id',
+//  maxTags: 1,
+  itemText: 'fullName',
+  typeahead :{source: [
+          <% for my $s ( @{stickers->all} ) { %>
+           {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
+          <% } %>
+]}
+  });
+    <% if($user){ %>
+      <% for my $s ( @{$user->stickers} ) { %>  
+$('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name()%>"});
+      <% } %>
+    <% } %>
+$('.bootstrap-tagsinput').addClass('form-control');
+  <% end %>
+<% end %>
+
 

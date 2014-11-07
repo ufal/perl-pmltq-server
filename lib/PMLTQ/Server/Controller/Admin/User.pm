@@ -146,7 +146,8 @@ sub _validate_user {
       ($user_data->{password} ? (password => encrypt_password()) : ()),
       is_active => force_bool(),
       available_treebanks => list_of_dbrefs(PMLTQ::Server::Model::Treebank->model->collection_name),
-      permissions => list_of_dbrefs(PMLTQ::Server::Model::Permission->model->collection_name)
+      permissions => list_of_dbrefs(PMLTQ::Server::Model::Permission->model->collection_name),
+      stickers => list_of_dbrefs(PMLTQ::Server::Model::Sticker->model->collection_name)
     ],
     checks => [
       [qw/name username password password_confirm email/] => is_long_at_most(200),
