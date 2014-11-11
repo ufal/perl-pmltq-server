@@ -86,6 +86,8 @@ ok ($updated_joe, 'Joe is still in the database');
 isnt ($updated_joe->name, $user_joe->name, 'Name has got updated');
 is ($updated_joe->email, $user_joe->email, 'Email has not changed');
 
+
+## =========== treebanks  ==================
 my %treebank_data = (
   name => 'My treebank',
   title => 'TB',
@@ -125,7 +127,30 @@ $updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id
 ok ($updated_joe, 'Joe is still in the database');
 is(@{$updated_joe->available_treebanks}, 0, 'All treebanks were deleted from user');
 
+## ====================== stickers ===================
+my $stickers = add_stickers(["A","comment a",undef],["B","comment b",0],["C","comment c",1],["D","comment d",0],["X","comment X",undef]);
 
+$user_data{'stickers'} = join(",",map {$stickers->[$_]->id} (2,3,4));
+print STDERR "ADDING STICKERS $user_data{'stickers'}    \n";
+$t->put_ok($update_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(200);
+print STDERR "ADDed STICKERS\n";
+
+$updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
+ok ($updated_joe, 'Joe is still in the database');
+ok(cmp_deeply($updated_joe->stickers, subsetof($stickers->[2],$stickers->[3],$stickers->[4])), 'All stickers added');
+delete $user_data{'stickers'};
+$t->put_ok($update_user_url => form => {
+  map { ("user.$_" => $user_data{$_}) } keys %user_data
+})->status_is(200);
+
+$updated_joe = $t->app->mandel->collection('user')->search({_id => $user_joe->id})->single;
+ok ($updated_joe, 'Joe is still in the database');
+is(@{$updated_joe->available_treebanks}, 0, 'All stickers were deleted from user');
+
+
+# ==================== delete user ==================
 $t->ua->max_redirects(0);
 my $delete_user_url = $t->app->url_for('delete_user', id => $user_joe->id);
 ok ($delete_user_url, 'Delete user url exists');

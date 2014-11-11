@@ -10,6 +10,7 @@ use Mojo::Util qw(b64_decode hmac_sha1_sum);
 use Mojo::JSON;
 use Mojo::URL;
 use Mojo::IOLoop::Server;
+use Mango::BSON qw/bson_oid bson_dbref/;
 use DBI;
 
 use Treex::PML;
@@ -140,6 +141,26 @@ sub test_admin {
 
   die 'No admin, hey?' unless $admin_user;
   return $admin_user;
+}
+
+sub add_stickers {
+  my @stickers = @_ ; # parent sticker should be before children in the list
+  my @added;
+  my $collection = test_app()->app->mandel->collection('user');
+  for my $sticker (@stickers){
+    my ($name,$comment,$parentIdx) = @$sticker;
+    my $parent = undef;
+    $parent = $collection->search({name => $stickers[$parentIdx]->[0]})->single if defined $parentIdx;
+    my $s = $collection->create({
+      name => $name,
+      comment => $comment,
+      $parent ? (parent => bson_dbref( 'stickers', bson_oid($parent->id) )):()
+      });
+    $s->save();
+    push @added,$s;    
+  }
+   
+  return [@added]
 }
 
 my $print_server_pid;
