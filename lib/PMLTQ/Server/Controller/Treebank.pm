@@ -131,6 +131,7 @@ sub data {
 
   my $tb = $c->stash('tb');
   my $file = $c->param('file');
+  $file =~ s{#.*}{};
 
   return $c->status_error({
     code => 400,
