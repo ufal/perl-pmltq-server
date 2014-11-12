@@ -199,7 +199,7 @@ sub resolve_data_path {
   my $path;
   if (defined($schema_name) and defined($data_dir)) {
     $f = $new_filename if defined $new_filename;
-    my ($sources) = map $_->{path}, grep { $_->{schema} eq $schema_name } @{$self->data_sources};
+    my ($sources) = map $self->data_sources->{$_}, grep { $_ eq $schema_name } keys %{$self->data_sources};
     if ($sources) {
       $path = File::Spec->rel2abs($f, $sources);
     } else {
