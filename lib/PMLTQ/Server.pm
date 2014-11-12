@@ -122,7 +122,7 @@ sub startup {
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
   $treebank->get ('metadata')->to('#metadata');
   $treebank->post('suggest')->to('#suggest');
-  $treebank->get ('data')->to('#data');
+  $treebank->get ('data/*file')->to('#data');
   $treebank->get ('node')->to('#node');
   $treebank->get ('type')->to('#type');
   $treebank->get ('node-types')->to('#node_types');
