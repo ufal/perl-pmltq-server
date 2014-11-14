@@ -136,6 +136,7 @@ sub _validate_user {
   $user_data = {
     available_treebanks => [],
     permissions => [],
+    stickers => "",
     %$user_data
   };
   my $rules = {
