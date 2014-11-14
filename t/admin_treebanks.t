@@ -80,6 +80,30 @@ ok ($updated_tb, 'Joe is still in the database');
 isnt ($updated_tb->name, $treebank_tb->name, 'Name has got updated');
 is ($updated_tb->title, $treebank_tb->title, 'Title has not changed');
 
+## ====================== stickers ===================
+add_stickers(["A","comment a",undef],["B","comment b",0],["C","comment c",1],["D","comment d",0],["X","comment X",undef]);
+my $stickers = $t->app->mandel->collection('sticker')->search()->all;
+
+$treebank_data{'stickers'} = join(",",map {$stickers->[$_]->id} (2,3,4));
+$t->put_ok($update_treebank_url => form => {
+  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
+})->status_is(200);
+$updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
+ok ($updated_tb, 'My treebank is still in the database');
+ok(cmp_deeply($updated_tb->stickers, [$stickers->[2],$stickers->[3],$stickers->[4]]), 'All stickers added');
+
+
+delete $treebank_data{'stickers'};
+$t->put_ok($update_treebank_url => form => {
+  map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
+})->status_is(200);
+
+$updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
+ok ($updated_tb, 'My treebank is still in the database');
+is(@{$updated_tb->stickers}, 0, 'All stickers were deleted from ẗreebank');
+
+
+## delete treebank
 $t->ua->max_redirects(0);
 my $delete_treebank_url = $t->app->url_for('delete_treebank', id => $treebank_tb->id);
 ok ($delete_treebank_url, 'Delete treebank url exists');

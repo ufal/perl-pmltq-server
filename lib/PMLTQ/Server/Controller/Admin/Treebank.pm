@@ -145,6 +145,7 @@ sub _validate_treebank {
     description => '',
     data_sources => '',
     documentation => '',
+    stickers => "",
     %$treebank_data
   };
   my $markup_linkpattern = qr/^\s*\[(.+)\]\s*\((.+)\)\s*$/;
