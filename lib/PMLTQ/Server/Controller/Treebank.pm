@@ -5,6 +5,7 @@ package PMLTQ::Server::Controller::Treebank;
 use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
 use Mojo::Asset::Memory;
+use Mojo::Asset::File;
 
 =head1 METHODS
 
@@ -130,6 +131,7 @@ sub data {
 
   my $tb = $c->stash('tb');
   my $file = $c->param('file');
+  $file =~ s{#.*}{};
 
   return $c->status_error({
     code => 400,
@@ -139,13 +141,15 @@ sub data {
   my $path = $tb->resolve_data_path($file);
 
   my $err_message;
-  unless (defined $path) {
+  unless (defined $path && -e $path) {
     $err_message = "Object $file not found!";
-  } elsif (!(-r $path)) {
-    $err_message = "Object $file not readable!\nPlease notify PML-TQ administrator!"
-  } else {
-    $c->res->headers->content_type('text/plain');
-    $c->reply->static($path);
+  }
+  elsif (not(-r $path)) {
+    $err_message = "Object $file : $path not readable!\nPlease notify PML-TQ administrator!"
+  }
+  else {
+    #$c->res->headers->content_type('text/plain');
+    $c->reply->asset(Mojo::Asset::File->new(path => $path));
     return;
   }
 

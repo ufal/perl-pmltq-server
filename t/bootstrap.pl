@@ -96,13 +96,10 @@ sub test_treebank {
     username => 'postgres',
     password => '',
     public => 1,
-    data_sources => [{
-      schema => 'adata',
-      path => File::Spec->catdir($test_files, 'pdt20_mini', 'data')
-    }, {
-      schema => 'tdata',
-      path => File::Spec->catdir($test_files, 'pdt20_mini', 'data')
-    }]
+    data_sources => {
+      adata => File::Spec->catdir($test_files, 'pdt20_mini', 'data'),
+      tdata => File::Spec->catdir($test_files, 'pdt20_mini', 'data')
+    }
   });
 
   $test_tb->save();
