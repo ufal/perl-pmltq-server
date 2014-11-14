@@ -65,7 +65,7 @@ $('#tokenfield').tagsinput({
           <% } %>
 ]}
   });
-    <% if($user){ %>
+    <% if($user && $user->stickers){ %>
       <% for my $s ( @{$user->stickers} ) { %>  
 $('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name()%>"});
       <% } %>

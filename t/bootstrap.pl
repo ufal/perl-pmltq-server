@@ -143,7 +143,7 @@ sub test_admin {
 sub add_stickers {
   my @stickers = @_ ; # parent sticker should be before children in the list
   my @added;
-  my $collection = test_app()->app->mandel->collection('user');
+  my $collection = test_app()->app->mandel->collection('sticker');
   for my $sticker (@stickers){
     my ($name,$comment,$parentIdx) = @$sticker;
     my $parent = undef;
