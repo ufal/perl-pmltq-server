@@ -12,9 +12,9 @@
           <tr>
             <th>Name</th>
             <th>Username</th>
-            <th>Password</th>
             <th>Email</th>
             <th>Is Active</th>
+            <th>Stickers</th>
           </tr>
         </thead>
         <tbody>
@@ -22,9 +22,9 @@
           <tr>
             <td><%=  link_to $user->name =>  url_for('show_user', id => $user->id) %></td>
             <td><%= $user->username %></td>
-            <td><%= $user->password %></td>
             <td><%= $user->email %></td>
             <td><%= $user->is_active %></td>
+            <td> <% for my $s (@{$user->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
           </tr>
           <% } %>
         </tbody>

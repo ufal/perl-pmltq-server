@@ -62,6 +62,7 @@
 $('#tokenfield').tagsinput({
   itemValue: 'id',
   itemText: 'fullName',
+  tagClass: 'label label-primary',
   typeahead :{source: [
           <% for my $s ( @{stickers->all} ) { %>
            {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},

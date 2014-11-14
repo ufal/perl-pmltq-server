@@ -27,6 +27,7 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
             <th>Username</th>
             <th>Pub</th>
             <th>Anon</th>
+            <th>Stickers</th>
           </tr>
         </thead>
         <tbody>
@@ -41,6 +42,7 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
             <td><%= $treebank->username %></td>
             <td><%= $treebank->public ? "X":"" %><!--<%= $treebank->public ? "public":"" %>--></td>
             <td><%= $treebank->anonaccess ? "X":"" %></td>
+            <td> <% for my $s (@{$treebank->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
           </tr>
           <% } %>
         </tbody>
