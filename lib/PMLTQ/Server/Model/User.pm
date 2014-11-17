@@ -43,7 +43,8 @@ sub registration {
   my $self = shift;
   my $home = shift;
   my $password = shift;
-  $self->send_mail(
+  return {
+      to => $self->email,
       subject => 'registration',
       data => 'Dear '.$self->name.',
 
@@ -55,13 +56,9 @@ You can follow '.$home.' to login.
 Sincerely,
 PMLTQ Team
 '
-    );
+    };
 }
-sub send_mail {
-  my $self = shift;
-  my %opts = @_;
-  print STDERR "SUBJECT $opts{subject}\n$opts{data}\n\n";      
-}
+
 
 
 1;

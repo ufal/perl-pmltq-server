@@ -14,6 +14,7 @@ requires 'Mojolicious::Plugin::ValidateTiny', '0.13';
 requires 'Mojolicious::Plugin::ParamExpand';
 requires 'Mojolicious::Plugin::Authentication';
 requires 'Mojolicious::Plugin::Authorization';
+requires 'Mojolicious::Plugin::Mail';
 
 on 'test' => sub {
   requires 'Test::More';

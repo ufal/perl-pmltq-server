@@ -114,7 +114,7 @@ sub masscreate {
         if ($err) {
           push @notadded,[$user,$err];
         } else {
-          $user->registration($c->app->url_for('home'),$password );
+          $c->mail(%{$user->registration($c->app->url_for('home'),$password)});
         }
       });
     }

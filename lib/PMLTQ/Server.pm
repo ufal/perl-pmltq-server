@@ -32,6 +32,7 @@ sub startup {
   $self->plugin('ParamExpand');
   $self->plugin(ValidateTiny => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
+  $self->plugin('Mail' => {from => 'info@pmltqserv.er', type => 'text/html'});
   $self->plugin(Authentication => {
     autoload_user => 0,
     session_key   => 'auth_data',
