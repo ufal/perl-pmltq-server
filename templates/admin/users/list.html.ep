@@ -4,7 +4,7 @@
 <div class="row">
   <div class="col-lg-12">
     <div class="btn-group">
-      <a href="<%= url_for('new_user') %>" class="btn btn-primary">Add New User</a>
+      <a href="<%= url_for('new_user') %>" class="btn btn-primary">Add New User</a> <a href="<%= url_for('new_users') %>" class="btn btn-primary">Add Multiple Users</a>
     </div>
     <div class="table-responsive">
       <table id="user-list" class="table table-bordered table-hover">

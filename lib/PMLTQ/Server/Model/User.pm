@@ -38,4 +38,30 @@ sub TO_JSON {
   return $data;
 }
 
+
+sub registration {
+  my $self = shift;
+  my $home = shift;
+  my $password = shift;
+  $self->send_mail(
+      subject => 'registration',
+      data => 'Dear '.$self->name.',
+
+your account has been created. Please remember the following login data:
+      username: "'.$self->username.'"
+      password: "'.$password.'"
+You can follow '.$home.' to login.
+
+Sincerely,
+PMLTQ Team
+'
+    );
+}
+sub send_mail {
+  my $self = shift;
+  my %opts = @_;
+  print STDERR "SUBJECT $opts{subject}\n$opts{data}\n\n";      
+}
+
+
 1;

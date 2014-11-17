@@ -20,7 +20,7 @@ List all stickers in the database
 
 sub list {
   my $c = shift;
-
+  
   $c->mandel->collection('sticker')->all(sub {
     my($collection, $err, $stickers) = @_;
 

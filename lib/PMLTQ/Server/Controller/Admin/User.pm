@@ -4,7 +4,9 @@ package PMLTQ::Server::Controller::Admin::User;
 
 use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
-use List::Util qw(first);
+use List::Util qw(first all);
+use Lingua::Translit;
+use Unicode::Normalize; 
 use PMLTQ::Server::Validation;
 
 use PMLTQ::Server::Model::Permission ();
@@ -39,6 +41,12 @@ sub new_user {
   $c->render(template => 'admin/users/form');
 }
 
+sub new_users {
+  my $c = shift;
+  $c->render(template => 'admin/users/massform');
+}
+
+
 sub create {
   my $c = shift;
 
@@ -61,6 +69,62 @@ sub create {
   } else {
     $c->flash(error => "Can't save invalid user");
     $c->render(template => 'admin/users/form', status => 400);
+  }
+}
+
+sub masscreate {
+  my $c = shift;
+  my @userIdents = map {[split(";",$_)]} grep {$_} split("\n",  $c->param('user')->{'users'});
+  my $users = $c->mandel->collection('user');
+  my @addusers;
+  my %bannednames;
+  my $ok = 1;
+  if(@userIdents and all {$#$_ +1  == 2} @userIdents) {
+    delete $c->param('user')->{'users'};
+    for my $u (@userIdents) {
+      my ($name,$email) = @$u;
+      my $username = $c->generate_username($name,\%bannednames);
+      my $password = $c->generate_pass(10);
+      if ( my $user_data = $c->_validate_user({ %{$c->param('user')},
+                                                name => $name, 
+                                                email => $email, 
+                                                username => $username, 
+                                                password => $password, 
+                                                password_confirm => $password}) ) {
+        push @addusers,[$users->create($user_data),$password];
+      } else {
+        $ok = 0;
+        $c->flash(error => "Can't save invalid users");
+        $c->render(template => 'admin/users/massform', status => 400);   
+        last; 
+      }
+    } 
+  } else {
+    $ok = 0;
+    $c->flash(error => "Can't save invalid users");
+    $c->render(template => 'admin/users/massform', status => 400);    
+  }
+  if($ok) {
+    my @notadded;
+    for my $u (@addusers) {
+      my ($user,$password) = @$u;
+      
+      $user->save(sub {
+        my ($user, $err) = @_;
+        if ($err) {
+          push @notadded,[$user,$err];
+        } else {
+          $user->registration($c->app->url_for('home'),$password );
+        }
+      });
+    }
+    if(@notadded) {
+      $c->flash(error => "Database Error");
+      $c->render(template => 'admin/users/massform', status => 400);   
+    } else {
+      $c->redirect_to('list_users');
+      $c->render_later;
+    }
   }
 }
 
@@ -176,6 +240,59 @@ sub _validate_user {
   }
 
   return $user_data;
+}
+
+
+sub generate_username
+{
+  my $self = shift;
+  my $str = shift;
+  my $bannednames=shift;
+  # use Lingua::Translit;
+  my $tr = new Lingua::Translit("ISO 843"); # greek
+  $str = $tr->translit($str);
+  $tr = new Lingua::Translit("ISO 9"); # Cyrillic
+  $str = $tr->translit($str);
+  #  $str = decode("utf8", $str);
+  $str = NFD($str);
+  $str =~ s/\pM//og;
+  $str =~ tr/A-Z /a-z./;
+  $str =~ s/[^A-Za-z0-9\.]//g;
+
+  $str =~ s/^\.*//;
+  $str =~ s/\.*$//;
+  $str =~ s/\.+/\./;
+  my $append="";
+  while(@{$self->users->search({username => "$str$append"})->all} or ($bannednames and eval{exists($bannednames->{"$str$append"})})){
+    $append=0 unless $append;
+    $append++;
+  }
+  $bannednames->{"$str$append"}=1 if (defined($bannednames));
+  return "$str$append";
+}
+
+sub generate_pass
+{
+  my $self = shift;
+  my $len=shift;
+  my $i=$len;
+  my $a;
+  my $pass="";
+  while($i>0){
+    my $r = int(rand(2));
+    if($pass =~ m/[a-z][a-z]$/ and $r){
+      $a =  chr(int(rand( ord('Z')-ord('A')+1 )) + ord('A')) ;
+    } elsif ($pass =~ m/[a-zA-Z]{4}$/ or $pass=~ m/[^0-9][0-9]$/) {
+      $a=int(rand(10));
+    } elsif($pass =~ m/[^aeiouy0-9]$/ and not($pass) ) {
+      $a =  substr("aeiouy",int(rand(6)),1) ;
+    } else {
+      $a =  chr(int(rand( ord('z')-ord('a')+1 )) + ord('a')) ;
+    }
+    $pass.=  $a;
+    $i--;
+  }
+  return $pass;
 }
 
 1;

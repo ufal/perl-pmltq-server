@@ -100,7 +100,7 @@ sub startup {
 
   my $admin = $r->route('/admin')->over(authenticated => 1, has_priv => 'admin')->to(controller => 'Admin');
   $admin->get->to(action => 'welcome')->name('admin_welcome');
-  $admin->resource('user', controller => 'Admin::User');
+  $admin->resource('user', controller => 'Admin::User', masscreate => 1);
   $admin->resource('treebank', controller => 'Admin::Treebank');
   $admin->resource('sticker', controller => 'Admin::Sticker');
 
@@ -153,8 +153,14 @@ sub add_resource_shortcut {
       # POST requests - creates a new resource
       $resource->post->to(action => 'create')->name("create_$name");
 
+      # POST requests - creates  multiple new resources
+      $r->route("/$plural/mass")->to(controller => $controller)->post->to(action => 'masscreate')->name("create_$plural") if $params->{masscreate};
+
       # New form
       $r->get("/$name/new")->to(controller => $controller, action => "new_$name")->name("new_$name");
+      
+      # Multiple new form
+      $r->get("/$name/mass/new")->to(controller => $controller, action => "new_$plural")->name("new_$plural") if $params->{masscreate};
 
       # Generate "/$name/:id" route, also handled by controller $name
 
