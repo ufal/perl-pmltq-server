@@ -9,8 +9,11 @@ use Lingua::Translit;
 use Unicode::Normalize; 
 use PMLTQ::Server::Validation;
 
+use PMLTQ::Server::Model::Sticker ();
 use PMLTQ::Server::Model::Permission ();
 use PMLTQ::Server::Model::Treebank ();
+
+#BEGIN { $ENV{MOJO_MAIL_TEST} = 1 }; ## remove sending emails
 
 =head1 METHODS
 
@@ -74,7 +77,14 @@ sub create {
 
 sub masscreate {
   my $c = shift;
+  $c->app->log->debug("MASS CREATE\n");
   my @userIdents = map {[split(";",$_)]} grep {$_} split("\n",  $c->param('user')->{'users'});
+  $c->app->log->debug($c->mandel->collection('sticker')->{model});
+
+  $c->app->log->debug(keys %{$c->mandel->collection('sticker')->{model}});
+  
+  my $sticker = PMLTQ::Server::Model::Sticker::create_sticker($c,$c->param('sticker'));
+  $c->app->log->debug("STICKER: $sticker\n");
   my $users = $c->mandel->collection('user');
   my @addusers;
   my %bannednames;
@@ -114,7 +124,8 @@ sub masscreate {
         if ($err) {
           push @notadded,[$user,$err];
         } else {
-          $c->mail(%{$user->registration($c->app->url_for('home'),$password)});
+          #$c->mail(%{$user->registration($c->app->url_for('home'),$password)});
+          # print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
         }
       });
     }

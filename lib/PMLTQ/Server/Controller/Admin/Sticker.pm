@@ -42,9 +42,7 @@ sub new_sticker {
 sub create {
   my $c = shift;
 
-  if ( my $sticker_data = $c->_validate_sticker($c->param('sticker')) ) {
-    my $stickers = $c->mandel->collection('sticker');
-    my $sticker = $stickers->create($sticker_data);
+  if ( my $sticker=PMLTQ::Server::Model::Sticker::create_sticker($c,$c->param('sticker')) ) {
     $sticker->save(sub {
       my ($sticker, $err) = @_;
       if ($err) {
@@ -62,6 +60,7 @@ sub create {
     $c->render(template => 'admin/stickers/form', status => 400);
   }
 }
+
 
 sub find_sticker {
   my $c = shift;
@@ -130,41 +129,8 @@ sub remove {
 sub _validate_sticker {
   my ($c, $sticker_data, $sticker) = @_;
 
-  $sticker_data ||= {};
-
-  $sticker_data = {
-    %$sticker_data
-  };
-  my $rules = {
-    fields => [qw/name comment parent/],
-    filters => [
-      # Remove spaces from all
-      name => filter(qw/trim strip/),
-      parent => to_dbref(PMLTQ::Server::Model::Sticker->model->collection_name)
-    ],
-    checks => [
-      [qw/name comment/] => is_long_at_most(200),
-      name => [is_required(), sub {
-        my $stickername = shift;
-        my $count = $c->mandel->collection('sticker')->search({
-          name => $stickername,
-          ($sticker ? (_id => { '$ne' => $sticker->id }) : ())
-        })->count;
-        return $count > 0 ? "name '$stickername' already exists" : undef;
-      }],
-      parent => sub {
-        my $parent = shift;
-        return undef unless $sticker;
-        return undef unless $parent;
-        $parent = $c->mandel->collection('sticker')->search({_id  => $parent->{'$id'} })->single;
-        
-        return ($parent->has_sticker($sticker)) ? "sticker structure is not tree" : undef; 
-        
-      }
-    ]
-  };
-
-  return $c->do_validation($rules, $sticker_data);
+  return PMLTQ::Server::Model::Sticker::validate_sticker($c,$sticker_data, $sticker);
 }
+
 
 1;

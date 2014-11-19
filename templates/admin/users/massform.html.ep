@@ -20,6 +20,19 @@
     </div>
     <div class="panel panel-default">
       <div class="panel-heading">
+        <h3 class="panel-title">Group Sticker</h3>
+      </div>
+      <div class="panel-body">
+        <fieldset>
+        % my $sticker = fields('sticker');
+        <%= $sticker->text_field('name') %>
+        <%= $sticker->text_field('comment') %>
+        <%= $sticker->text_field('parent', id =>"stickertokenfield",value=>"" ) %>
+        </fieldset>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
         <h3 class="panel-title">Select Permissions:</h3>
       </div>
       <div class="panel-body">
@@ -68,6 +81,17 @@ $('#tokenfield').tagsinput({
 $('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name()%>"});
       <% } %>
     <% } %>
+$('#stickertokenfield').tagsinput({
+  itemValue: 'id',
+  itemText: 'fullName',
+  tagClass: 'label label-primary',
+  typeahead :{source: [
+          <% for my $s ( @{stickers->all} ) { %>
+           {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
+          <% } %>
+]}
+  });
+    
 $('.bootstrap-tagsinput').addClass('form-control');
     % }
   <% end %>
