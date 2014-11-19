@@ -77,14 +77,20 @@ sub create {
 
 sub masscreate {
   my $c = shift;
-  $c->app->log->debug("MASS CREATE\n");
   my @userIdents = map {[split(";",$_)]} grep {$_} split("\n",  $c->param('user')->{'users'});
-  $c->app->log->debug($c->mandel->collection('sticker')->{model});
-
-  $c->app->log->debug(keys %{$c->mandel->collection('sticker')->{model}});
   
   my $sticker = PMLTQ::Server::Model::Sticker::create_sticker($c,$c->param('sticker'));
-  $c->app->log->debug("STICKER: $sticker\n");
+  if($sticker) {
+    $sticker->save(sub {
+      my ($sticker, $err) = @_;
+      if ($err) {
+        $c->flash(error => "Database Error: $err");
+      }    
+    });
+    my $id = $sticker->id;
+    $c->param('user')->{'stickers'} = $c->param('user')->{'stickers'} ? $c->param('user')->{'stickers'}.",$id" : $id;
+  }
+
   my $users = $c->mandel->collection('user');
   my @addusers;
   my %bannednames;
@@ -116,9 +122,9 @@ sub masscreate {
   }
   if($ok) {
     my @notadded;
+              
     for my $u (@addusers) {
       my ($user,$password) = @$u;
-      
       $user->save(sub {
         my ($user, $err) = @_;
         if ($err) {
