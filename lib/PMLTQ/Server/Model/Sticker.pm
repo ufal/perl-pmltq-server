@@ -40,16 +40,18 @@ sub create_sticker {
   my $data = shift;
   my $sticker=undef;
   if ( my $sticker_data = validate_sticker($c,$data) ) {
-    $sticker = $c->mandel->collection('sticker')->search({ name => $sticker_data->{name},
-                                                           parent  => $sticker_data->{parent}->{'$id'} 
-                                                         })->single;
+    # $sticker = $c->mandel->collection('sticker')->search({ name => $sticker_data->{name},
+                                                           # parent  => $sticker_data->{parent}->{'$id'} 
+                                                         # })->single;
     $sticker = $c->mandel->collection('sticker')->create($sticker_data) unless $sticker;
   }
   return $sticker;
 }
 
+
+
 sub validate_sticker {
-  my ($c, $sticker_data, $sticker) = @_;
+  my ($c, $sticker_data, $sticker,$notuniq) = @_;
 
   $sticker_data ||= {};
 
@@ -65,16 +67,14 @@ sub validate_sticker {
     ],
     checks => [
       [qw/name comment/] => is_long_at_most(200),
-      name => [is_required()
-       # it is not necessary to have unique name !!!
-       # , sub {
-        # my $stickername = shift;
-        # my $count = $c->mandel->collection('sticker')->search({
-          # name => $stickername,
-          # ($sticker ? (_id => { '$ne' => $sticker->id }) : ())
-        # })->count;
-        # return $count > 0 ? "name '$stickername' already exists" : undef;
-      # }
+      name => [is_required(), sub {
+         my $stickername = shift;
+         my $count = $c->mandel->collection('sticker')->search({
+           name => $stickername,
+           ($sticker ? (_id => { '$ne' => $sticker->id }) : ())
+         })->count;
+         return $count > 0 ? "name '$stickername' already exists" : undef;
+       }
       ],
       parent => sub {
         my $parent = shift;
