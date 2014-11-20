@@ -15,11 +15,7 @@ require 'bootstrap.pl';
 my $t = test_app();
 my $tu = test_user();
 
-my $admin_permission = $t->app->mandel->collection('permission')->create({
-  name => 'admin',
-  comment => 'All powerfull admin'
-});
-$admin_permission->save();
+my $admin_permission = $t->app->mandel->collection('permission')->search({name=>"admin"})->single;
 
 $tu->push_permissions($admin_permission);
 
