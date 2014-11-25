@@ -9,6 +9,7 @@ requires 'Validate::Tiny', '0.984';
 requires 'Email::Valid', '1.195';
 requires 'Encode', '2.62';
 requires 'Crypt::Eksblowfish', '0.009';
+requires 'Lingua::Translit', '0.21';
 
 requires 'Mojolicious::Plugin::ValidateTiny', '0.13';
 requires 'Mojolicious::Plugin::ParamExpand';
