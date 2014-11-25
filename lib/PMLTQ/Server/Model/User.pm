@@ -5,6 +5,7 @@ package PMLTQ::Server::Model::User;
 use PMLTQ::Server::Document 'users';
 
 use Types::Standard qw(Str ArrayRef Bool HashRef);
+use PMLTQ::Server::Model::Permission 'ALL_TREEBANKS';
 use List::Util qw(any);
 
 has_many histories => 'PMLTQ::Server::Model::History';
@@ -25,6 +26,15 @@ sub has_permission {
   my $permissions = $self->permissions;
   return 0 unless @{$permissions};
   any { $_->name||'' eq $permission } @{$permissions};
+}
+
+sub can_access_treebank {
+  my ($self, $treebank_name) = @_;
+
+  return 1 if $self->has_permission(ALL_TREEBANKS);
+
+  my $treebanks = $self->available_treebanks;
+  any { $_->name||'' eq $treebank_name } @{$treebanks};
 }
 
 sub TO_JSON {

@@ -52,6 +52,11 @@ sub initialize {
       message => "Database error: $err"
     }) if $err;
 
+    return $c->status_error({
+      code => 401,
+      message => "Unauthorized"
+    }) if $tb->accessible($c->current_user);
+
     $c->stash(tb => $tb);
     $c->continue;
   });

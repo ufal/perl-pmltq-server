@@ -41,6 +41,21 @@ sub metadata {
   }
 }
 
+=head2 accessible
+
+Check if the user has access to the treebank.
+
+=cut
+
+sub accessible {
+  my ($self, $user) = @_;
+
+  return 1 if $self->anonaccess;
+  return $user->can_access_treebank($self->name) if $user;
+  return 0;
+}
+
+
 =head2 get_evaluator
 
 Instantiate L<PMLTQ::SQLEvaluator> based on treebank settings, takes no
