@@ -5,10 +5,14 @@ use Types::Standard qw(Str);
 use Exporter 'import';
 
 BEGIN {
+  # use constant {
+    # map { ( uc $_ => $_ ) } qw/admin all_treebanks shibboleth/
+  # };
   use constant {
-    map { ( uc $_ => $_ ) } qw/admin all_treebanks shibboleth/
+    ADMIN => 'admin',
+    ALL_TREEBANKS => 'all_treebanks', 
+    SHIBBOLETH => 'shibboleth'
   };
-
   our @EXPORT = map { uc } qw/admin all_treebanks shibboleth/;
   our %EXPORT_TAGS = (
     constants => [ @EXPORT ],
