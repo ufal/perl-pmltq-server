@@ -6,6 +6,7 @@ use Mojo::Base 'Mandel';
 
 use Mango::BSON qw/bson_oid bson_dbref/;
 use PMLTQ::Server::Validation 'encrypt_password';
+use PMLTQ::Server::Model::Permission ':constants';
 
 sub initialize {
   my $self = shift;
@@ -15,9 +16,9 @@ sub initialize {
   my $permissions = $self->collection('permission');
   unless ($permissions->count) {
     my @permissions = (
-      { name => 'admin', comment => 'Can access everything including administration backend' },
-      { name => 'all_treebanks', comment => 'Can access all treebanks' },
-      { name => 'shibboleth', comment => 'User added by Shibboleth and can only login through Shibboleth' },
+      { name => ADMIN, comment => 'Can access everything including administration backend' },
+      { name => ALL_TREEBANKS, comment => 'Can access all treebanks' },
+      { name => SHIBBOLETH, comment => 'User added by Shibboleth and can only login through Shibboleth' },
     );
 
     for (@permissions) {
