@@ -145,7 +145,7 @@ sub file {
 sub input {
   my ($self, $type, %options) = @_;
   my $value;
-  $value = $self->_lookup_value unless $options{value};  ### buggy begaviour if ($type eq 'checkbox')
+  $value = $self->_lookup_value;# unless $options{value};  ### buggy begaviour if ($type eq 'checkbox')
 
   $options{id} //= $self->_dom_id;
   $options{value} //= $value if defined $value;
