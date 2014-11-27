@@ -78,6 +78,14 @@ sub create {
 sub masscreate {
   my $c = shift;
   my @userIdents = map {[split(";",$_)]} grep {$_} split("\n",  $c->param('user')->{'users'});
+
+  if($c->param('sticker') 
+     and $c->param('sticker')->{'name'} 
+     and $c->mandel->collection('sticker')->search({name => $c->param('sticker')->{'name'}})->count) {
+    $c->flash(error => "Sticker ".$c->param('sticker')->{'name'}." already exists");
+    $c->render(template => 'admin/users/massform', status => 400);
+    return;   
+  }
   
   my $sticker = PMLTQ::Server::Model::Sticker::create_sticker($c,$c->param('sticker'));
   if($sticker) {

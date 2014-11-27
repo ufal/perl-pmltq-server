@@ -122,7 +122,24 @@ $users = [grep {first {$_->name eq 'GROUP' } @{$_->stickers // []}
 ok (@$users == 3, 'Three Users with GROUP and '.$stickers->[4]->name.' sticker are in the database');
 
 ## ========== sticker colision ===============
-# TODO
+%multiuser_data = (
+    'user.users' => join("\n",map {$_.";".lc($_).'@mail.com'} qw/X/),
+    'sticker.name' => 'GROUP',
+  );
+$t->post_ok($create_users_url => form => { %multiuser_data })
+  ->status_is(400)
+  ->content_like(qr/\QSticker GROUP already exists/);  
+is($t->app->mandel->collection('sticker')->search({name => 'GROUP'})->count,1,"There is only one sticker named GROUP");
+ 
 ## ========== invalid users textarea format ========
-# TODO
+$multiuser_data{'user.users'}='aa;a@sdsd@';
+$t->post_ok($create_users_url => form => { %multiuser_data })
+  ->status_is(400);
+$multiuser_data{'user.users'}='aa;a@sdsd';
+$t->post_ok($create_users_url => form => { %multiuser_data })
+  ->status_is(400);
+$multiuser_data{'user.users'}='aa;a@sdsd.com
+aa';
+$t->post_ok($create_users_url => form => { %multiuser_data })
+  ->status_is(400);
 done_testing();
