@@ -8,6 +8,7 @@ use List::Util qw(first all);
 use Lingua::Translit;
 use Unicode::Normalize; 
 use PMLTQ::Server::Validation;
+use DateTime;
 
 use PMLTQ::Server::Model::Sticker ();
 use PMLTQ::Server::Model::Permission ();
@@ -138,8 +139,9 @@ sub masscreate {
         if ($err) {
           push @notadded,[$user,$err];
         } else {
-          #$c->mail(%{$user->registration($c->app->url_for('home'),$password)});
-          # print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
+          
+          $c->mail(%{$user->registration($c->app->url_for('home'),$password)});
+           print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
         }
       });
     }
@@ -227,10 +229,11 @@ sub _validate_user {
     permissions => [],
     stickers => "",
     is_active => 0,
+    last_login => $user ? $user->last_login : DateTime->now()->epoch(),
     %$user_data
   };
   my $rules = {
-    fields => [qw/name username password password_confirm email is_active available_treebanks permissions/],
+    fields => [qw/name username password password_confirm email is_active available_treebanks permissions last_login/],
     filters => [
       # Remove spaces from all
       [qw/name username email/] => filter(qw/trim strip/),

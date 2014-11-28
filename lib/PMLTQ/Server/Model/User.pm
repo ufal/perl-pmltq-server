@@ -3,16 +3,19 @@ package PMLTQ::Server::Model::User;
 # ABSTRACT: Model representing an user
 
 use PMLTQ::Server::Document 'users';
-
-use Types::Standard qw(Str ArrayRef Bool HashRef);
+use Types::Standard qw(Str ArrayRef Bool HashRef Int);
 use PMLTQ::Server::Model::Permission 'ALL_TREEBANKS';
 use List::Util qw(any);
+use DateTime;
+
 
 has_many histories => 'PMLTQ::Server::Model::History';
 
 field [qw/name username password email/] => (isa => Str);
 
 field [qw/is_active/] => (isa => Bool);
+
+field [qw/last_login/] => (isa => Int);
 
 list_of available_treebanks => 'PMLTQ::Server::Model::Treebank';
 
@@ -69,6 +72,17 @@ PMLTQ Team
     };
 }
 
+sub get_last_login {
+  my $self = shift;
+  my $pattern = shift//'%Y-%m-%d %R';
+  
+  return DateTime->from_epoch( epoch => $self->last_login )->strftime($pattern);
+}
+
+sub logged {
+  my $self = shift;
+  $self->patch({last_login => DateTime->now()->epoch()}, sub {my($user, $err) = @_;});
+}
 
 
 1;

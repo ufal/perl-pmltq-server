@@ -4,6 +4,7 @@ use Mojo::Base 'Mojolicious::Controller';
 
 sub welcome {
   my $c = shift;
+  $c->current_user->logged();
   $c->render(template => 'admin/welcome');
 }
 
