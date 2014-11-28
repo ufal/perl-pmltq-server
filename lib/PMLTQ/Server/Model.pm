@@ -7,6 +7,7 @@ use Mojo::Base 'Mandel';
 use Mango::BSON qw/bson_oid bson_dbref/;
 use PMLTQ::Server::Validation 'encrypt_password';
 use PMLTQ::Server::Model::Permission ':constants';
+use DateTime;
 
 sub initialize {
   my $self = shift;
@@ -33,7 +34,8 @@ sub initialize {
       name => 'Super Admin',
       username => 'admin',
       password => encrypt_password()->('admin'),
-      permissions => [bson_dbref($permissions->model->collection_name, shift @{$permissions->search({name => 'admin'})->distinct('_id')})]
+      permissions => [bson_dbref($permissions->model->collection_name, shift @{$permissions->search({name => 'admin'})->distinct('_id')})],
+      last_login => DateTime->now()->epoch()
     });
     $admin->save;
   }

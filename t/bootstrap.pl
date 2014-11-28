@@ -12,6 +12,7 @@ use Mojo::URL;
 use Mojo::IOLoop::Server;
 use Mango::BSON qw/bson_oid bson_dbref/;
 use DBI;
+use DateTime;
 
 use Treex::PML;
 use File::Which qw( which );
@@ -21,6 +22,7 @@ use POSIX qw(WNOHANG);
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
 $ENV{MOJO_MODE} = 'test';
+$ENV{MOJO_MAIL_TEST} = 1;
 my $mongo_database = "pmltq-server-test-$$";
 unless ($ENV{PMLTQ_SERVER_TESTDB}) {
   $ENV{PMLTQ_SERVER_TESTDB} = "mongodb://localhost/$mongo_database";
@@ -115,7 +117,8 @@ sub test_user {
     name => 'Joe Tester',
     username => 'tester',
     password => encrypt_password('tester'),
-    email => 'joe@happytesting.com'
+    email => 'joe@happytesting.com',
+    last_login => DateTime->now()->epoch()
   });
 
   $test_user->save();

@@ -141,7 +141,7 @@ sub masscreate {
         } else {
           
           $c->mail(%{$user->registration($c->app->url_for('home'),$password)});
-           print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
+          # print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
         }
       });
     }
