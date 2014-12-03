@@ -302,9 +302,10 @@ sub query_svg {
         $self->rendered($res->code);
       } else {
         my ($err, $code) = $tx->error;
+        $self->app->log->debug($err->{message});
         $self->status_error({
           code => $code||500,
-          message => ref $err ? $err : "$err"
+          message => $err->{message}
         })
       }
     });
@@ -384,7 +385,8 @@ sub result_svg {
     #print STDERR "$f\n";
     if ($f) {
       $input->{tree}=$1 if ($f=~s{##(\d+)(?:\.\d+)?}{} and !$input->{tree});
-      $path = $tb->resolve_data_path($f);
+      $path = $tb->resolve_data_path($f, $self->config->{data_dir});
+      $self->app->log->debug("File path: $path");
     }
   };
   my $err = $@;
@@ -394,6 +396,7 @@ sub result_svg {
       code => 500,
       message => "INTERNAL SERVER ERROR: $err"
     });
+    $self->app->log->debug("INTERNAL SERVER ERROR: $err");
     return
   }
 
@@ -420,9 +423,10 @@ sub result_svg {
         $self->rendered($res->code);
       } else {
         my ($err, $code) = $tx->error;
+        $self->app->log->debug($err->{message});
         $self->status_error({
           code => $code||500,
-          message => "$err"
+          message => $err->{message}
         })
       }
     });
