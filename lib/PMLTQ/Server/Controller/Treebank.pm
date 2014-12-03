@@ -6,6 +6,8 @@ use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
 use Mojo::Asset::Memory;
 use Mojo::Asset::File;
+use Mojo::JSON;
+use PMLTQ::Common;
 
 =head1 METHODS
 
@@ -20,9 +22,9 @@ sub list {
     my($collection, $err, $treebanks) = @_;
 
     $c->render(json => [ map {
-      my $m = $_->metadata;
-      $m->{url} = $c->url_for('treebank', treebank => $_->name);
-      $m
+      my $metadata = $_->metadata;
+      $metadata->{access} = $_->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
+      $metadata
     } @$treebanks ]);
   });
 
@@ -52,10 +54,7 @@ sub initialize {
       message => "Database error: $err"
     }) if $err;
 
-    return $c->status_error({
-      code => 401,
-      message => "Unauthorized"
-    }) if $tb->accessible($c->current_user);
+    $c->basic_auth() unless $tb->accessible($c->current_user);
 
     $c->stash(tb => $tb);
     $c->continue;
@@ -72,8 +71,56 @@ sub metadata {
   my $c = shift;
 
   my $tb = $c->stash('tb');
+  my $metadata = $tb->metadata;
+  $metadata->{access} = $tb->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
 
-  $c->render(json => $tb->metadata);
+  my $ev = $tb->get_evaluator();
+
+  my $schema_names = $ev->get_schema_names();
+  my $node_types = $ev->get_node_types();
+  my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
+
+  my $relations = {
+    standard => \@{PMLTQ::Common::standard_relations()},
+    pml => { },
+    user => { },
+  };
+
+  foreach my $type (@$node_types) {
+    my $types = $ev->get_pmlrf_relations($type);
+    if (@$types) {
+      $relations->{pml}->{$type} = $types;
+    }
+  }
+
+  foreach my $type (@$node_types) {
+    my $types = $ev->get_user_defined_relations($type);
+    if (@$types) {
+      $relations->{user}->{$type} = $types;
+    }
+  }
+
+  my %attributes = map {
+    my @res;
+    my $type = $_;
+    my $decl = $ev->get_decl_for($_);
+    if ($decl) {
+      @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
+      if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
+        unshift @res, 'name()';
+      }
+    }
+    @res ? ($type => \@res) : ()
+  } @$node_types;
+
+  $c->render(json => {
+    %{$metadata},
+    schemas => $ev->get_schema_names(),
+    node_types => \%node_types,
+    relations => $relations,
+    attributes => \%attributes,
+    doc => $tb->generate_doc,
+  });
 }
 
 sub suggest {
@@ -105,7 +152,7 @@ sub suggest {
 
   foreach my $f (@f) {
     my $path;
-    $path = $tb->resolve_data_path($f);
+    $path = $tb->resolve_data_path($f, $c->config->{data_dir});
     return $c->status_error({
       code => 404,
       message => "File $f not found"
@@ -143,7 +190,7 @@ sub data {
     message => "File parameter not specified"
   }) unless $file;
 
-  my $path = $tb->resolve_data_path($file);
+  my $path = $tb->resolve_data_path($file, $c->config->{data_dir});
 
   my $err_message;
   unless (defined $path && -e $path) {

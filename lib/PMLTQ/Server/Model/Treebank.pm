@@ -10,6 +10,8 @@ use Digest::SHA qw(sha1_hex);
 use PMLTQ::SQLEvaluator;
 use Treex::PML;
 use File::Spec;
+use Mojo::JSON;
+use Treex::PML::Schema;
 use URI;
 
 =head1 ATTRIBUTES
@@ -37,6 +39,7 @@ sub metadata {
 
   return {
     id => $self->id,
+    anonymous => $self->anonaccess ? Mojo::JSON->true : Mojo::JSON->false,
     map { ( $_ => $self->$_ ) } qw/name title description homepage/
   }
 }
@@ -128,7 +131,10 @@ Will do a actual search on the treebank using the L<PMLTQ::SQLEvaluator>.
 
 sub search {
   my $self = shift;
-  my %opts = (limit => 100, @_);
+  my %opts = (@_);
+
+  $opts{limit} //= 100;
+  $opts{filter} //= 1;
 
   my ($evaluator, $sth);
   eval {
@@ -209,13 +215,15 @@ Get absolute path to the file
 =cut
 
 sub resolve_data_path {
-  my ($self, $f) = @_;
+  my ($self, $f, $base_data_dir) = @_;
   my ($schema_name,$data_dir,$new_filename) = $self->locate_file($f);
   my $path;
   if (defined($schema_name) and defined($data_dir)) {
     $f = $new_filename if defined $new_filename;
     my ($sources) = map $self->data_sources->{$_}, grep { $_ eq $schema_name } keys %{$self->data_sources};
     if ($sources) {
+      $sources = File::Spec->catdir($base_data_dir, $sources)
+        unless $sources eq File::Spec->rel2abs($sources); # sources dir is relative, prefix it with configured data dir
       $path = File::Spec->rel2abs($f, $sources);
     } else {
       $path = File::Spec->rel2abs($f, $data_dir);
@@ -236,6 +244,44 @@ sub resolve_data_path {
     }
   }
   return $path;
+}
+
+sub generate_doc {
+  my $self = shift;
+
+  my (@aux, %doc);
+  my $ev = $self->get_evaluator;
+SCHEMA:
+  for my $layer (@{$ev->get_schema_names}) {
+    for my $type (@{$ev->get_node_types($layer)}) {
+      my $decl = $ev->get_decl_for($type) || next;
+      for my $attr (map { my $t = $_; $t=~s{#content}{content()}g; $t }
+                    map $_->[0],
+                    sort { $a->[1]<=>$b->[1] or $a->[0] cmp $b->[0] }
+                    map [$_,scalar(@aux = m{/}g) ],
+                    $decl->get_paths_to_atoms({ no_childnodes => 1 })) {
+        my $mdecl = $decl->find($attr,1);
+        next if $mdecl->get_role();
+        $mdecl=$mdecl->get_knit_content_decl unless $mdecl->is_atomic;
+        next if ($mdecl->get_decl_type == PML_CDATA_DECL and $mdecl->get_format eq 'PMLREF');
+
+        $doc{layer} = $layer;
+        $doc{type} = $type;
+        $doc{attr} = $attr;
+        $doc{value} = '...some value...';
+
+        my ($sth) =
+        $self->search(query => qq{$type \$n:=[ $attr=$attr ]>>\$n.$attr}, select_first => 1);
+        if (ref($sth) and !$sth->err) {
+          my $row = $sth->fetch;
+          $doc{value} = $row->[0];
+        }
+        last SCHEMA;
+      }
+    }
+  }
+
+  return \%doc;
 }
 
 1;
