@@ -26,13 +26,21 @@ sub startup {
   # Setup resources directory
   Treex::PML::AddResourcePathAsFirst(PMLTQ->resources_dir);
 
-  $self->plugin('Config' => {
+  $self->plugin(Config => {
     file => $self->home->rel_file('config/pmltq_server.conf')
   });
   $self->plugin('ParamExpand');
   $self->plugin(ValidateTiny => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
-  $self->plugin('Mail' => {from => 'info@pmltqserv.er', type => 'text/html'});
+  $self->plugin(Mail => {from => 'info@pmltqserv.er', type => 'text/html'});
+  $self->plugin(HttpBasicAuth => {
+    validate => sub {
+      my ($c, $username, $password, $realm) = @_;
+      $c->authenticate($username, $password);
+      return 1;
+    },
+    realm => 'PMLTQ'
+  });
   $self->plugin(Authentication => {
     autoload_user => 0,
     session_key   => 'auth_data',
@@ -159,7 +167,7 @@ sub add_resource_shortcut {
 
       # New form
       $r->get("/$name/new")->to(controller => $controller, action => "new_$name")->name("new_$name");
-      
+
       # Multiple new form
       $r->get("/$name/mass/new")->to(controller => $controller, action => "new_$plural")->name("new_$plural") if $params->{masscreate};
 
