@@ -98,9 +98,10 @@ sub test_treebank {
     username => 'postgres',
     password => '',
     public => 1,
+    anonaccess => 1,
     data_sources => {
-      adata => File::Spec->catdir($test_files, 'pdt20_mini', 'data'),
-      tdata => File::Spec->catdir($test_files, 'pdt20_mini', 'data')
+      adata => File::Spec->catdir('pdt20_mini', 'data'),
+      tdata => File::Spec->catdir('pdt20_mini', 'data')
     }
   });
 
@@ -157,9 +158,9 @@ sub add_stickers {
       $parent ? (parent => bson_dbref( 'stickers', bson_oid($parent->id) )):()
       });
     $s->save();
-    push @added,$s;    
+    push @added,$s;
   }
-   
+
   return [@added]
 }
 

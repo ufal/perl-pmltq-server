@@ -5,6 +5,7 @@ use Test::Mojo;
 use Test::Deep;
 use File::Basename 'dirname';
 use File::Spec;
+use Mojo::JSON;
 
 use lib dirname(__FILE__);
 
@@ -25,7 +26,8 @@ ok(cmp_deeply($m, {
   name => $tb->name,
   id => $tb->id,
   title => $tb->title,
-  description => $tb->description
+  description => $tb->description,
+  anonymous => $tb->anonaccess ? Mojo::JSON->true : Mojo::JSON->false
 }));
 
 ## Evaluator
@@ -93,6 +95,7 @@ $tb->search(
 
 ## Locating files
 {
+  my $data_dir = File::Spec->catdir(dirname(__FILE__), 'test_files');
   my @files = qw(sample0 sample1);
   my @layers = qw(a m t w);
 
@@ -110,7 +113,7 @@ $tb->search(
     for my $layer (@layers) {
       my $filename = "${filebase}.${layer}.gz";
 
-      my $path = $tb->resolve_data_path($filename);
+      my $path = $tb->resolve_data_path($filename, $data_dir);
       ok(-e $path, "$filename path exists");
     }
   }
@@ -119,7 +122,7 @@ $tb->search(
   # TODO: this result is bad, it should point to real file
   for my $layer (qw(a t)) {
     my $schema_file = "${layer}data_schema.xml";
-    my $path = $tb->resolve_data_path($schema_file);
+    my $path = $tb->resolve_data_path($schema_file, $data_dir);
     is($path, "/ha/work/projects/pmltq/data/pdt20_mini/resources/$schema_file", "$schema_file path is ok");
   }
 }
@@ -133,6 +136,6 @@ $t->get_ok($treebanks_url)
   ->status_is(200);
 
 $t->json_is("/0/$_", $tb->$_) for (qw/id name title description homepage/);
-$t->json_is('/0/url', $t->app->url_for('treebank', treebank => $tb->name));
+#$t->json_is('/0/url', $t->app->url_for('treebank', treebank => $tb->name));
 
 done_testing();
