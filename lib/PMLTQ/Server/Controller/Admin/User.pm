@@ -229,6 +229,7 @@ sub _validate_user {
     permissions => [],
     stickers => "",
     is_active => 0,
+    last_login => $user ? $user->last_login : DateTime->now(),
     %$user_data
   };
   my $rules = {

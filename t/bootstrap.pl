@@ -119,7 +119,7 @@ sub test_user {
     username => 'tester',
     password => encrypt_password('tester'),
     email => 'joe@happytesting.com',
-    last_login => DateTime->now()->epoch()
+    last_login => DateTime->now()
   });
 
   $test_user->save();
