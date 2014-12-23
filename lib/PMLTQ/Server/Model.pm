@@ -35,7 +35,7 @@ sub initialize {
       username => 'admin',
       password => encrypt_password()->('admin'),
       permissions => [bson_dbref($permissions->model->collection_name, shift @{$permissions->search({name => 'admin'})->distinct('_id')})],
-      last_login => DateTime->now()->epoch()
+      last_login => DateTime->now()
     });
     $admin->save;
   }

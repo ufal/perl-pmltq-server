@@ -3,10 +3,11 @@ package PMLTQ::Server::Model::User;
 # ABSTRACT: Model representing an user
 
 use PMLTQ::Server::Document 'users';
-use Types::Standard qw(Str ArrayRef Bool HashRef Int);
+use Types::Standard qw(Str ArrayRef Bool HashRef Ref);
 use PMLTQ::Server::Model::Permission 'ALL_TREEBANKS';
 use List::Util qw(any);
 use DateTime;
+use DateTime::Format::Strptime;
 
 
 has_many histories => 'PMLTQ::Server::Model::History';
@@ -15,7 +16,7 @@ field [qw/name username password email/] => (isa => Str);
 
 field [qw/is_active/] => (isa => Bool);
 
-field [qw/last_login/] => (isa => Int);
+field [qw/last_login/] => (isa => Ref['DateTime'], builder => sub { DateTime->now });
 
 list_of available_treebanks => 'PMLTQ::Server::Model::Treebank';
 
@@ -76,12 +77,16 @@ sub get_last_login {
   my $self = shift;
   my $pattern = shift//'%Y-%m-%d %R';
   
-  return DateTime->from_epoch( epoch => $self->last_login )->strftime($pattern);
+  return DateTime::Format::Strptime->new(
+                   pattern => '%Y-%m-%dT%H:%M:%S',
+                   time_zone => 'local'                   
+                 )->parse_datetime($self->last_login)
+                  ->strftime($pattern);
 }
 
 sub logged {
   my $self = shift;
-  $self->patch({last_login => DateTime->now()->epoch()}, sub {my($user, $err) = @_;});
+  $self->patch({last_login => DateTime->now()}, sub {my($user, $err) = @_;});
 }
 
 
