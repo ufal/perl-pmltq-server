@@ -4,6 +4,7 @@ requires 'Mandel', '0.23';
 requires 'PMLTQ', '0.8.3';
 
 requires 'DateTime', '1.12';
+requires 'DateTime::Format::Strptime';
 requires 'Lingua::EN::Inflect', '1.895';
 requires 'Validate::Tiny', '0.984';
 requires 'Email::Valid', '1.195';
