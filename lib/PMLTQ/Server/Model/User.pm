@@ -60,7 +60,7 @@ sub registration {
   return {
       to => $self->email,
       subject => 'registration',
-      data => 'Dear '.$self->name.',
+      text => 'Dear '.$self->name.',
 
 your account has been created. Please remember the following login data:
       username: "'.$self->username.'"

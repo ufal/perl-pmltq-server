@@ -13,12 +13,12 @@ requires 'Crypt::Eksblowfish', '0.009';
 requires 'Lingua::Translit', '0.21';
 requires 'Config::General';
 requires 'Config::Any';
+requires 'WWW::Mailgun', '0.4';
 
 requires 'Mojolicious::Plugin::ValidateTiny', '0.13';
 requires 'Mojolicious::Plugin::ParamExpand';
 requires 'Mojolicious::Plugin::Authentication';
 requires 'Mojolicious::Plugin::Authorization';
-requires 'Mojolicious::Plugin::Mail';
 requires 'Mojolicious::Plugin::HttpBasicAuth', '0.11';
 
 on 'test' => sub {

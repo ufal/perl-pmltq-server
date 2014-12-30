@@ -14,8 +14,6 @@ use PMLTQ::Server::Model::Sticker ();
 use PMLTQ::Server::Model::Permission ();
 use PMLTQ::Server::Model::Treebank ();
 
-#BEGIN { $ENV{MOJO_MAIL_TEST} = 1 }; ## remove sending emails
-
 =head1 METHODS
 
 =head2 list
@@ -139,8 +137,7 @@ sub masscreate {
         if ($err) {
           push @notadded,[$user,$err];
         } else {
-          
-          $c->mail(%{$user->registration($c->app->url_for('home'),$password)});
+          $c->app->mail(%{$user->registration($c->app->url_for('home'),$password)});
           # print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
         }
       });
