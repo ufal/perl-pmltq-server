@@ -176,7 +176,7 @@ $users = [grep {first {$_->name eq 'GROUP' } @{$_->stickers // []}
 ok (@$users == 3, 'Three Users with GROUP and '.$stickers->[4]->name.' sticker are in the database');
 
 ok (cmp_deeply([map { {PASSWORD => encrypt_password($_->{PLAIN_PASSWORD}),USERNAME => $_->{USERNAME} } } @$emails_parsed],
-               [(map { {PASSWORD => $_->password, USERNAME => $_->username} } @$users)]),'Password and username are correct in email');
+               bag((map { {PASSWORD => $_->password, USERNAME => $_->username} } @$users))),'Password and username are correct in email');
 
 ## ========== sticker colision ===============
 %multiuser_data = (

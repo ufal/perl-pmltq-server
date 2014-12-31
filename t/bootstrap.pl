@@ -102,7 +102,7 @@ sub get_log {
   return \@lines;
 }
 
-my ($app, $test_tb, $test_user, $admin_user);
+my ($app, $test_tb, $test_user, $admin_user, $encrypt);
 
 sub test_app {
   return $app ||= Test::Mojo->new('PMLTQ::Server');
@@ -154,11 +154,8 @@ sub test_user {
 sub encrypt_password {
   my $password = shift;
   require PMLTQ::Server::Validation;
-print STDERR "BUG - diferent salt is used (probably)\n";
-print STDERR "PASSWORD=$password ",PMLTQ::Server::Validation::encrypt_password()->($password),"\n";
-print STDERR "PASSWORD=$password ",PMLTQ::Server::Validation::encrypt_password()->($password),"\n";
-print STDERR "PASSWORD=$password ",PMLTQ::Server::Validation::encrypt_password()->($password),"\n";
-  PMLTQ::Server::Validation::encrypt_password()->($password);
+  ($encrypt ||= PMLTQ::Server::Validation::encrypt_password());
+  return $encrypt->($password);
 }
 
 sub test_admin {
