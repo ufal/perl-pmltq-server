@@ -29,7 +29,7 @@ sub register {
       return $mail_send->send(\%params) if $mail_send;
       my $text = $params{html} // $params{text};
       $text =~ s/\s+/ /g;
-      $self->app->log->info("To: $params{to},Subject: $params{subject},Body: $text");
+      $self->app->log->info("[MAIL] To: $params{to},Subject: $params{subject},Body: $text");
     }
   );
 }

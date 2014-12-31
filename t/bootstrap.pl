@@ -153,8 +153,11 @@ sub test_user {
 
 sub encrypt_password {
   my $password = shift;
-
   require PMLTQ::Server::Validation;
+print STDERR "BUG - diferent salt is used (probably)\n";
+print STDERR "PASSWORD=$password ",PMLTQ::Server::Validation::encrypt_password()->($password),"\n";
+print STDERR "PASSWORD=$password ",PMLTQ::Server::Validation::encrypt_password()->($password),"\n";
+print STDERR "PASSWORD=$password ",PMLTQ::Server::Validation::encrypt_password()->($password),"\n";
   PMLTQ::Server::Validation::encrypt_password()->($password);
 }
 
