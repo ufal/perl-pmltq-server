@@ -18,6 +18,7 @@ sub register {
 
   $app->helper(
     mail => sub {
+      ## TODO: sended mail counter (per day/per month)
       my $self = shift;
       my %params;
       if (@_ % 2 == 0) {
@@ -27,8 +28,8 @@ sub register {
       }
       return $mail_send->send(\%params) if $mail_send;
       my $text = $params{html} // $params{text};
-      $text =~ s/\s*/ /g;
-      $self->app->log->debug("To: $params{to},Subject: $params{subject},Body: $text");
+      $text =~ s/\s+/ /g;
+      $self->app->log->info("To: $params{to},Subject: $params{subject},Body: $text");
     }
   );
 }

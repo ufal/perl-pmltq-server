@@ -26,5 +26,6 @@ on 'test' => sub {
   requires 'Test::PostgreSQL';
   requires 'Test::Deep';
   requires 'HTML::Lint::Pluggable', '0.03';
-  requires 'Test::WWW::Mechanize::Mojo'
+  requires 'Test::WWW::Mechanize::Mojo';
+  requires 'IO::Capture::Stderr';
 };

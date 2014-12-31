@@ -14,6 +14,7 @@ use lib dirname(__FILE__);
 
 require 'bootstrap.pl';
 
+my $log = setup_log('info'); # needed to be setted before test_app !!
 my $t = test_app();
 my $tu = test_user();
 
@@ -109,7 +110,12 @@ my %multiuser_data = (
     'sticker.name' => 'GROUP',
     'sticker.parent' => $stickers->[0]->id
   );
+start_log($log);
 $t->post_ok($create_users_url => form => { %multiuser_data })->status_is(200);  
+stop_log($log);
+##print STDERR @{get_log($log)};
+
+
 my $group_sticker = $t->app->mandel->collection('sticker')->search({name => 'GROUP'})->single;
 ok($group_sticker, "GROUP sticker added");
 is($group_sticker->parent->id, $stickers->[0]->id, "GROUP sticker has correct parent");

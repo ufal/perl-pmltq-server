@@ -53,24 +53,18 @@ sub TO_JSON {
 }
 
 
-sub registration {
+sub mail {
   my $self = shift;
-  my $home = shift;
-  my $password = shift;
-  return {
+  my $template = shift;
+  my $subject = $template->{subject};
+  my $text = $template-> {text}; 
+  my %args = (@_, 'NAME' => $self->name, 'USERNAME' => $self->username, 'EMAIL' => $self->email, 'PASSWORD' => $self->password) ;
+  $text =~ s/%%(.*?)%%/$args{"$1"}||"%%$1%%"/ge;  ## if $1 is not in %args %%$1%% is not substituted 
+  return  {
       to => $self->email,
-      subject => 'registration',
-      text => 'Dear '.$self->name.',
-
-your account has been created. Please remember the following login data:
-      username: "'.$self->username.'"
-      password: "'.$password.'"
-You can follow '.$home.' to login.
-
-Sincerely,
-PMLTQ Team
-'
-    };
+      subject => $subject,
+      text => $text
+    }
 }
 
 sub get_last_login {

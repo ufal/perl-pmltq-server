@@ -137,8 +137,10 @@ sub masscreate {
         if ($err) {
           push @notadded,[$user,$err];
         } else {
-          $c->app->mail(%{$user->registration($c->app->url_for('home'),$password)});
-          # print STDERR "EMAIL:".$user->registration($c->app->url_for('home'),$password)->{data},"\n";
+          $c->app->mail(%{$user->mail($c->app->config->{mail_templates}->{registration},
+                                      HOME => $c->app->url_for('home'),
+                                      PLAIN_PASSWORD => $password)
+                         });
         }
       });
     }

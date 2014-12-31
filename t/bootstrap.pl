@@ -13,6 +13,8 @@ use Mojo::IOLoop::Server;
 use Mango::BSON qw/bson_oid bson_dbref/;
 use DBI;
 use DateTime;
+use IO::Capture::Stderr;
+
 
 use Treex::PML;
 use File::Which qw( which );
@@ -21,6 +23,7 @@ use POSIX qw(WNOHANG);
 
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
+my $loglevel = '';
 $ENV{MOJO_MODE} = 'test';
 $ENV{MOJO_MAIL_TEST} = 1;
 my $mongo_database = "pmltq-server-test-$$";
@@ -77,6 +80,27 @@ sub start_postgres {
 }
 
 Treex::PML::AddResourcePathAsFirst(File::Spec->catdir($test_files, 'resources'));
+
+
+sub setup_log {
+  $loglevel = shift;
+  return IO::Capture::Stderr->new();   
+}
+
+sub start_log {
+  $ENV{MOJO_LOG_LEVEL} = $loglevel;
+  shift->start();
+}
+
+sub stop_log {
+  shift->stop();
+  delete $ENV{MOJO_LOG_LEVEL}
+}
+
+sub get_log {
+  my @lines = shift->read;
+  return \@lines;
+}
 
 my ($app, $test_tb, $test_user, $admin_user);
 
