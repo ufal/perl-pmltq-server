@@ -2,7 +2,11 @@ package PMLTQ::Server::Model::User;
 
 # ABSTRACT: Model representing an user
 
-use PMLTQ::Server::Document 'users';
+use Mandel::Document (
+  name => 'PMLTQ::Server::Document',
+  collection_name => 'users'
+);
+
 use Types::Standard qw(Str ArrayRef Bool HashRef Ref);
 use PMLTQ::Server::Model::Permission 'ALL_TREEBANKS';
 use List::Util qw(any);
@@ -14,7 +18,7 @@ has_many histories => 'PMLTQ::Server::Model::History';
 
 field [qw/name username password email/] => (isa => Str);
 
-field [qw/is_active/] => (isa => Bool);
+field [qw/is_active/] => (isa => Bool, builder => sub {  return 1; });
 
 field [qw/last_login/] => (isa => Ref['DateTime'], builder => sub { DateTime->now });
 

@@ -2,7 +2,10 @@ package PMLTQ::Server::Model::Treebank;
 
 # ABSTRACT: Model representing a treebank
 
-use PMLTQ::Server::Document 'treebanks';
+use Mandel::Document (
+  name => 'PMLTQ::Server::Document',
+  collection_name => 'treebanks'
+);
 
 use Types::Standard qw(Str ArrayRef HashRef Bool);
 
