@@ -35,7 +35,7 @@ sub list {
 
 sub new_treebank {
   my $c = shift;
-  $c->stash(treebank => undef);
+  $c->stash(treebank => $c->mandel->collection('treebank')->create($c->app->config->{model}->{treebank}||{}));
   $c->render(template => 'admin/treebanks/form');
 }
 

@@ -39,7 +39,7 @@ sub list {
 
 sub new_user {
   my $c = shift;
-  $c->stash(user => undef);
+  $c->stash(user => $c->mandel->collection('user')->create($c->app->config->{model}->{user}||{}));
   $c->render(template => 'admin/users/form');
 }
 
