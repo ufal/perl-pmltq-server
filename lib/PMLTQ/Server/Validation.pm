@@ -107,13 +107,13 @@ sub to_array_of_hash {
     {
       next if $line =~ m/^\s$/;
       my @matched = $line =~ m/$pattern/;
-      if(@matched and @matched == @$fields)  
+      if(@matched and @matched == @$fields)
       {
         push @a, { map { $fields->[$_] => $matched[$_] } ( 0 .. $#$fields ) };
       }
       else
       {
-        return undef;  
+        return undef;
       }
     }
     return \@a;
@@ -122,7 +122,7 @@ sub to_array_of_hash {
 
 sub _bcrypt {
   my ($plain_text, $settings) = @_;
-  
+
   $plain_text = encode_utf8($plain_text) if is_utf8($plain_text);    #  Bcrypt expects octets
   bcrypt( $plain_text, $settings );
 }
@@ -136,7 +136,7 @@ sub encrypt_password {
     my $cost = exists $settings->{cost}    ? $settings->{cost}    : 8;
     my $nul  = exists $settings->{key_nul} ? $settings->{key_nul} : 1;
     my $salt = $settings->{salt};
-    $salt = "T" x 16 if exists $ENV{MOJO_MODE} and $ENV{MOJO_MODE} eq 'test';
+    $salt = "T" x 16 if exists $ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'test';
     $nul = $nul ? 'a' : '';
     $cost = sprintf( "%02i", 0 + $cost );
     if ($salt) {
