@@ -12,7 +12,7 @@ post '/svg' => sub {
 	my $c = shift;
 
 	$c->res->headers->content_type('image/svg+xml');
-	$c->render_static('svg_example.svg');
+	$c->reply->static('svg_example.svg');
 };
 
 post '/svg_error' => sub {
@@ -35,11 +35,11 @@ say STDERR "Server is running";
 Mojo::IOLoop->start;
 
 __DATA__
- 
+
 @@ svg_example.svg
 <?xml version="1.0"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
- 
+
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="120" height="120" viewBox="0 0 236 120">
   <rect x="14" y="23" width="200" height="7" fill="lime" stroke="black" stroke-width="1" />
 </svg>
