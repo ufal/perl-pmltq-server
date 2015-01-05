@@ -56,7 +56,7 @@ my $print_server_url = Mojo::URL->new(start_print_server());
 
 $t->app->config->{tree_print_service} = $print_server_url->path('/svg')->to_string;
 
-diag $t->app->config->{tree_print_service};
+#diag $t->app->config->{tree_print_service};
 
 my $svg_url = $t->app->url_for('svg', treebank => $tb->name);
 ok ($svg_url, 'Constructing url for printing svg');

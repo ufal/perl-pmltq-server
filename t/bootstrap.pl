@@ -228,7 +228,7 @@ sub start_print_server {
       sleep 1;
   }
 
-  say STDERR "Started listening at: $listen with PID: $print_server_pid";
+  say "Started listening at: $listen with PID: $print_server_pid";
 
   return $listen;
 }
