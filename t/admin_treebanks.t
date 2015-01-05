@@ -100,7 +100,7 @@ $t->put_ok($update_treebank_url => form => {
 
 $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
 ok ($updated_tb, 'My treebank is still in the database');
-is(@{$updated_tb->stickers}, 0, 'All stickers were deleted from ẗreebank');
+is(@{$updated_tb->stickers}, 0, 'All stickers were deleted from treebank');
 
 
 ## delete treebank
