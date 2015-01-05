@@ -1,4 +1,4 @@
-package Mojolicious::Plugin::MultipleFileConfig;
+package PMLTQ::Server::MultipleFileConfig;
 
 use v5.10;
 use strict;
@@ -18,7 +18,7 @@ sub register
 
 	# Default args if not set
 	$arg->{dir}     //= catfile($app->home, 'config');
-  
+
 	for (my $i = 0; $i < @{$arg->{files}}; $i++) {
 		# Prefix dir
 		$arg->{files}->[$i] = catfile($arg->{dir}, $arg->{files}->[$i]);
@@ -46,7 +46,7 @@ sub register
 
 	$app->config($config);
 	$app->log->debug($app->dumper($config));
-	
+
 	return $config;
 }
 

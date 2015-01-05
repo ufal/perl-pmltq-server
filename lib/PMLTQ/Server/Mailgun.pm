@@ -1,4 +1,4 @@
-package Mojolicious::Plugin::Mailgun;
+package PMLTQ::Server::Mailgun;
 
 use Mojo::Base 'Mojolicious::Plugin';
 use WWW::Mailgun;
@@ -14,11 +14,12 @@ sub register {
     die __PACKAGE__ . ': domain is not defined' unless exists $conf->{domain};
     $mail_send = WWW::Mailgun->new($conf);
   }
-  
+
 
   $app->helper(
     mail => sub {
-      ## TODO: sended mail counter (per day/per month)
+      ## TODO: sended mail counter (per day/per month)\
+      return unless $mail_send;
       my $self = shift;
       my %params;
       if (@_ % 2 == 0) {

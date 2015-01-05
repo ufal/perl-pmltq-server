@@ -9,8 +9,6 @@ use PMLTQ;
 use PMLTQ::Server::Model;
 use PMLTQ::Server::Validation 'check_password';
 use File::Spec;
-use PMLTQ::Plugin::MultipleFileConfig;
-use PMLTQ::Plugin::Mailgun;
 
 has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
 
@@ -28,7 +26,7 @@ sub startup {
   # Setup resources directory
   Treex::PML::AddResourcePathAsFirst(PMLTQ->resources_dir);
 
-  $self->plugin(MultipleFileConfig => {
+  $self->plugin('PMLTQ::Server::MultipleFileConfig' => {
     dir => $self->home->rel_file('config'),
     files => [
                'pmltq_server.conf',
@@ -36,7 +34,7 @@ sub startup {
              ],
     force_plugins => [ 'Config::Any::Perl' ]
   });
-  $self->plugin(Mailgun => $self->config->{mailgun});
+  $self->plugin('PMLTQ::Server::Mailgun' => $self->config->{mailgun});
   $self->plugin('ParamExpand');
   $self->plugin(ValidateTiny => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
