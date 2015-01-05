@@ -84,7 +84,7 @@ Treex::PML::AddResourcePathAsFirst(File::Spec->catdir($test_files, 'resources'))
 
 sub setup_log {
   $loglevel = shift;
-  return IO::Capture::Stderr->new();   
+  return IO::Capture::Stderr->new();
 }
 
 sub start_log {
@@ -228,7 +228,7 @@ sub start_print_server {
       sleep 1;
   }
 
-  say "Started listening at: $listen with PID: $print_server_pid";
+  say STDERR "Started listening at: $listen with PID: $print_server_pid";
 
   return $listen;
 }
