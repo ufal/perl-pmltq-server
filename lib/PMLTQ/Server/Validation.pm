@@ -136,7 +136,7 @@ sub encrypt_password {
     my $cost = exists $settings->{cost}    ? $settings->{cost}    : 8;
     my $nul  = exists $settings->{key_nul} ? $settings->{key_nul} : 1;
     my $salt = $settings->{salt};
-    $salt = "T" x 16 if exists $ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'test';
+    $salt = "T" x 16 if $ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'test';
     $nul = $nul ? 'a' : '';
     $cost = sprintf( "%02i", 0 + $cost );
     if ($salt) {
