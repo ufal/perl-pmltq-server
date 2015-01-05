@@ -267,7 +267,7 @@ sub extract_session {
     $sign eq hmac_sha1_sum($value, $_) and $ok = 1 for @{$app->secrets};
     return unless $ok;
 
-    my $session = Mojo::JSON->new->decode(b64_decode $value);
+    my $session = Mojo::JSON::decode_json(b64_decode $value);
     return $session;
 }
 
