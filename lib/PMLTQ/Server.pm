@@ -34,7 +34,7 @@ sub startup {
              ],
     force_plugins => [ 'Config::Any::Perl' ]
   });
-  $self->plugin('PMLTQ::Server::Mailgun' => $self->config->{mailgun});
+  $self->plugin('PMLTQ::Server::Mailgun' => $self->config->{mailgun}||{});
   $self->plugin('ParamExpand');
   $self->plugin(ValidateTiny => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
