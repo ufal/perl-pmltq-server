@@ -1,6 +1,8 @@
 % layout 'admin';
 % semantic_title 'treebank';
-<script src="//cdn.ckeditor.com/4.4.5/standard/ckeditor.js"></script>
+
+
+
 
 <%= semantic_form_for 'treebank', begin %>
 <div class="row">
@@ -15,12 +17,8 @@
           <%= $treebank->text_field('name') %>
           <%= $treebank->text_field('title') %>
           <%= $treebank->url_field('homepage') %>
-          <%= $treebank->textarea('description',class => 'ckeditor form-control') %>
-          
           <%= $treebank->textarea('data_sources',class => 'form-control',rows=>4) %>
-          
           <%= $treebank->textarea('documentation',class => 'form-control',rows=>4, show_fields=>['title','link']) %>
-          
           <%= $treebank->checkbox_field('public') %>
           <%= $treebank->checkbox_field('anonaccess') %>
           <%= $treebank->text_field('stickers', id =>"tokenfield", value=>"") %>          
@@ -46,6 +44,34 @@
     </div>
   </div>
 </div>
+
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Description</h3>
+      </div>
+      <div class="panel-body">
+        <fieldset>
+          <%= $treebank->textarea('description','',class => 'form-control', id => 'inputPane', rows=>12) %>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Preview</h3>
+      </div>
+      <div class="panel-body">
+        <div id='previewPane'></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="row">
   <div class="col-lg-12">
     <button type="submit" class="btn btn-primary" />Save Treebank</button>
@@ -57,6 +83,22 @@
 
 <% content_for javascript => begin %>
   <%= javascript begin %>
+
+$(function() {
+	$('#inputPane').markItUp(mySettings);
+
+});
+var inputPane = document.getElementById("inputPane");
+var previewPane = document.getElementById("previewPane");
+var converter = new Showdown.converter();
+
+inputPane.onkeyup = function (){
+  previewPane.innerHTML = converter.makeHtml(inputPane.value);
+};
+  <% end %>
+
+  <%= javascript begin %>
+
     %{
       %  no strict 'vars';
 $('#tokenfield').tagsinput({
@@ -76,6 +118,17 @@ $('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_
     <% } %>
 $('.bootstrap-tagsinput').addClass('form-control');
     % }
+
+
   <% end %>
+	<!-- markItUp! skin -->
+	<link rel="stylesheet" type="text/css" href="/markitup/skins/default/style.css">
+	<!--  markItUp! toolbar skin -->
+	<link rel="stylesheet" type="text/css" href="/markitup/sets/default/style.css">
+	<!-- markItUp! -->
+	<script type="text/javascript" src="/markitup/jquery.markitup.js"></script>
+	<!-- markItUp! toolbar settings -->
+	<script type="text/javascript" src="/markitup/sets/default/set.js"></script>  
+
 <% end %>
 

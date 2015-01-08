@@ -244,7 +244,11 @@ sub label {
 }
 
 sub textarea {
-  my ($self, %options) = @_;
+  my $self = shift;
+  my $label;
+  $label = shift if @_ % 2;
+  $label //= $self->_default_label;
+  my (%options) = @_;
   $options{id} //= $self->_dom_id;
 
   my $size = delete $options{size};
@@ -255,9 +259,10 @@ sub textarea {
   my $fields = delete $options{show_fields};
   my $error = $self->{c}->validator_error($self->{path}->[-1]);
   $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)} );
-  my $label = $self->_default_label;
+  ##my $label = $self->_default_label;
   $self->{c}->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
-      my $content = $self->label($label . ':');
+      my $content;
+      $content  = $self->label($label . ':') if $label;
       $content .= $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)}); 
       $content .= $self->{c}->tag('p', class => 'text-danger', $error) if $error;
       return $content;
