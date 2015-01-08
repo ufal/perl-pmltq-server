@@ -35,8 +35,14 @@ mySettings = {
 		{name:'Quotes', openWith:'> '},
 		{name:'Code Block / Code', openWith:'(!(\t|!|`)!)', closeWith:'(!(`)!)'},
 //		{separator:'---------------'},
-//		{name:'Preview', call:'preview', className:"preview"}
-	]
+		{name:'Preview', call:'preview', className:"preview"}
+	],
+	previewAutoRefresh: true,
+	previewInElement: '#previewPane',
+	previewParser: function (content){
+  		return converter.makeHtml(content);
+	}
+
 }
 
 // mIu nameSpace to avoid conflict.

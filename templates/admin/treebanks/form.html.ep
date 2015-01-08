@@ -83,18 +83,17 @@
 
 <% content_for javascript => begin %>
   <%= javascript begin %>
-
-$(function() {
+var converter;
+var inputPane;
+var previewPane;
+$(document).ready(function() {
+	inputPane = document.getElementById("inputPane");
+	previewPane = document.getElementById("previewPane");
+	converter = new Showdown.converter();
 	$('#inputPane').markItUp(mySettings);
-
+	inputPane.onkeyup = function(){ previewPane.innerHTML = converter.makeHtml(inputPane.value); };
 });
-var inputPane = document.getElementById("inputPane");
-var previewPane = document.getElementById("previewPane");
-var converter = new Showdown.converter();
 
-inputPane.onkeyup = function (){
-  previewPane.innerHTML = converter.makeHtml(inputPane.value);
-};
   <% end %>
 
   <%= javascript begin %>
@@ -121,6 +120,7 @@ $('.bootstrap-tagsinput').addClass('form-control');
 
 
   <% end %>
+
 	<!-- markItUp! skin -->
 	<link rel="stylesheet" type="text/css" href="/markitup/skins/default/style.css">
 	<!--  markItUp! toolbar skin -->
