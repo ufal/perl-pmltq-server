@@ -1,2 +1,3 @@
 t/postgres/
 .nfs*
+config/pmltq_server.private.conf

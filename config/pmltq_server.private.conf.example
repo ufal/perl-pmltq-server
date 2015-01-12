@@ -1,0 +1,9 @@
+{
+  # Mailgun configuration
+  mailgun => {
+    key => 'your-key',
+    domain => 'your-domain',
+    from => 'pmltq@test.cz',
+    driver => 'test'
+  },
+};
