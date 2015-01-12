@@ -1,7 +1,7 @@
 % layout 'admin';
 % title 'List of Treebanks';
 <!--
-better filtering: 
+better filtering:
 https://datatables.net/examples/plug-ins/range_filtering.html
 https://datatables.net/examples/advanced_init/dom_toolbar.html
 http://www.datatables.net/release-datatables/examples/api/row_details.html
@@ -42,7 +42,7 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
             <td><%= $treebank->username %></td>
             <td><%= $treebank->public ? "X":"" %><!--<%= $treebank->public ? "public":"" %>--></td>
             <td><%= $treebank->anonaccess ? "X":"" %></td>
-            <td> <% for my $s (@{$treebank->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
+            <td> <% for my $s (grep { defined } @{$treebank->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
           </tr>
           <% } %>
         </tbody>
