@@ -10,7 +10,7 @@ belongs_to parent => 'PMLTQ::Server::Model::Sticker'; ############   ATTENTION -
 
 has_many children => 'PMLTQ::Server::Model::Sticker';
 
-sub has_sticker { 
+sub has_sticker {
   my ($self, $sticker) = @_;
   my %seen;
   my $parent = $self;
@@ -41,7 +41,7 @@ sub create_sticker {
   my $sticker=undef;
   if ( my $sticker_data = validate_sticker($c,$data) ) {
     # $sticker = $c->mandel->collection('sticker')->search({ name => $sticker_data->{name},
-                                                           # parent  => $sticker_data->{parent}->{'$id'} 
+                                                           # parent  => $sticker_data->{parent}->{'$id'}
                                                          # })->single;
     $sticker = $c->mandel->collection('sticker')->create($sticker_data) unless $sticker;
   }
@@ -81,9 +81,9 @@ sub validate_sticker {
         return undef unless $sticker;
         return undef unless $parent;
         $parent = $c->mandel->collection('sticker')->search({_id  => $parent->{'$id'} })->single;
-        
-        return ($parent->has_sticker($sticker)) ? "sticker structure is not tree" : undef; 
-        
+
+        return ($parent->has_sticker($sticker)) ? "sticker structure is not tree" : undef;
+
       }
     ]
   };
@@ -91,5 +91,13 @@ sub validate_sticker {
   return $c->do_validation($rules, $sticker_data);
 }
 
+sub TO_JSON {
+  my $self = shift;
+
+  return {
+    ($self->parent ? (parent => $self->parent) : ()),
+    map { ($_ => $self->$_) } qw/name comment id/
+  }
+}
 
 1;
