@@ -49,6 +49,9 @@
   <!-- jQuery Version 2.1.1 -->
   <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
 
+  <!-- Site main javascript -->
+  <script src="/js/pmltq-admin.js"></script>
+
   <!-- Bootstrap Core JavaScript -->
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 

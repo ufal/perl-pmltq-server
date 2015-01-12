@@ -47,7 +47,7 @@ sub register {
     });
   });
 
-  $app->helper(remove_button => sub {
+  $app->helper(semantic_remove_button => sub {
     my $c    = shift;
     my $name = shift;
 
@@ -55,15 +55,11 @@ sub register {
 
     # Content
     my $value = $c->stash($name);
-    return unless $value;
+    my $is_edit = $c->current_route("update_$name") || $c->current_route("show_$name");
+    return unless $value && $is_edit;
     my $url = $c->url_for("delete_$name", $value->id);
 
-    return $c->tag('form', action => $url, method => 'POST', sub {
-      my $form;
-      $form .= $c->hidden_field(_method => 'DELETE');
-      $form .= $c->submit_button('Remove', class => 'btn btn-danger');
-      return $form;
-    });
+    return $c->link_to(Remove => $url, class => 'btn btn-danger', 'data-method' => 'DELETE');
   });
 
   $app->helper(semantic_title => sub {

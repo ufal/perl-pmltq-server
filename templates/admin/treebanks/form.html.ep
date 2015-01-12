@@ -75,7 +75,7 @@
 <div class="row">
   <div class="col-lg-12">
     <button type="submit" class="btn btn-primary" />Save Treebank</button>
-    <%= remove_button 'treebank' %>
+    <%= semantic_remove_button 'treebank' %>
   </div>
 </div>
 
@@ -106,13 +106,13 @@ $('#tokenfield').tagsinput({
   itemText: 'fullName',
   tagClass: 'label label-primary',
   typeahead :{source: [
-          <% for my $s ( @{stickers->all} ) { %>
+          <% for my $s ( grep { defined } @{stickers->all} ) { %>
            {"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name%>"},
           <% } %>
 ]}
   });
     <% if($treebank){ %>
-      <% for my $s ( @{$treebank->stickers} ) { %>
+      <% for my $s ( grep { defined } @{$treebank->stickers} ) { %>
 $('#tokenfield').tagsinput('add',{"id":"<%=$s->id%>" , "fullName": "<%=$s->full_name()%>"});
       <% } %>
     <% } %>
