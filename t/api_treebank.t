@@ -26,6 +26,7 @@ ok(cmp_deeply($m, {
   name => $tb->name,
   id => $tb->id,
   title => $tb->title,
+  stickers => $tb->stickers,
   description => $tb->description,
   anonymous => $tb->anonaccess ? Mojo::JSON->true : Mojo::JSON->false
 }));
