@@ -20,16 +20,13 @@
 
   <!-- tagger -->
   <%= stylesheet '/TAGGER/bootstrap-tagsinput.css' %>
-  
+
   <!-- Custom CSS -->
   <%= stylesheet '/css/pmltq-admin.css' %>
-  
+
   <!-- Custom Fonts -->
   <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
-
-	<script type="text/javascript" src="/js/Showdown.js"></script>
-  
 <!--
 	<script type="text/javascript" src="/showdown/showdown.js"></script>
 	<script type="text/javascript" src="/showdown/showdown-gui.js"></script>
@@ -58,6 +55,8 @@
   <!-- DataTables JavaScript -->
   <script src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
   <script src="//cdn.datatables.net/plug-ins/725b2a2115b/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+
+  <script type="text/javascript" src="/js/Showdown.js"></script>
 
       <!-- tagger -->
   <script type="text/javascript" src="/TAGGER/bootstrap-tagsinput.min.js"></script>
