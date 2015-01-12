@@ -43,7 +43,7 @@ sub metadata {
   return {
     id => $self->id,
     anonymous => $self->anonaccess ? Mojo::JSON->true : Mojo::JSON->false,
-    map { ( $_ => $self->$_ ) } qw/name title description homepage/
+    map { ( $_ => $self->$_ ) } qw/name title description homepage stickers/,
   }
 }
 

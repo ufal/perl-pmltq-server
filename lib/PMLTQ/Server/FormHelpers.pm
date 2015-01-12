@@ -47,6 +47,25 @@ sub register {
     });
   });
 
+  $app->helper(remove_button => sub {
+    my $c    = shift;
+    my $name = shift;
+
+    Carp::croak 'object name is required' unless $name;
+
+    # Content
+    my $value = $c->stash($name);
+    return unless $value;
+    my $url = $c->url_for("delete_$name", $value->id);
+
+    return $c->tag('form', action => $url, method => 'POST', sub {
+      my $form;
+      $form .= $c->hidden_field(_method => 'DELETE');
+      $form .= $c->submit_button('Remove', class => 'btn btn-danger');
+      return $form;
+    });
+  });
+
   $app->helper(semantic_title => sub {
     my $c    = shift;
     my $name = shift;
@@ -263,18 +282,18 @@ sub textarea {
   $self->{c}->tag('div', class => ('form-group' . ($error ? ' has-error' : '')), sub {
       my $content;
       $content  = $self->label($label . ':') if $label;
-      $content .= $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)}); 
+      $content .= $self->{c}->text_area($self->{name}, %options, sub {get_structured_data($self,$fields)});
       $content .= $self->{c}->tag('p', class => 'text-danger', $error) if $error;
       return $content;
-    });  
+    });
 }
 
 sub get_structured_data {
-  my ($self,$fields)=@_; 
+  my ($self,$fields)=@_;
   my $val = $self->_lookup_value;
   return '' unless $val;
   return join("\n",map {"[$_]($val->{$_})"} keys %$val)if ref $val eq 'HASH';
-  
+
   if(ref $val eq 'ARRAY') {
     return '' unless $fields;
     my ($k1,$k2) = @$fields;
