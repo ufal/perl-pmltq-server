@@ -13,7 +13,6 @@ use List::Util qw(any);
 use DateTime;
 use DateTime::Format::Strptime;
 
-
 has_many histories => 'PMLTQ::Server::Model::History';
 
 field [qw/name username password email/] => (isa => Str);
@@ -61,9 +60,9 @@ sub mail {
   my $self = shift;
   my $template = shift;
   my $subject = $template->{subject};
-  my $text = $template-> {text}; 
+  my $text = $template-> {text};
   my %args = (@_, 'NAME' => $self->name, 'USERNAME' => $self->username, 'EMAIL' => $self->email, 'PASSWORD' => $self->password) ;
-  $text =~ s/%%(.*?)%%/$args{"$1"}||"%%$1%%"/ge;  ## if $1 is not in %args %%$1%% is not substituted 
+  $text =~ s/%%(.*?)%%/$args{"$1"}||"%%$1%%"/ge;  ## if $1 is not in %args %%$1%% is not substituted
   return  {
       to => $self->email,
       subject => $subject,
@@ -74,12 +73,17 @@ sub mail {
 sub get_last_login {
   my $self = shift;
   my $pattern = shift//'%Y-%m-%d %R';
-  
-  return DateTime::Format::Strptime->new(
-                   pattern => '%Y-%m-%dT%H:%M:%S',
-                   time_zone => 'local'                   
-                 )->parse_datetime($self->last_login)
-                  ->strftime($pattern);
+
+  my $last_login = $self->last_login;
+
+  $last_login = DateTime::Format::Strptime->new(
+    pattern => '%Y-%m-%dT%H:%M:%S',
+    time_zone => 'local'
+  )->parse_datetime($last_login) unless ref $last_login && $last_login->isa('DateTime');
+
+  return 'never' unless $last_login;
+
+  return $last_login->strftime($pattern);
 }
 
 sub logged {
