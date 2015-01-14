@@ -26,7 +26,7 @@
             <td><%= $user->email %></td>
             <td><%= $user->get_last_login %></td>
             <td><%= $user->is_active %></td>
-            <td> <% for my $s (@{$user->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
+            <td> <% for my $s (grep {defined} @{$user->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
           </tr>
           <% } %>
         </tbody>
