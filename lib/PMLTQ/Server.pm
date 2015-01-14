@@ -90,7 +90,7 @@ sub startup {
   });
 
   # Show log in STDERR
-  $self->log->handle(\*STDERR);
+  $self->log->handle(\*STDERR) if $self->mode eq 'development';
 
   # Setup all helpers
   # $self->setup_helpers(); ###  moved to PMLTQ::Server::Helpers
