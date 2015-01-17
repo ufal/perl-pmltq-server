@@ -3,7 +3,7 @@ package PMLTQ::Server::Controller::Admin::Sticker;
 # ABSTRACT: Managing stickers in administration
 
 use Mojo::Base 'Mojolicious::Controller';
-use Mango::BSON 'bson_oid';
+use Mango::BSON qw/bson_oid bson_dbref/;
 use PMLTQ::Server::Validation;
 use PMLTQ::Server::Model::Sticker ();
 
@@ -110,21 +110,39 @@ sub update {
 sub remove {
   my $c = shift;
   my $sticker = $c->stash->{sticker};
-
-  $sticker->remove(sub {
-    my($sticker, $err) = @_;
-
-    if ($err) {
-      $c->flash(error => "$err");
-      $c->stash(sticker => $sticker);
-      $c->render(template => 'admin/stickers/form');
-    } else {
-      $c->redirect_to('list_stickers');
-    }
-  });
+  my $err = $c->_recursive_remove($sticker);
+  if ($err) {
+    $c->flash(error => "$err");
+    $c->stash(sticker => $sticker);
+    $c->render(template => 'admin/stickers/form');
+  } else {
+    $c->redirect_to('list_stickers');
+  }
 
   $c->render_later;
 }
+
+sub _recursive_remove {
+  my ($c,$sticker) = @_;
+  # remove stickers for which is $sticker parent
+  $c->_recursive_remove($_) for (grep {$_->parent && $_->parent->id eq $sticker->id} @{$c->mandel->collection('sticker')->all()});
+  # remove sticker from users
+  $c->users->_storage_collection->update(
+      {}, 
+      { '$pull' => { stickers => bson_dbref($sticker->model->collection_name, $sticker->id) } },
+      { multi => 1 }
+    );
+  # remove sticker from treebanks
+  $c->treebanks->_storage_collection->update(
+      {}, 
+      { '$pull' => { stickers => bson_dbref($sticker->model->collection_name, $sticker->id) } },
+      { multi => 1 }
+    );
+  $sticker->remove();
+  return;
+}
+
+
 
 sub _validate_sticker {
   my ($c, $sticker_data, $sticker) = @_;
