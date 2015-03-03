@@ -34,15 +34,17 @@ mySettings = {
 		{separator:'---------------'},	
 		{name:'Quotes', openWith:'> '},
 		{name:'Code Block / Code', openWith:'(!(\t|!|`)!)', closeWith:'(!(`)!)'},
-//		{separator:'---------------'},
+		{separator:'---------------'},
+		{name:'Comment', openWith:'[//]: <> (',closeWith:')', className:'comment',placeHolder:'Your text comment here...' },
+		{separator:'---------------'},
 		{name:'Preview', call:'preview', className:"preview"}
 	],
 	previewAutoRefresh: true,
 	previewInElement: '#previewPane',
 	previewParser: function (content){
   		return converter.makeHtml(content);
-	}
-
+	},
+	afterInsert: function(){previewPane.innerHTML = converter.makeHtml(inputPane.value);}
 }
 
 // mIu nameSpace to avoid conflict.
