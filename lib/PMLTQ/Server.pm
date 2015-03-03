@@ -134,6 +134,7 @@ sub startup {
 
   my $treebank = $api->bridge('/treebanks/:treebank')->
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
+  $treebank->get->to('#metadata');
   $treebank->get ('metadata')->to('#metadata');
   $treebank->post('suggest')->to('#suggest');
   $treebank->get ('data/*file')->to('#data');
