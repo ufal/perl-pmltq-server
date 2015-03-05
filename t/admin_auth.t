@@ -6,7 +6,6 @@ use Mojo::URL;
 use Mojo::UserAgent::CookieJar;
 use File::Basename 'dirname';
 use File::Spec;
-use Carp::Always;
 
 use lib dirname(__FILE__);
 
