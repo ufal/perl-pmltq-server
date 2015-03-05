@@ -13,19 +13,16 @@ use lib dirname(__FILE__);
 require 'bootstrap.pl';
 
 my $t = test_app();
-my $tu = test_user();
-
-
-my $admin_permission = $t->app->mandel->collection('permission')->search({name=>"admin"})->single;
-$tu->push_permissions($admin_permission);
+my $tu = test_admin();
 
 # Login
 $t->ua->max_redirects(10);
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($t->app->url_for('admin_login') => form => {
-  username => $tu->username,
-  password => 'tester'
-})->status_is(200);
+  'auth.username' => $tu->username,
+  'auth.password' => 'admin'
+})->status_is(200)
+  ->text_is('head > title' => 'Overview – PML-TQ Server');
 
 my $list_stickers_url = $t->app->url_for('list_stickers');
 ok ($list_stickers_url, 'List stickers url exists');

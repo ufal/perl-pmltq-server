@@ -19,10 +19,10 @@ my $admin = test_admin();
 
 # Login
 $t->ua->max_redirects(10);
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($t->app->url_for('admin_login') => form => {
-  username => $admin->username,
-  password => 'admin'
+  'auth.username' => $admin->username,
+  'auth.password' => 'admin'
 })->status_is(200);
 
 ######## BASIC FUNCTIONALITY ############

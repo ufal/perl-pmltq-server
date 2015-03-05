@@ -16,18 +16,18 @@ require 'bootstrap.pl';
 
 my $log = setup_log('info'); # needed to be setted before test_app !!
 my $t = test_app();
-my $tu = test_user();
+my $tu = test_admin();
 
 my $tmp_templ = 'To: %%TO%%,Subject: %%SUBJECT%%,Body: '.$t->app->config->{mail_templates}->{registration}->{text};
-(my $tmp_reg = $tmp_templ) =~ s/%%.*?%%/(.*?)/g;  
+(my $tmp_reg = $tmp_templ) =~ s/%%.*?%%/(.*?)/g;
 $tmp_reg =~ s/\s+/ /g;
 my $regTemplate = {
     subject => $t->app->config->{mail_templates}->{registration}->{subject},
     text => $t->app->config->{mail_templates}->{registration}->{text},
-    variables => [$tmp_templ =~ m/%%(.*?)%%/g],    
+    variables => [$tmp_templ =~ m/%%(.*?)%%/g],
     log_regex => qr/$tmp_reg/
   };
-  
+
 my $emails;
 my $emails_parsed;
 
@@ -37,11 +37,12 @@ $tu->push_permissions($admin_permission);
 
 # Login
 $t->ua->max_redirects(10);
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($t->app->url_for('admin_login') => form => {
-  username => $tu->username,
-  password => 'tester'
-})->status_is(200);
+  'auth.username' => $tu->username,
+  'auth.password' => 'admin'
+})->status_is(200)
+  ->text_is('head > title' => 'Overview – PML-TQ Server');
 
 
 my $new_users_url = $t->app->url_for('new_users');
@@ -156,7 +157,7 @@ my %multiuser_data = (
     'sticker.parent' => $stickers->[0]->id
   );
 start_log($log);
-$t->post_ok($create_users_url => form => { %multiuser_data })->status_is(200);  
+$t->post_ok($create_users_url => form => { %multiuser_data })->status_is(200);
 stop_log($log);
 
 $emails = registration_mail(get_log($log));
@@ -185,9 +186,9 @@ ok (cmp_deeply([map { {PASSWORD => encrypt_password($_->{PLAIN_PASSWORD}),USERNA
   );
 $t->post_ok($create_users_url => form => { %multiuser_data })
   ->status_is(400)
-  ->content_like(qr/\QSticker GROUP already exists/);  
+  ->content_like(qr/\QSticker GROUP already exists/);
 is($t->app->mandel->collection('sticker')->search({name => 'GROUP'})->count,1,"There is only one sticker named GROUP");
- 
+
 ## ========== invalid users textarea format ========
 $multiuser_data{'user.users'}='aa;a@sdsd@';
 $t->post_ok($create_users_url => form => { %multiuser_data })

@@ -257,7 +257,7 @@ sub extract_session {
     my $app = $t->app;
     my $session_name = $app->sessions->cookie_name;
 
-    my ($session_cookie) = grep { $_->name eq $session_name } $jar->all;
+    my ($session_cookie) = grep { $_->name eq $session_name } @{$jar->all};
     return unless $session_cookie;
 
     (my $value = $session_cookie->value) =~ s/--([^\-]+)$//;

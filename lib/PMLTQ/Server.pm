@@ -53,6 +53,7 @@ sub startup {
     load_user     => sub {
       my ($app, $user_id) = @_;
       my $user = $app->mandel->collection('user')->search({_id => bson_oid($user_id)})->single;
+      $self->app->log->debug('Failed to load user.') unless $user;
       return $user;
     },
     validate_user => sub {
@@ -70,7 +71,10 @@ sub startup {
     has_priv   => sub {
       my ($app, $privilege, $extradata) = @_;
       my $user = $app->current_user;
-      return 0 unless $user;
+      unless ($user) {
+        $self->app->log->debug('Failed to load user.');
+        return 0;
+      }
       return $user->has_permission($privilege) || $user->has_permission('admin');
     },
     is_role    => sub { print STDERR 'TODO: is_role\n'; },
@@ -112,7 +116,7 @@ sub startup {
   $auth->any([qw/GET POST/])->to(action => 'index')->name('admin_login');
   $auth->get('/logout')->to(action => 'sign_out')->name('admin_logout');
 
-  my $admin = $r->route('/admin')->over(authenticated => 1, has_priv => 'admin')->to(controller => 'Admin');
+  my $admin = $r->route('/admin')->over(has_priv => 'admin')->to(controller => 'Admin');
   $admin->get->to(action => 'welcome')->name('admin_welcome');
   $admin->resource('user', controller => 'Admin::User', masscreate => 1);
   $admin->resource('treebank', controller => 'Admin::Treebank');
@@ -181,7 +185,7 @@ sub add_resource_shortcut {
 
       # resource routes might be chained, so we need to define an
       # individual id and pass its name to the controller (idname)
-      $resource = $r->under("/$name/:id", 'id' => qr/[a-z0-9]+/)->
+      $resource = $r->under("/$name/:id" => ['id' => qr/[a-z0-9]+/])->
         to(controller => $controller, action => "find_$name", "${name}_id" => 'id');
 
       # GET requests - lists a single resource

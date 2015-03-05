@@ -13,21 +13,18 @@ use lib dirname(__FILE__);
 require 'bootstrap.pl';
 
 my $t = test_app();
-my $tu = test_user();
-
-
-my $admin_permission = $t->app->mandel->collection('permission')->search({name=>"admin"})->single;
-$tu->push_permissions($admin_permission);
+my $tu = test_admin();
 
 # Login
 $t->ua->max_redirects(10);
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($t->app->url_for('admin_login') => form => {
-  username => $tu->username,
-  password => 'tester'
+  'auth.username' => $tu->username,
+  'auth.password' => 'admin'
 })->status_is(200);
 
 my $create_sticker_url = $t->app->url_for('create_sticker');
+ok ($create_sticker_url, 'Create stickers url exists');
 
 my %sticker_dataA = (
   name => 'A',
@@ -133,13 +130,13 @@ my %treebank_data = (
 
 $t->post_ok($create_treebank_url => form => { "treebank.name" => 'tA',
   map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
-  })->status_is(200);  
+  })->status_is(200);
 my $treebank_A = $t->app->mandel->collection('treebank')->search({name => 'tA'})->single;
 
 
 $t->post_ok($create_treebank_url => form => { "treebank.name" => 'tB',
   map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
-  })->status_is(200);  
+  })->status_is(200);
 my $treebank_B = $t->app->mandel->collection('treebank')->search({name => 'tB'})->single;
 
 ok ($treebank_A, 'treebank tA is in the database');
@@ -164,12 +161,12 @@ my %user_data = (
 
 $t->post_ok($create_user_url => form => { "user.username" => 'uA',
   map { ("user.$_" => $user_data{$_}) } keys %user_data
-  })->status_is(200);  
+  })->status_is(200);
 my $user_A = $t->app->mandel->collection('user')->search({username => 'uA'})->single;
 
 $t->post_ok($create_user_url => form => { "user.username" => 'uB',
   map { ("user.$_" => $user_data{$_}) } keys %user_data
-  })->status_is(200);  
+  })->status_is(200);
 my $user_B = $t->app->mandel->collection('user')->search({username => 'uB'})->single;
 
 ok ($user_A, 'user uA is in the database');

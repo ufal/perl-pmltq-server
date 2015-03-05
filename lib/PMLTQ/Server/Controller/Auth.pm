@@ -13,7 +13,7 @@ sub check {
 sub sign_in {
   my $c = shift;
 
-  my $auth_data = $c->req->json('/auth');
+  my $auth_data = $c->req->json('/auth') || {};
   #print STDERR $c->dumper($c->req->json);
   if(($auth_data = $c->_validate_auth($auth_data))
     && $c->authenticate($auth_data->{username}, $auth_data->{password})) {

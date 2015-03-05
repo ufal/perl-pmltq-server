@@ -4,6 +4,7 @@ use Test::More;
 use Test::Mojo;
 use Mojo::URL;
 use Mojo::UserAgent::CookieJar;
+use PMLTQ::Server::Model::Permission ':constants';
 use File::Basename 'dirname';
 use File::Spec;
 
@@ -20,37 +21,38 @@ ok $t->app->routes->find('auth'), 'Auth route exists';
 my $auth_url = $t->app->url_for('admin_login');
 ok ($auth_url, 'Has auth url');
 
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($auth_url => form => { })->status_is(400);
 
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($auth_url => form => {
   'auth.username' => 'blah',
 })->status_is(400);
 
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($auth_url => form => {
   'auth.password' => 'blah',
 })->status_is(400);
 
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($auth_url => form => {
   'auth.username' => $tu->username,
   'auth.password' => 'tester'
 })->status_is(404);
 
 my $admin_permission = $t->app->mandel->collection('permission')->create({
-  name => 'admin',
+  name => ADMIN,
   comment => 'All powerfull admin'
 });
 $admin_permission->save();
 
 $tu->push_permissions($admin_permission);
 
-$t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
+$t->reset_session();
 $t->post_ok($auth_url => form => {
   'auth.username' => $tu->username,
   'auth.password' => 'tester'
-})->status_is(200);
+})->status_is(200)
+  ->text_is('head > title' => 'Overview – PML-TQ Server');
 
 done_testing();

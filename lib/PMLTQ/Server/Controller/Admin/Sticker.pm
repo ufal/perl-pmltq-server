@@ -20,7 +20,7 @@ List all stickers in the database
 
 sub list {
   my $c = shift;
-  
+
   $c->mandel->collection('sticker')->all(sub {
     my($collection, $err, $stickers) = @_;
 
@@ -128,13 +128,13 @@ sub _recursive_remove {
   $c->_recursive_remove($_) for (grep {$_->parent && $_->parent->id eq $sticker->id} @{$c->mandel->collection('sticker')->all()});
   # remove sticker from users
   $c->users->_storage_collection->update(
-      {}, 
+      {},
       { '$pull' => { stickers => bson_dbref($sticker->model->collection_name, $sticker->id) } },
       { multi => 1 }
     );
   # remove sticker from treebanks
   $c->treebanks->_storage_collection->update(
-      {}, 
+      {},
       { '$pull' => { stickers => bson_dbref($sticker->model->collection_name, $sticker->id) } },
       { multi => 1 }
     );
