@@ -7,7 +7,7 @@ sub index {
   my $c = shift;
 
   if ($c->req->method eq 'POST') {
-    my $auth_data = $c->param('auth');
+    my $auth_data = $c->param('auth') || {};
     if(($auth_data = $c->_validate_auth($auth_data))
       && $c->authenticate($auth_data->{username}, $auth_data->{password})) {
       $c->flash(success => 'Successfully logged in');

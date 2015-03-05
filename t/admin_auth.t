@@ -6,6 +6,7 @@ use Mojo::URL;
 use Mojo::UserAgent::CookieJar;
 use File::Basename 'dirname';
 use File::Spec;
+use Carp::Always;
 
 use lib dirname(__FILE__);
 
@@ -25,18 +26,18 @@ $t->post_ok($auth_url => form => { })->status_is(400);
 
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($auth_url => form => {
-  username => 'blah',
+  'auth.username' => 'blah',
 })->status_is(400);
 
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($auth_url => form => {
-  password => 'blah',
+  'auth.password' => 'blah',
 })->status_is(400);
 
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($auth_url => form => {
-  username => $tu->username,
-  password => 'tester'
+  'auth.username' => $tu->username,
+  'auth.password' => 'tester'
 })->status_is(404);
 
 my $admin_permission = $t->app->mandel->collection('permission')->create({
@@ -49,8 +50,8 @@ $tu->push_permissions($admin_permission);
 
 $t->ua->cookie_jar(Mojo::UserAgent::CookieJar->new);
 $t->post_ok($auth_url => form => {
-  username => $tu->username,
-  password => 'tester'
+  'auth.username' => $tu->username,
+  'auth.password' => 'tester'
 })->status_is(200);
 
 done_testing();

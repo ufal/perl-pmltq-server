@@ -132,7 +132,7 @@ sub startup {
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list');
   $api->get('/history')->to(controller => 'History', action => 'list');
 
-  my $treebank = $api->bridge('/treebanks/:treebank')->
+  my $treebank = $api->under('/treebanks/:treebank')->
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
   $treebank->get->to('#metadata');
   $treebank->get ('metadata')->to('#metadata');
@@ -181,7 +181,7 @@ sub add_resource_shortcut {
 
       # resource routes might be chained, so we need to define an
       # individual id and pass its name to the controller (idname)
-      $resource = $r->bridge("/$name/:id", 'id' => qr/[a-z0-9]+/)->
+      $resource = $r->under("/$name/:id", 'id' => qr/[a-z0-9]+/)->
         to(controller => $controller, action => "find_$name", "${name}_id" => 'id');
 
       # GET requests - lists a single resource
