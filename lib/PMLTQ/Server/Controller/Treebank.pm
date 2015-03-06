@@ -54,7 +54,10 @@ sub initialize {
       message => "Database error: $err"
     }) if $err;
 
-    $c->basic_auth() unless $tb->accessible($c->current_user);
+    unless ($tb->accessible($c->current_user)) {
+      $c->basic_auth();
+      return 0;
+    }
 
     $c->stash(tb => $tb);
     $c->continue;
