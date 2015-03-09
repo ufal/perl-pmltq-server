@@ -15,6 +15,7 @@ use Treex::PML;
 use File::Spec;
 use Mojo::JSON;
 use Treex::PML::Schema;
+use PMLTQ::Common;
 use URI;
 
 =head1 ATTRIBUTES
@@ -40,9 +41,53 @@ has_many histories => 'PMLTQ::Server::Model::History';
 sub metadata {
   my $self = shift;
 
+  my $ev = $self->get_evaluator();
+
+  my $schema_names = $ev->get_schema_names();
+  my $node_types = $ev->get_node_types();
+  my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
+
+  my $relations = {
+    standard => \@{PMLTQ::Common::standard_relations()},
+    pml => { },
+    user => { },
+  };
+
+  foreach my $type (@$node_types) {
+    my $types = $ev->get_pmlrf_relations($type);
+    if (@$types) {
+      $relations->{pml}->{$type} = $types;
+    }
+  }
+
+  foreach my $type (@$node_types) {
+    my $types = $ev->get_user_defined_relations($type);
+    if (@$types) {
+      $relations->{user}->{$type} = $types;
+    }
+  }
+
+  my %attributes = map {
+    my @res;
+    my $type = $_;
+    my $decl = $ev->get_decl_for($_);
+    if ($decl) {
+      @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
+      if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
+        unshift @res, 'name()';
+      }
+    }
+    @res ? ($type => \@res) : ()
+  } @$node_types;
+
   return {
     id => $self->id,
     anonymous => $self->anonaccess ? Mojo::JSON->true : Mojo::JSON->false,
+    schemas => $ev->get_schema_names(),
+    node_types => \%node_types,
+    relations => $relations,
+    attributes => \%attributes,
+    doc => $self->generate_doc,
     map { ( $_ => $self->$_ ) } qw/name title description homepage stickers/,
   }
 }

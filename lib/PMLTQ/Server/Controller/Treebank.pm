@@ -40,13 +40,13 @@ Bridge for other routes. Saves current treebank to stash under 'tb' key.
 sub initialize {
   my $c = shift;
 
-  my $tb_name = $c->param('treebank');
-  $c->mandel->collection('treebank')->search({name => $tb_name})->single(sub {
+  my $id = $c->param('treebank_id');
+  $c->mandel->collection('treebank')->search({_id => bson_oid($id)})->single(sub {
     my ($collection, $err, $tb) = @_;
 
     return $c->status_error({
       code => 404,
-      message => "Treebank '$tb_name' not found"
+      message => "Treebank '$id' not found"
     }) unless $tb;
 
     return $c->status_error({
@@ -55,8 +55,25 @@ sub initialize {
     }) if $err;
 
     unless ($tb->accessible($c->current_user)) {
-      $c->basic_auth();
-      return 0;
+      return unless $c->basic_auth({
+        invalid => sub {
+          any => sub {
+            # json => { error => 'Authentication is required to see this treebank' }
+            shift->status_error({
+              code => 401,
+              message => 'Authentication is required to see this treebank'
+            });
+            # shift->render(json => { error => 'Authentication is required to see this treebank' })
+          }
+        }
+      });
+
+      unless ($tb->accessible($c->current_user)) {
+        return $c->status_error({
+          code => 403,
+          message => 'Authorization failed, you cannot access this treebank'
+        });
+      }
     }
 
     $c->stash(tb => $tb);
@@ -77,53 +94,7 @@ sub metadata {
   my $metadata = $tb->metadata;
   $metadata->{access} = $tb->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
 
-  my $ev = $tb->get_evaluator();
-
-  my $schema_names = $ev->get_schema_names();
-  my $node_types = $ev->get_node_types();
-  my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
-
-  my $relations = {
-    standard => \@{PMLTQ::Common::standard_relations()},
-    pml => { },
-    user => { },
-  };
-
-  foreach my $type (@$node_types) {
-    my $types = $ev->get_pmlrf_relations($type);
-    if (@$types) {
-      $relations->{pml}->{$type} = $types;
-    }
-  }
-
-  foreach my $type (@$node_types) {
-    my $types = $ev->get_user_defined_relations($type);
-    if (@$types) {
-      $relations->{user}->{$type} = $types;
-    }
-  }
-
-  my %attributes = map {
-    my @res;
-    my $type = $_;
-    my $decl = $ev->get_decl_for($_);
-    if ($decl) {
-      @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
-      if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
-        unshift @res, 'name()';
-      }
-    }
-    @res ? ($type => \@res) : ()
-  } @$node_types;
-
-  $c->render(json => {
-    %{$metadata},
-    schemas => $ev->get_schema_names(),
-    node_types => \%node_types,
-    relations => $relations,
-    attributes => \%attributes,
-    doc => $tb->generate_doc,
-  });
+  $c->render(json => $metadata);
 }
 
 sub suggest {

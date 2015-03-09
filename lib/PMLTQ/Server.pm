@@ -136,7 +136,7 @@ sub startup {
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list');
   $api->get('/history')->to(controller => 'History', action => 'list');
 
-  my $treebank = $api->under('/treebanks/:treebank')->
+  my $treebank = $api->under('/treebanks/:treebank_id', ['treebank_id' => qr/[a-z0-9]+/])->
     name('treebank')->to(controller => 'Treebank', action => 'initialize');
   $treebank->get->to('#metadata');
   $treebank->get ('metadata')->to('#metadata');
