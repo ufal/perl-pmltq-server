@@ -21,15 +21,10 @@ my $tb = test_treebank();
 ## Metadata
 my $m = $tb->metadata;
 
-ok(cmp_deeply($m, {
-  homepage => $tb->homepage,
-  name => $tb->name,
-  id => $tb->id,
-  title => $tb->title,
-  stickers => $tb->stickers,
-  description => $tb->description,
-  anonymous => $tb->anonaccess ? Mojo::JSON->true : Mojo::JSON->false
-}));
+ok(cmp_bag(
+  [keys %$m],
+  [qw/homepage name id title stickers description anonymous attributes doc node_types relations schemas/]
+));
 
 ## Evaluator
 my $e1 = $tb->get_evaluator;

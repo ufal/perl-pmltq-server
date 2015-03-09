@@ -74,7 +74,7 @@ is ($user_obj->id, $user->id, 'User match');
 
 # test history
 
-my $history_url = $t->app->url_for('treebank_history', treebank => $tb->name);
+my $history_url = $t->app->url_for('treebank_history', treebank_id => $tb->id);
 ok ($history_url, 'Constructing url for history');
 
 $t->app->defaults->{'mojo.session'} = {history_key => $key};

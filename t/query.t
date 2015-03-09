@@ -17,7 +17,7 @@ my $tb = test_treebank();
 
 isa_ok $tb, 'PMLTQ::Server::Model::Treebank';
 ok $t->app->routes->find('query'), 'Query route exists';
-my $query_url = $t->app->url_for('query', treebank => $tb->name);
+my $query_url = $t->app->url_for('query', treebank_id => $tb->id);
 ok ($query_url, 'Constructing url for query');
 
 $t->post_ok($query_url => json => { })
@@ -39,7 +39,7 @@ $session = extract_session($t);
 ok ($session, 'Got session');
 ok ($session->{history_key}, 'Got history key');
 
-my $history_url = $t->app->url_for('treebank_history', treebank => $tb->name);
+my $history_url = $t->app->url_for('treebank_history', treebank_id => $tb->id);
 ok ($history_url, 'Constructing url for history');
 $t->get_ok($history_url)
   ->status_is(200);
@@ -58,14 +58,14 @@ $t->app->config->{tree_print_service} = $print_server_url->path('/svg')->to_stri
 
 #diag $t->app->config->{tree_print_service};
 
-my $svg_url = $t->app->url_for('svg', treebank => $tb->name);
+my $svg_url = $t->app->url_for('svg', treebank_id => $tb->id);
 ok ($svg_url, 'Constructing url for printing svg');
 $t->post_ok($svg_url => json => {
   nodes => ['109/a-node@a-ln94210-39-p2s1Bw5']
 })->status_is(200)->or(sub { diag Dumper($t->tx->res->json) })
   ->header_is('Content-Type' => 'image/svg+xml');
 
-my $query_svg_url = $t->app->url_for('query_svg', treebank => $tb->name);
+my $query_svg_url = $t->app->url_for('query_svg', treebank_id => $tb->id);
 ok ($query_svg_url, 'Constructing url for printing svg query');
 
 $t->post_ok($query_svg_url => json => {
