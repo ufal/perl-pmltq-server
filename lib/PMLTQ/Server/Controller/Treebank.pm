@@ -58,7 +58,9 @@ sub initialize {
       return unless $c->basic_auth({
         invalid => sub {
           any => sub {
-            shift->status_error({
+            my $ctrl = shift;
+            $ctrl->res->headers->remove('WWW-Authenticate');
+            $ctrl->status_error({
               code => 401,
               message => 'Authentication is required to see this treebank'
             });

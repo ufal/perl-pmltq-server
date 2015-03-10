@@ -39,8 +39,7 @@ $tt->anonaccess(0); # Disable anonymouse flag
 $tt->save();
 
 $t->get_ok($treebank_url)
-  ->status_is(401)
-  ->header_is('WWW-Authenticate' => 'Basic realm="PMLTQ"');
+  ->status_is(401);
 
 $treebank_url->userinfo('admin:admin');
 $t->get_ok($treebank_url)
@@ -53,8 +52,7 @@ $t->get_ok($treebank_url)
 
 $t->reset_session();
 $t->get_ok($treebank_url)
-  ->status_is(401)
-  ->header_is('WWW-Authenticate' => 'Basic realm="PMLTQ"');
+  ->status_is(401);
 
 $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
