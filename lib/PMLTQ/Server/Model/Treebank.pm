@@ -325,6 +325,7 @@ SCHEMA:
                     map [$_,scalar(@aux = m{/}g) ],
                     $decl->get_paths_to_atoms({ no_childnodes => 1 })) {
         my $mdecl = $decl->find($attr,1);
+        next unless $mdecl;
         next if $mdecl->get_role();
         $mdecl=$mdecl->get_knit_content_decl unless $mdecl->is_atomic;
         next if ($mdecl->get_decl_type == PML_CDATA_DECL and $mdecl->get_format eq 'PMLREF');
