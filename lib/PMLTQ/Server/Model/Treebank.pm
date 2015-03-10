@@ -80,15 +80,31 @@ sub metadata {
     @res ? ($type => \@res) : ()
   } @$node_types;
 
+  my $list_data = $self->list_data();
+
   return {
-    id => $self->id,
-    anonymous => $self->anonaccess ? Mojo::JSON->true : Mojo::JSON->false,
     schemas => $ev->get_schema_names(),
     node_types => \%node_types,
     relations => $relations,
     attributes => \%attributes,
     doc => $self->generate_doc,
-    map { ( $_ => $self->$_ ) } qw/name title description homepage stickers/,
+    %{$list_data}
+  }
+}
+
+=head2 list_data
+
+Metadata for treebank list (will not access the database)
+
+=cut
+
+sub list_data {
+  my $self = shift;
+
+  return {
+    id => $self->id,
+    anonymous => $self->anonaccess ? Mojo::JSON->true : Mojo::JSON->false,
+    map { ( $_ => $self->$_ ) } qw/name title description homepage stickers/
   }
 }
 

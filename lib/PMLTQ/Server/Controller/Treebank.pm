@@ -22,9 +22,9 @@ sub list {
     my($collection, $err, $treebanks) = @_;
 
     $c->render(json => [ map {
-      my $metadata = $_->metadata;
-      $metadata->{access} = $_->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
-      $metadata
+      my $data = $_->list_data;
+      $data->{access} = $_->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
+      $data
     } @$treebanks ]);
   });
 
@@ -58,12 +58,10 @@ sub initialize {
       return unless $c->basic_auth({
         invalid => sub {
           any => sub {
-            # json => { error => 'Authentication is required to see this treebank' }
             shift->status_error({
               code => 401,
               message => 'Authentication is required to see this treebank'
             });
-            # shift->render(json => { error => 'Authentication is required to see this treebank' })
           }
         }
       });
