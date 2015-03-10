@@ -75,10 +75,10 @@ relation) the handle has the form X//T.]
 
 =over 4
 
-=item C<names> (array[string]|optional)
+=item C<names> (array[array[string]]|optional)
 
-Array of node names as named in the query. Present only in case of running
-query without the filters.
+Array of pairs of node name (as named in the query) and node type. Present
+only in case of running query without the filters.
 
 =item C<results> (array[array[string]]|required)
 
@@ -89,7 +89,7 @@ List of node handles or a table in case of running with filters.
 B<Example:>
 
     {
-      names: ['a', ''],
+      nodes: [['a', 'a-node'], ['', 't-node']],
       results: [
         ["10/a-node@a-ln94210-2-p2s1w4","13/a-node@a-ln94210-2-p2s1w7"],
         ["16/a-node@a-ln94210-2-p2s1w9","17/a-node@a-ln94210-2-p2s1w10"]
@@ -149,7 +149,7 @@ sub query {
   $self->app->log->debug('[END_SQL]');
 
   eval {
-    my @names = map { $_->{name} || '' } @$query_nodes;
+    my @nodes = map { [$_->{name} || '', $_->{'node-type'}] } @$query_nodes;
     my @results;
     while (my $row = $evaluator->cursor_next()) {
       push @results, $row;
@@ -164,7 +164,7 @@ sub query {
       }) if $err;
 
       $self->render(json => {
-        ( $returns_nodes ? (names => [@names]) : () ),
+        ( $returns_nodes ? (nodes => [@nodes]) : () ),
         results => [@results]
       })
     });
