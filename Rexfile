@@ -35,6 +35,12 @@ task 'deploy', group => 'all', sub {
   }
   mkdir $deploy_dir;
   run "cd $deploy_dir; unzip /tmp/$deploy_package";
+
+  # Putting pid file to shared dir is broken for some reason
+  # so we have to stop the server because pidfile is (may be)
+  # in 'current' directory
+  run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic stop pmltq';
+
   run "ln -snf $deploy_dir $deploy_to/current";
 
   unlink "/tmp/$deploy_package";
@@ -44,13 +50,21 @@ task 'deploy', group => 'all', sub {
     mkdir $shared_dir;
   }
 
+  # Keep logs in shared directory
+  unless (is_dir("$shared_dir/log")) {
+    mkdir "$shared_dir/log";
+  }
+
   my $config_file = "$shared_dir/pmltq_server.private.conf";
   unless (is_file($config_file)) {
     cp ("$deploy_dir/config/pmltq_server.private.conf.example", $config_file);
   }
   run "ln -snf $config_file $deploy_to/current/config/pmltq_server.private.conf";
 
-  run "ubic restart pmltq";
+  rmdir "$deploy_dir/log";
+  run "ln -snf $shared_dir/log $deploy_dir/log";
+
+  run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic start pmltq';
 
   # Server cleanup
   my @releases = reverse sort glob("$deploy_to/releases/*");
