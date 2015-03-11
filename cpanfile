@@ -28,4 +28,5 @@ on 'test' => sub {
   requires 'HTML::Lint::Pluggable', '0.03';
   requires 'Test::WWW::Mechanize::Mojo';
   requires 'IO::Capture::Stderr';
+  requires 'Devel::Cover';
 };
