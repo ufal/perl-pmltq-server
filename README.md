@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/ufal/perl-pmltq-server.png)](https://travis-ci.org/ufal/perl-pmltq-server)
+[![Coverage Status](https://coveralls.io/repos/ufal/perl-pmltq-server/badge.svg)](https://coveralls.io/r/ufal/perl-pmltq-server)
 
 # PML-TQ Server - work in progress
 
