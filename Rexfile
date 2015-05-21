@@ -64,6 +64,12 @@ task 'deploy', group => 'all', sub {
   rmdir "$deploy_dir/log";
   run "ln -snf $shared_dir/log $deploy_dir/log";
 
+  # install dependecies
+  Rex::Logger::info("Installing dependecies...");
+  run 'installdeps',
+    cwd => $deploy_dir,
+    command => '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && cpanm --quiet --installdeps --notest .';
+
   run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic start pmltq';
 
   # Server cleanup
