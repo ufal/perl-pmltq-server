@@ -36,7 +36,7 @@ sub startup {
   });
   $self->plugin('PMLTQ::Server::Mailgun' => $self->config->{mailgun}||{});
   $self->plugin('ParamExpand');
-  $self->plugin(ValidateTiny => {explicit => 0});
+  $self->plugin('PMLTQ::Server::ValidateTiny' => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin(HttpBasicAuth => {
     validate => sub {
