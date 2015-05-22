@@ -20,8 +20,8 @@ $t->app->config->{data_dir} = $data_dir;
 my $print_server_url = Mojo::URL->new(start_print_server());
 $t->app->config->{nodes_to_query_service} = $print_server_url->path('/pmltq')->to_string;
 
-my @node_ids = qw{2/a-node@a-ln94210-2-p1s1w1 3/a-node@a-ln94210-2-p1s1w2 4/a-node@a-ln94210-2-p1s1w3};
-my @invalid_ids = qw{a-node@a-ln94210-2-p1s1w1 a-ln94210-2-p1s1w1 foobar 123};
+my @node_ids = qw{a-ln94210-2-p1s1w1 a-ln94210-2-p1s1w2 a-ln94210-2-p1s1w3};
+my @invalid_ids = (undef, '');
 
 # Test routes
 ok $t->app->routes->find('suggest'), 'Suggest route exists';
@@ -36,7 +36,7 @@ $t->post_ok($suggest_url => json => {ids => []})
 
 for my $invalid_id (@invalid_ids) {
   $t->post_ok($suggest_url => json => {ids => [$invalid_id]})
-    ->status_is(400, "Invalid id: $invalid_id");
+    ->status_is(400, "Invalid id didn't pass validation");
 }
 
 $t->post_ok($suggest_url => json => { ids => [$node_ids[0]] })

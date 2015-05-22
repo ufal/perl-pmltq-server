@@ -113,7 +113,7 @@ sub suggest {
   my $tb = $c->stash('tb');
   my @f = eval {
     my $evaluator = $tb->get_evaluator;
-    $evaluator->idx_to_pos($input->{ids}, 1);
+    $evaluator->ids_to_pos($input->{ids}, 1);
   };
 
   return $c->status_error({
@@ -162,8 +162,9 @@ sub _validate_suggest {
               sub {
                 my $ids = shift;
                 return "Ids array is empty" unless @$ids > 0;
-                for my $node_id (@$ids) {
-                  return "'$node_id' in not a valid ID" unless $node_id =~ m{^(\d+)/.+[+@].+$}
+                for (my $index = 0; $index < @$ids; $index++) {
+                  my $node_id = @{$ids}[$index];
+                  return "Node id ($index) is empty" unless $node_id
                 }
               }],
       vars => is_a('ARRAY', 'Vars have to be an array')
