@@ -14,7 +14,7 @@ start_postgres();
 my $t = test_app();
 my $tb = test_treebank();
 
-my $data_dir = File::Spec->catdir(dirname(__FILE__), 'test_files', 'pdt20_mini', 'data');
+my $data_dir = File::Spec->catdir(dirname(__FILE__), 'test_files');
 $t->app->config->{data_dir} = $data_dir;
 
 my $print_server_url = Mojo::URL->new(start_print_server());

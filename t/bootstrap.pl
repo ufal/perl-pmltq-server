@@ -200,7 +200,8 @@ sub start_print_server {
 
   say 'Starting print server';
 
-  my ($fh, $filename) = tempfile();
+  my ($fh, $filename) = tempfile(UNLINK => 1);
+  say "Print server log: $filename";
 
   $print_server_pid = fork;
   die "fork(2) failed:$!" unless defined $print_server_pid;

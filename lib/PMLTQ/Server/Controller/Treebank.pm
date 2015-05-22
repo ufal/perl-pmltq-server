@@ -121,18 +121,21 @@ sub suggest {
     message => "Evaluator initialize failed: $@"
   }) if $@;
 
+  my @paths = ();
   foreach my $f (@f) {
     my $path;
-    $f =~ s{(#.*$)}{};
+    my $goto = $1 if $f =~ s{(#.*$)}{};
     $path = $tb->resolve_data_path($f, $c->config->{data_dir});
     return $c->status_error({
       code => 404,
       message => "File $f not found"
-    }) unless defined $path;
+    }) unless defined $path && -e $path;
+    push @paths, $path.$goto;
   }
 
   my $url = Mojo::URL->new($c->config->{nodes_to_query_service});
-  $url->query(p => join('|', @f), ($input->{vars} ? (r => $input->{vars}) : ()));
+  $url->query(p => join('|', @paths), ($input->{vars} ? (r => $input->{vars}) : ()));
+  say STDERR $url->to_string;
   $c->app->ua->get($url => sub {
       my ($ua, $tx) = @_;
       if (my $res = $tx->success) {

@@ -26,7 +26,13 @@ get '/pmltq' => sub {
   my $paths = $c->req->param('p');
   my @paths = $paths ? split(/\|/, $paths) : ();
   unless (@paths) {
-    return 404;
+    return $c->render(text => 'Invalid parameters', status => 400);
+  }
+
+  foreach my $path (@paths) {
+    $path =~ s{(#.*$)}{};
+    print STDERR "Testing path $path \n";
+    return $c->render(text => "File $path not found", status => 404) unless -e $path;
   }
 
   $c->res->headers->content_type('text/plain');
