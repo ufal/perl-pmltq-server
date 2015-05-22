@@ -36,15 +36,16 @@ sub register {
   $app->helper(stickers      => sub { shift->mandel->collection('sticker') });
   $app->helper(history       => sub { shift->mandel->collection('history') });
   $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'],[Oracle => 'Oracle'] ] });
-  
-  $app->helper(mandelize     => sub { 
-                                      my $a=shift; 
-                                      my $obj = shift;  
+
+  $app->helper(mandelize     => sub {
+                                      my $a=shift;
+                                      my $obj = shift;
                                       return unless $obj;
-                                      return $a->mandel->collection($obj->{'$ref'})->find_one({_id => $obj->{'$id'}}) 
+                                      return $a->mandel->collection($obj->{'$ref'})->find_one({_id => $obj->{'$id'}})
                                     });
   # ERROR
   $app->helper(status_error => \&_status_error);
+  $app->helper(render_validation_errors => \&_render_validation_errors);
 
   # init after we have all helpers available
   $app->mandel->initialize($app);
@@ -85,6 +86,15 @@ sub _status_error {
       message => 'The request cannot be fulfilled because of multiple errors',
       errors => [ map { $_->{message} } @errors ]
     });
+  }
+}
+
+sub _render_validation_errors {
+  my $self = shift;
+
+  my $errors = $self->stash('validate_tiny.errors');
+  if ($errors && keys %$errors) {
+    $self->status_error(map { { code => 400, message => $errors->{$_} } } keys %$errors);
   }
 }
 

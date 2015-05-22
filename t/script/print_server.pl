@@ -19,6 +19,20 @@ post '/svg_error' => sub {
 	die 'Intentional error'
 };
 
+get '/pmltq' => sub {
+  my $c = shift;
+
+  my @names = split(/,/,$c->req->param('r')||'');
+  my $paths = $c->req->param('p');
+  my @paths = $paths ? split(/\|/, $paths) : ();
+  unless (@paths) {
+    return 404;
+  }
+
+  $c->res->headers->content_type('text/plain');
+  $c->reply->static('query.pmltq');
+};
+
 my $stop;
 
 $SIG{TERM} = sub { Mojo::IOLoop->stop; exit(0) };
@@ -43,3 +57,8 @@ __DATA__
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="120" height="120" viewBox="0 0 236 120">
   <rect x="14" y="23" width="200" height="7" fill="lime" stroke="black" stroke-width="1" />
 </svg>
+
+@@ query.pmltq
+a-node $a := [
+  token = 'abc'
+]

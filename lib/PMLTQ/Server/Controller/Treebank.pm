@@ -8,6 +8,7 @@ use Mojo::Asset::Memory;
 use Mojo::Asset::File;
 use Mojo::JSON;
 use PMLTQ::Common;
+use PMLTQ::Server::Validation;
 
 =head1 METHODS
 
@@ -100,18 +101,14 @@ sub metadata {
 sub suggest {
   my $c = shift;
 
-  my $input = $c->res->json;
-
   return $c->status_error({
     code => 500,
     message => "Suggest service not available or not defined"
   }) unless $c->config->{nodes_to_query_service};
 
-  return $c->status_error({
-    code => 400,
-    message => "Node ids not specified"
-  }) if !$input->{ids} || ref($input->{ids}) ne 'ARRAY';
+  my $input = $c->_validate_suggest($c->req->json);
 
+  return $c->render_validation_errors unless $input;
 
   my $tb = $c->stash('tb');
   my @f = eval {
@@ -126,6 +123,7 @@ sub suggest {
 
   foreach my $f (@f) {
     my $path;
+    $f =~ s{(#.*$)}{};
     $path = $tb->resolve_data_path($f, $c->config->{data_dir});
     return $c->status_error({
       code => 404,
@@ -138,8 +136,9 @@ sub suggest {
   $c->app->ua->get($url => sub {
       my ($ua, $tx) = @_;
       if (my $res = $tx->success) {
-        $c->tx->res($res); # TODO: convert to some kind of json
-        $c->rendered($res->code);
+        $c->render(json => {
+          query => $res->text
+        });
       } else {
         my ($err, $code) = $tx->error;
         $c->status_error({
@@ -150,6 +149,28 @@ sub suggest {
   });
 
   $c->render_later;
+}
+
+sub _validate_suggest {
+  my ($c, $data) = @_;
+
+  my $rules = {
+    fields => [qw/ids vars/],
+    checks => [
+      ids => [is_required('Ids not specified'),
+              is_a('ARRAY', 'Ids have to be an array'),
+              sub {
+                my $ids = shift;
+                return "Ids array is empty" unless @$ids > 0;
+                for my $node_id (@$ids) {
+                  return "'$node_id' in not a valid ID" unless $node_id =~ m{^(\d+)/.+[+@].+$}
+                }
+              }],
+      vars => is_a('ARRAY', 'Vars have to be an array')
+    ]
+  };
+
+  $c->do_validation($rules, $data);
 }
 
 sub data {

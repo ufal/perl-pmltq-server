@@ -109,16 +109,6 @@ sub register {
             }
         } );
 
-    # Helper validator_error_string
-    $app->helper(
-        validator_error_string => sub {
-            my ( $c, $params ) = @_;
-            return '' unless $c->validator_has_errors();
-            $params //= {};
-
-        return $c->stash('validate_tiny.result')->error_string(%$params);
-        } );
-
     # Helper validator_any_error
     $app->helper(
         validator_any_error => sub {
