@@ -5,7 +5,6 @@ use Test::Mojo;
 use File::Basename 'dirname';
 use File::Spec;
 use Mojo::JSON;
-use Data::Dump;
 
 use lib dirname(__FILE__);
 
