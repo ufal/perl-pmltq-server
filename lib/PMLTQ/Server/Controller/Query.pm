@@ -148,8 +148,10 @@ sub query {
   $self->app->log->debug($evaluator->get_sql);
   $self->app->log->debug('[END_SQL]');
 
+  my $treebank_nodes = { map { $_ => 1 } @{$tb->get_evaluator()->get_node_types()} };
   eval {
-    my @nodes = map { [$_->{name} || '', $_->{'node-type'}] } @$query_nodes;
+    my @nodes = map { [$_->{name} || '', $_->{'node-type'}] }
+                grep { exists $treebank_nodes->{$_->{'node-type'}} } @$query_nodes;
     my @results;
     while (my $row = $evaluator->cursor_next()) {
       push @results, $row;
