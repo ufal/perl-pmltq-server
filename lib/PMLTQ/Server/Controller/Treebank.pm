@@ -42,7 +42,9 @@ sub initialize {
   my $c = shift;
 
   my $id = $c->param('treebank_id');
-  $c->mandel->collection('treebank')->search({_id => bson_oid($id)})->single(sub {
+  my $search = $id =~ /^[0-9a-fA-F]{24}$/ ? { _id => bson_oid($id) } : { name => $id };
+
+  $c->mandel->collection('treebank')->search($search)->single(sub {
     my ($collection, $err, $tb) = @_;
 
     return $c->status_error({

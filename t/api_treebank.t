@@ -20,10 +20,10 @@ my $tb = test_treebank();
 
 ## Metadata
 my $m = $tb->metadata;
-
+my @all_metadata = qw/homepage name id title stickers description anonymous attributes doc node_types relations schemas/;
 ok(cmp_bag(
   [keys %$m],
-  [qw/homepage name id title stickers description anonymous attributes doc node_types relations schemas/]
+  [@all_metadata]
 ));
 
 ## Evaluator
@@ -133,5 +133,25 @@ $t->get_ok($treebanks_url)
 
 $t->json_is("/0/$_", $tb->$_) for (qw/id name title description homepage/);
 #$t->json_is('/0/url', $t->app->url_for('treebank', treebank => $tb->name));
+
+ok $t->app->routes->find('treebank'), 'Single treebank route exists';
+
+# URL with ID
+my $treebank_url = $t->app->url_for('treebank', treebank_id => $tb->id);
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+my @returned_keys = qw/id name title description homepage/;
+
+$t->json_is("/$_", $tb->$_) for @returned_keys;
+
+# URL with name
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tb->name);
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+$t->json_is("/$_", $tb->$_) for @returned_keys;
 
 done_testing();
