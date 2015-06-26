@@ -15,7 +15,7 @@ use DateTime::Format::Strptime;
 
 has_many histories => 'PMLTQ::Server::Model::History';
 
-field [qw/name username password email/] => (isa => Str);
+field [qw/name username password email provider persistent_token organization/] => (isa => Str);
 
 field [qw/is_active/] => (isa => Bool, builder => sub {  return 1; });
 
@@ -32,7 +32,7 @@ sub has_permission {
 
   my $permissions = $self->permissions;
   return 0 unless @{$permissions};
-  any { $_->name||'' eq $permission } @{$permissions};
+  any { $_ and $_->name||'' eq $permission } @{$permissions};
 }
 
 sub can_access_treebank {

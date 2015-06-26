@@ -46,27 +46,7 @@ sub startup {
     },
     realm => 'PMLTQ'
   });
-  $self->plugin(Authentication => {
-    autoload_user => 0,
-    session_key   => 'auth_data',
-    our_stash_key => 'auth',
-    load_user     => sub {
-      my ($app, $user_id) = @_;
-      my $user = $app->mandel->collection('user')->search({_id => bson_oid($user_id)})->single;
-      $self->app->log->debug('Failed to load user.') unless $user;
-      return $user;
-    },
-    validate_user => sub {
-      my ($app, $username, $password, $extradata) = @_;
-
-      my $user = $app->mandel->collection('user')->search({
-        username => $username,
-      })->single;
-      my $user_id = $user && check_password($user->password, $password) ? $user->id : undef;
-      $self->app->log->debug("Authentication failed for: ${username}") unless $user;
-      return defined $user_id ? "$user_id" : undef;
-    }
-  });
+  $self->plugin('PMLTQ::Server::Authentication');
   $self->plugin(Authorization => {
     has_priv   => sub {
       my ($app, $privilege, $extradata) = @_;
@@ -132,6 +112,7 @@ sub startup {
   $api_auth->get->to(action => 'check')->name('auth_check');
   $api_auth->post->to(action => 'sign_in')->name('auth_sign_in');
   $api_auth->delete->to(action => 'sign_out')->name('auth_sign_out');
+  $api_auth->get('shibboleth')->to(action => 'sign_in_shibboleth')->name('auth_shibboleth');
 
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list');
   $api->get('/history')->to(controller => 'History', action => 'list');
