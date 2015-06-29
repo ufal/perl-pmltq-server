@@ -17,30 +17,30 @@ sub register {
 }
 
 sub load_user {
-  my ($self, $app, $user_id) = @_;
-  my $user = $app->mandel->collection('user')->search({_id => bson_oid($user_id)})->single;
-  $app->log->debug('Failed to load user.') unless $user;
+  my ($self, $c, $user_id) = @_;
+  my $user = $c->mandel->collection('user')->search({_id => bson_oid($user_id)})->single;
+  $c->app->log->debug('Failed to load user.') unless $user;
   return $user;
 }
 
 sub validate_user {
-  my ($self, $app, $username, $password, $user_data) = @_;
+  my ($self, $c, $username, $password, $user_data) = @_;
 
   if ($user_data && $user_data->{persistent_token}) {
-    return $self->register_or_load($app, $user_data->{persistent_token}, $user_data->{organization}, $user_data);
+    return $self->register_or_load($c, $user_data->{persistent_token}, $user_data->{organization}, $user_data);
   }
-  my $user = $app->mandel->collection('user')->search({
+  my $user = $c->mandel->collection('user')->search({
     username => $username,
   })->single;
   my $user_id = $user && check_password($user->password, $password) ? $user->id : undef;
-  $app->log->debug("Authentication failed for: ${username}") unless $user;
+  $c->app->log->debug("Authentication failed for: ${username}") unless $user;
   return defined $user_id ? "$user_id" : undef;
 }
 
 sub register_or_load {
-  my ($self, $app, $persistent_token, $organization, $data) = @_;
+  my ($self, $c, $persistent_token, $organization, $data) = @_;
 
-  my $users = $app->mandel->collection('user');
+  my $users = $c->mandel->collection('user');
   my $user = $users->search({
     persistent_token => $persistent_token,
     organization => $organization
