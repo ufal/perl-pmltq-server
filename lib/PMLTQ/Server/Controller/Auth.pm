@@ -4,6 +4,7 @@ use Mojo::Base 'Mojolicious::Controller';
 use PMLTQ::Server::Validation;
 use List::Util qw(first);
 use Mojo::JSON;
+use Encode qw(decode_utf8);
 
 sub check {
   my $c = shift;
@@ -54,12 +55,12 @@ sub sign_in_shibboleth {
     return $c->redirect_to($redirect . '#no-metadata') unless $persistent_token;
 
     my $email = first {defined} split(/;/, $headers->header('mail') || '');
-    my $first_name = $headers->header('givenName') || '';
-    my $last_name = $headers->header('sn') || '';
+    my $first_name = decode_utf8($headers->header('givenName') || '');
+    my $last_name = decode_utf8($headers->header('sn') || '');
     my $name = "$first_name $last_name";
     $name =~ s/^\s+|\s+$//g;
 
-    $name = $headers->header('cn') unless $name;
+    $name = decode_utf8($headers->header('cn') || '') unless $name;
 
     if ($c->authenticate('', '', {
         email => $email,
