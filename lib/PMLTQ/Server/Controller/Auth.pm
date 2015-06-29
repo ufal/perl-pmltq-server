@@ -54,8 +54,8 @@ sub sign_in_shibboleth {
     return $c->redirect_to($redirect . '#no-metadata') unless $persistent_token;
 
     my $email = first {defined} split(/;/, $headers->header('mail') || '');
-    my $first_name = $headers->header('givenName');
-    my $last_name = $headers->header('sn');
+    my $first_name = $headers->header('givenName') || '';
+    my $last_name = $headers->header('sn') || '';
     my $name = "$first_name $last_name";
     $name =~ s/^\s+|\s+$//g;
 

@@ -137,7 +137,7 @@ sub suggest {
 
   my $url = Mojo::URL->new($c->config->{nodes_to_query_service});
   $url->query(p => join('|', @paths), ($input->{vars} ? (r => $input->{vars}) : ()));
-  say STDERR $url->to_string;
+  # say STDERR $url->to_string;
   $c->app->ua->get($url => sub {
       my ($ua, $tx) = @_;
       if (my $res = $tx->success) {
