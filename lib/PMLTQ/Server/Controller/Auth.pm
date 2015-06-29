@@ -2,6 +2,7 @@ package PMLTQ::Server::Controller::Auth;
 use Mojo::Base 'Mojolicious::Controller';
 
 use PMLTQ::Server::Validation;
+use List::Util qw(first);
 use Mojo::JSON;
 
 sub check {
@@ -29,28 +30,52 @@ sub sign_in {
 
 # TODO: check Shibboleth attributes to actually create user accounts
 sub sign_in_shibboleth {
-  my $self = shift;
+  my $c = shift;
 
-  my $req = $self->req;
+  unless ($c->config->{shibboleth}) {
+    $c->rendered(404);
+    return;
+  }
 
-  if ($req->header('shib-session-id')) {
-    my $organization = $req->header('shib-identity-provider');
+  my $headers = $c->req->headers;
+  my $redirect = $c->req->param('loc');
 
-    my $persistent_token = first {defined} map { $req->header($_) }
+   return $c->status_error({
+      code => 400,
+      message => 'Redirect location parameter is missing'
+    }) unless $redirect;
+
+  if ($headers->header('shib-session-id')) {
+    my $organization = $headers->header('shib-identity-provider') || '';
+
+    my $persistent_token = first {defined} map { $headers->header($_) }
       qw(eppn persistent-id mail);
 
-    return $self->status_error({
-      code => 400,
-      message => "Your shibboleth provider does't expose required attributes"
-    }) unless $persistent_token;
+    return $c->redirect_to($redirect . '#no-metadata') unless $persistent_token;
 
-    if ($self->authenticate('', '', { persistent_token => $persistent_token })) {
-      # User exists
-      return $self->render(json => $self->current_user->json());
+    my $email = first {defined} split(/;/, $headers->header('mail') || '');
+    my $first_name = $headers->header('givenName') || '';
+    my $last_name = $headers->header('sn') || '';
+    my $name = "$first_name $last_name";
+    $name =~ s/^\s+|\s+$//g;
+
+    $name = $headers->header('cn') unless $name;
+
+    if ($c->authenticate('', '', {
+        email => $email,
+        name => $name,
+        provider => 'Shibboleth',
+        organization => $organization,
+        persistent_token => $persistent_token
+      })) {
+      return $c->redirect_to($redirect . '#success');
     } else {
-
+      # TODO: We should never get here unless server error
+      return $c->redirect_to($redirect . '#failed');
     }
   }
+
+  $c->rendered(403);
 }
 
 sub sign_out {
