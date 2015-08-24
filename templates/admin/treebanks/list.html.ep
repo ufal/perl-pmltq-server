@@ -20,11 +20,6 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
           <tr>
             <th>Name</th>
             <th>Title</th>
-            <th>Driver</th>
-            <th>Host</th>
-            <th>Port</th>
-            <th>Database</th>
-            <th>Username</th>
             <th>Pub</th>
             <th>Anon</th>
             <th>Stickers</th>
@@ -35,11 +30,6 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
           <tr>
             <td><%=  link_to $treebank->name =>  url_for('show_treebank', id => $treebank->id) %></td>
             <td><%= $treebank->title  %></td>
-            <td><%= $treebank->driver %></td>
-            <td><%= $treebank->host %></td>
-            <td><%= $treebank->port %></td>
-            <td><%= $treebank->database %></td>
-            <td><%= $treebank->username %></td>
             <td><%= $treebank->public ? "X":"" %><!--<%= $treebank->public ? "public":"" %>--></td>
             <td><%= $treebank->anonaccess ? "X":"" %></td>
             <td> <% for my $s (grep { defined } @{$treebank->stickers}) { %> <span class="tag label label-primary"><%=$s->full_name %></span><% }%></td>
@@ -51,8 +41,9 @@ http://www.datatables.net/release-datatables/examples/api/row_details.html
   </div>
 </div>
 
+
 <% content_for javascript => begin %>
   <%= javascript begin %>
-  $('#treebank-list').DataTable();
+  $('#treebank-list').DataTable({ pageLength: 100 });
   <% end %>
 <% end %>
