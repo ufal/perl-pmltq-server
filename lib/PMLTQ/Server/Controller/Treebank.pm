@@ -19,7 +19,7 @@ use PMLTQ::Server::Validation;
 sub list {
   my $c = shift;
 
-  $c->mandel->collection('treebank')->all(sub {
+  $c->mandel->collection('treebank')->search({ public => Mojo::JSON->true })->all(sub {
     my($collection, $err, $treebanks) = @_;
 
     $c->render(json => [ map {

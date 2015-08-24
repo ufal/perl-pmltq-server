@@ -131,8 +131,17 @@ ok ($treebanks_url, 'Treebanks url');
 $t->get_ok($treebanks_url)
   ->status_is(200);
 
+is(scalar(@{$t->tx->res->json}), 1, 'Returned one treebank');
 $t->json_is("/0/$_", $tb->$_) for (qw/id name title description homepage/);
-#$t->json_is('/0/url', $t->app->url_for('treebank', treebank => $tb->name));
+
+# Set public to false
+$tb->public(Mojo::JSON->false);
+$tb->save();
+
+$t->get_ok($treebanks_url)
+  ->status_is(200);
+
+is(scalar(@{$t->tx->res->json}), 0, 'Returned no treebank');
 
 ok $t->app->routes->find('treebank'), 'Single treebank route exists';
 
