@@ -121,8 +121,8 @@ sub test_treebank {
     database => 'test',
     username => 'postgres',
     password => '',
-    public => 1,
-    anonaccess => 1,
+    public => Mojo::JSON->true,
+    anonaccess => Mojo::JSON->true,
     data_sources => {
       adata => File::Spec->catdir('pdt20_mini', 'data'),
       tdata => File::Spec->catdir('pdt20_mini', 'data')
