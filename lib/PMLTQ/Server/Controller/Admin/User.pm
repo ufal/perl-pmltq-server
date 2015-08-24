@@ -6,9 +6,10 @@ use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON 'bson_oid';
 use List::Util qw(first all);
 use Lingua::Translit;
-use Unicode::Normalize; 
+use Unicode::Normalize;
 use PMLTQ::Server::Validation;
 use DateTime;
+use Mojo::JSON;
 
 use PMLTQ::Server::Model::Sticker ();
 use PMLTQ::Server::Model::Permission ();
@@ -78,21 +79,21 @@ sub masscreate {
   my $c = shift;
   my @userIdents = map {[split(";",$_)]} grep {$_} split("\n",  $c->param('user')->{'users'});
 
-  if($c->param('sticker') 
-     and $c->param('sticker')->{'name'} 
+  if($c->param('sticker')
+     and $c->param('sticker')->{'name'}
      and $c->mandel->collection('sticker')->search({name => $c->param('sticker')->{'name'}})->count) {
     $c->flash(error => "Sticker ".$c->param('sticker')->{'name'}." already exists");
     $c->render(template => 'admin/users/massform', status => 400);
-    return;   
+    return;
   }
-  
+
   my $sticker = PMLTQ::Server::Model::Sticker::create_sticker($c,$c->param('sticker'));
   if($sticker) {
     $sticker->save(sub {
       my ($sticker, $err) = @_;
       if ($err) {
         $c->flash(error => "Database Error: $err");
-      }    
+      }
     });
     my $id = $sticker->id;
     $c->param('user')->{'stickers'} = $c->param('user')->{'stickers'} ? $c->param('user')->{'stickers'}.",$id" : $id;
@@ -109,27 +110,27 @@ sub masscreate {
       my $username = $c->generate_username($name,\%bannednames);
       my $password = $c->generate_pass(10);
       if ( my $user_data = $c->_validate_user({ %{$c->param('user')},
-                                                name => $name, 
-                                                email => $email, 
-                                                username => $username, 
-                                                password => $password, 
+                                                name => $name,
+                                                email => $email,
+                                                username => $username,
+                                                password => $password,
                                                 password_confirm => $password}) ) {
         push @addusers,[$users->create($user_data),$password];
       } else {
         $ok = 0;
         $c->flash(error => "Can't save invalid users");
-        $c->render(template => 'admin/users/massform', status => 400);   
-        last; 
+        $c->render(template => 'admin/users/massform', status => 400);
+        last;
       }
-    } 
+    }
   } else {
     $ok = 0;
     $c->flash(error => "Can't save invalid users");
-    $c->render(template => 'admin/users/massform', status => 400);    
+    $c->render(template => 'admin/users/massform', status => 400);
   }
   if($ok) {
     my @notadded;
-              
+
     for my $u (@addusers) {
       my ($user,$password) = @$u;
       $user->save(sub {
@@ -146,7 +147,7 @@ sub masscreate {
     }
     if(@notadded) {
       $c->flash(error => "Database Error");
-      $c->render(template => 'admin/users/massform', status => 400);   
+      $c->render(template => 'admin/users/massform', status => 400);
     } else {
       $c->redirect_to('list_users');
       $c->render_later;
@@ -227,7 +228,7 @@ sub _validate_user {
     available_treebanks => [],
     permissions => [],
     stickers => "",
-    is_active => 0,
+    is_active => Mojo::JSON->false,
     %$user_data
   };
   my $rules = {
@@ -246,10 +247,10 @@ sub _validate_user {
       username => [is_required(), sub {
         my $username = shift;
         my $count = $c->mandel->collection('user')->search({
-          username => $username, 
+          username => $username,
           ($user ? (_id => { '$ne' => $user->id }) : ())
         })->count;
-        return $count > 0 ? "Username '$username' already exists" : undef;  
+        return $count > 0 ? "Username '$username' already exists" : undef;
       }],
       [qw/password password_confirm/] => is_required_if(!$user),
       password => is_password_equal(password_confirm => "Passwords don't match"),
