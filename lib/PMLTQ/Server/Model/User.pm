@@ -11,13 +11,14 @@ use Types::Standard qw(Str ArrayRef Bool HashRef Ref);
 use PMLTQ::Server::Model::Permission 'ALL_TREEBANKS';
 use List::Util qw(any);
 use DateTime;
+use Mojo::JSON;
 use DateTime::Format::Strptime;
 
 has_many histories => 'PMLTQ::Server::Model::History';
 
 field [qw/name username password email provider persistent_token organization/] => (isa => Str);
 
-field [qw/is_active/] => (isa => Bool, builder => sub {  return 1; });
+field [qw/is_active/] => (isa => Bool, builder => sub { return Mojo::JSON->true; });
 
 field [qw/last_login/] => (isa => Ref['DateTime'], builder => sub { DateTime->now });
 

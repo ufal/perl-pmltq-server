@@ -1,7 +1,9 @@
 package PMLTQ::Server::Authentication;
 
 use Mojo::Base 'Mojolicious::Plugin';
+use Mojo::JSON;
 use Mango::BSON qw/bson_oid bson_dbref/;
+use PMLTQ::Server::Model::Permission ':constants';
 use PMLTQ::Server::Validation 'check_password';
 
 sub register {
@@ -47,14 +49,15 @@ sub register_or_load {
   })->single;
 
   unless ($user) {
+    my $permissions = $c->mandel->collection('permission');
     # Create new record
     # This is a copy from Controller::Admin::User
     # TODO: refactor user creation
     my $user_data = {
       available_treebanks => [],
-      permissions => [],
+      permissions => [bson_dbref($permissions->model->collection_name, shift @{$permissions->search({name => ALL_TREEBANKS})->distinct('_id')})],
       stickers => '',
-      is_active => 0,
+      is_active => Mojo::JSON->true,
       provider => '',
       %$data
     };
