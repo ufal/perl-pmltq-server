@@ -4,6 +4,7 @@ use Test::More;
 use Test::Mojo;
 use Test::Deep;
 use Mojo::URL;
+use Mojo::JSON;
 use File::Basename 'dirname';
 use File::Spec;
 use Data::Dumper;
@@ -79,6 +80,41 @@ my $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treeba
 ok ($updated_tb, 'Joe is still in the database');
 isnt ($updated_tb->name, $treebank_tb->name, 'Name has got updated');
 is ($updated_tb->title, $treebank_tb->title, 'Title has not changed');
+
+## Boolean fields
+
+{
+  my %treebank_data = (
+    name => 'My treebank',
+    title => 'TB',
+    driver => 'Pg',
+    host => '127.0.0.1',
+    port => 5000,
+    public => 1,
+    database => 'mytb',
+    username => 'joe',
+    password => 's3cret'
+  );
+
+  my $update_treebank_url = $t->app->url_for('update_treebank', id => $treebank_tb->id);
+  ok ($update_treebank_url, 'Update treebank url exists');
+
+  $t->put_ok($update_treebank_url => form => {
+    map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
+  })->status_is(200);
+
+  my $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
+  is ($updated_tb->public, Mojo::JSON->true, 'Treebank is public');
+
+  delete $treebank_data{public};
+
+  $t->put_ok($update_treebank_url => form => {
+    map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
+  })->status_is(200);
+
+  $updated_tb = $t->app->mandel->collection('treebank')->search({_id => $treebank_tb->id})->single;
+  is ($updated_tb->public, Mojo::JSON->false, 'Treebank is not public');
+}
 
 ## ====================== stickers ===================
 add_stickers(["A","comment a",undef],["B","comment b",0],["C","comment c",1],["D","comment d",0],["X","comment X",undef]);

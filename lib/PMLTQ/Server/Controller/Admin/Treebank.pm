@@ -4,10 +4,11 @@ package PMLTQ::Server::Controller::Admin::Treebank;
 
 use Mojo::Base 'Mojolicious::Controller';
 use Mango::BSON qw/bson_oid bson_dbref/;
+use Mojo::JSON;
 use PMLTQ::Server::Validation;
 
 
-my $controller; ### little hack - it allows access to helpers from validation 
+my $controller; ### little hack - it allows access to helpers from validation
 
 
 =head1 METHODS
@@ -55,7 +56,7 @@ sub create {
         $c->redirect_to('show_treebank', id => $treebank->id);
       }
     });
-    $c->render_later;  
+    $c->render_later;
   }else{
     $c->flash(error => "Can't save invalid treebank" );
     $c->flash(errors => $c->validator_error());
@@ -100,7 +101,7 @@ sub update {
       $c->stash(treebank => $treebank);
       $c->render(template => 'admin/treebanks/form');
     });
-    $c->render_later;  
+    $c->render_later;
   } else {
     $c->flash(error => "Can't save invalid treebank" );
     $c->flash(errors => $c->validator_error());
@@ -123,7 +124,7 @@ sub remove {
     }
 
     $c->users->_storage_collection->update(
-      {}, 
+      {},
       { '$pull' => { available_treebanks => bson_dbref($treebank->model->collection_name, $treebank->id) } },
       { multi => 1 },
       sub {
@@ -145,7 +146,9 @@ sub _validate_treebank {
     description => '',
     data_sources => '',
     documentation => '',
-    stickers => "",
+    stickers => '',
+    public => Mojo::JSON->false,
+    anonaccess => Mojo::JSON->false,
     %$treebank_data
   };
   my $markup_linkpattern = qr/^\s*\[(.+)\]\s*\((.+)\)\s*$/;

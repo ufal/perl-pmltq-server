@@ -2,6 +2,7 @@ package PMLTQ::Server::Validation;
 
 use Mojo::Base -strict;
 use Mango::BSON qw/bson_oid bson_dbref/;
+use Mojo::JSON;
 use Crypt::Eksblowfish::Bcrypt qw(en_base64 bcrypt);
 use Encode qw(is_utf8 encode_utf8);
 use Email::Valid;
@@ -53,7 +54,7 @@ our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
 our @EXPORT = @EXPORT_OK;
 
 sub force_bool {
-  sub { !!$_[0] ? 1 : 0 }
+  sub { !!$_[0] ? Mojo::JSON->true : Mojo::JSON->false }
 }
 
 sub force_arrayref {
