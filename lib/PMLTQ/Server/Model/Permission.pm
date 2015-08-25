@@ -10,10 +10,9 @@ BEGIN {
   # };
   use constant {
     ADMIN => 'admin',
-    ALL_TREEBANKS => 'all_treebanks', 
-    SHIBBOLETH => 'shibboleth'
+    ALL_TREEBANKS => 'all_treebanks',
   };
-  our @EXPORT = map { uc } qw/admin all_treebanks shibboleth/;
+  our @EXPORT = map { uc } qw/admin all_treebanks/;
   our %EXPORT_TAGS = (
     constants => [ @EXPORT ],
   );

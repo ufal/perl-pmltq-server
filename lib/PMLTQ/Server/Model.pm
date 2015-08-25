@@ -19,7 +19,6 @@ sub initialize {
     my @permissions = (
       { name => ADMIN, comment => 'Can access everything including administration backend' },
       { name => ALL_TREEBANKS, comment => 'Can access all treebanks' },
-      { name => SHIBBOLETH, comment => 'User added by Shibboleth and can only login through Shibboleth' },
     );
 
     for (@permissions) {

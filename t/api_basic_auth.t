@@ -20,7 +20,7 @@ my $tt = test_treebank();
 
 # Restrict access to test treebank
 
-ok $tt->public, 'Test treebank is public';
+ok $tt->anonaccess, 'Test treebank can be access by public';
 
 ok $t->app->routes->find('treebank'), 'Treebank api route exists';
 my $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
@@ -35,8 +35,9 @@ $m->{access} = Mojo::JSON->true;
 
 ok(cmp_deeply($m, $t->tx->res->json));
 
-$tt->anonaccess(0); # Disable anonymouse flag
+$tt->anonaccess(Mojo::JSON->false); # Disable anonymouse flag
 $tt->save();
+ok !$tt->anonaccess, 'Test treebank cannot be access by public';
 
 $t->get_ok($treebank_url)
   ->status_is(401);

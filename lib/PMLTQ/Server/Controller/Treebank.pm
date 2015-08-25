@@ -58,20 +58,22 @@ sub initialize {
     }) if $err;
 
     unless ($tb->accessible($c->current_user)) {
-      return unless $c->basic_auth({
-        invalid => sub {
-          any => sub {
-            my $ctrl = shift;
-            $ctrl->res->headers->remove('WWW-Authenticate');
-            $ctrl->status_error({
-              code => 401,
-              message => 'Authentication is required to see this treebank'
-            });
+      unless ($c->current_user) {
+        return unless $c->basic_auth({
+          invalid => sub {
+            any => sub {
+              my $ctrl = shift;
+              $ctrl->res->headers->remove('WWW-Authenticate');
+              $ctrl->status_error({
+                code => 401,
+                message => 'Authentication is required to see this treebank'
+              });
+            }
           }
-        }
-      });
+        });
+      }
 
-      unless ($tb->accessible($c->current_user)) {
+      if ($c->current_user && !$tb->accessible($c->current_user)) {
         return $c->status_error({
           code => 403,
           message => 'Authorization failed, you cannot access this treebank'

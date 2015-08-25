@@ -13,6 +13,7 @@ require 'bootstrap.pl';
 
 # Simple test to authenticate default user through api
 
+start_postgres();
 my $t = test_app();
 
 sub logout {
@@ -120,5 +121,44 @@ $t->get_ok($auth_check_url)
   ->status_is(200)
   ->json_is('/user/name', 'Joe Doe3')
   ->json_is('/user/email', 'mail1@ufal.mff.cuni.cz');
+
+# Check if Shibboleth users can access treebanks
+
+logout();
+
+my $test_tb = test_treebank();
+my $test_user = test_user();
+$test_tb->anonaccess(Mojo::JSON->false);
+$test_tb->save();
+
+my $treebank_url = $t->app->url_for('treebank', treebank_id => $test_tb->id);
+my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
+
+$t->get_ok($treebank_url)
+  ->status_is(401);
+
+$t->post_ok($auth_sign_in_url => json => {
+  auth => {
+    username => 'tester',
+    password => 'tester'
+  }
+})->status_is(200);
+
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
+logout();
+
+$t->get_ok($shibboleth_url . "?loc=$loc" => {
+  'Shib-Session-Id' => '_2690af500207a5891cea6a93eed1fd38',
+  'Shib-Identity-Provider' => 'some other org',
+  'Eppn' => 'blabla@cuni.cz',
+  'Cn' => 'Joe Treebank',
+  'Mail' => 'mail1@ufal.mff.cuni.cz;mail2@ufal.mff.cuni.cz'
+})->status_is(302)
+  ->header_like(Location => qr/$loc#success/);
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
 
 done_testing();
