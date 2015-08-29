@@ -1,0 +1,9 @@
+$HASH1 = {
+           code    => 'bxr',
+           id      => 95,
+           language_group_id
+                   => 14,
+           name    => 'Buryat',
+           position
+                   => 1
+         };

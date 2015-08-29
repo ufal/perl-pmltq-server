@@ -3,10 +3,8 @@ package PMLTQ::Server::Controller::Treebank;
 # ABSTRACT: Handling everything related to treebanks
 
 use Mojo::Base 'Mojolicious::Controller';
-use Mango::BSON 'bson_oid';
 use Mojo::Asset::Memory;
 use Mojo::Asset::File;
-use Mojo::JSON;
 use PMLTQ::Common;
 use PMLTQ::Server::Validation;
 
@@ -19,17 +17,8 @@ use PMLTQ::Server::Validation;
 sub list {
   my $c = shift;
 
-  $c->mandel->collection('treebank')->search({ public => Mojo::JSON->true })->all(sub {
-    my($collection, $err, $treebanks) = @_;
-
-    $c->render(json => [ map {
-      my $data = $_->list_data;
-      $data->{access} = $_->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
-      $data
-    } @$treebanks ]);
-  });
-
-  $c->render_later;
+  my @treebanks = map { $_->list_data } $c->public_treebanks->all;
+  $c->render(json => \@treebanks);
 }
 
 =head2 initialize
@@ -38,54 +27,48 @@ Bridge for other routes. Saves current treebank to stash under 'tb' key.
 
 =cut
 
-sub initialize {
+sub initialize_single {
   my $c = shift;
 
   my $id = $c->param('treebank_id');
-  my $search = $id =~ /^[0-9a-fA-F]{24}$/ ? { _id => bson_oid($id) } : { name => $id };
+  my $search = { id => $id };
+  $search = { name => $id } if ($id !~ m/^\d+$/);
+  my $tb = $c->db->resultset('Treebank')->single($search);
 
-  $c->mandel->collection('treebank')->search($search)->single(sub {
-    my ($collection, $err, $tb) = @_;
-
-    return $c->status_error({
+  unless ($tb) {
+    $c->status_error({
       code => 404,
       message => "Treebank '$id' not found"
-    }) unless $tb;
+    });
+    return;
+  }
 
-    return $c->status_error({
-      code => 500,
-      message => "Database error: $err"
-    }) if $err;
-
-    unless ($tb->accessible($c->current_user)) {
-      unless ($c->current_user) {
-        return unless $c->basic_auth({
-          invalid => sub {
-            any => sub {
-              my $ctrl = shift;
-              $ctrl->res->headers->remove('WWW-Authenticate');
-              $ctrl->status_error({
-                code => 401,
-                message => 'Authentication is required to see this treebank'
-              });
-            }
+  unless ($tb->accessible($c->current_user)) {
+    unless ($c->current_user) {
+      return unless $c->basic_auth({
+        invalid => sub {
+          any => sub {
+            my $ctrl = shift;
+            $ctrl->res->headers->remove('WWW-Authenticate');
+            $ctrl->status_error({
+              code => 401,
+              message => 'Authentication is required to see this treebank'
+            });
           }
-        });
-      }
-
-      if ($c->current_user && !$tb->accessible($c->current_user)) {
-        return $c->status_error({
-          code => 403,
-          message => 'Authorization failed, you cannot access this treebank'
-        });
-      }
+        }
+      });
     }
 
-    $c->stash(tb => $tb);
-    $c->continue;
-  });
+    if ($c->current_user && !$tb->accessible($c->current_user)) {
+      $c->status_error({
+        code => 403,
+        message => 'Authorization failed, you cannot access this treebank'
+      });
+      return;
+    }
+  }
 
-  return undef;
+  $c->stash(tb => $tb);
 }
 
 =head2 metadata
@@ -96,10 +79,7 @@ sub metadata {
   my $c = shift;
 
   my $tb = $c->stash('tb');
-  my $metadata = $tb->metadata;
-  $metadata->{access} = $tb->accessible($c->current_user) ? Mojo::JSON->true : Mojo::JSON->false;
-
-  $c->render(json => $metadata);
+  $c->render(json => $tb->metadata);
 }
 
 sub suggest {
@@ -127,8 +107,8 @@ sub suggest {
 
   my @paths = ();
   foreach my $f (@f) {
-    my $path;
-    my $goto = $1 if $f =~ s{(#.*$)}{};
+    my ($path, $goto);
+    $goto = $1 if $f =~ s{(#.*$)}{};
     $path = $tb->resolve_data_path($f, $c->config->{data_dir});
     return $c->status_error({
       code => 404,

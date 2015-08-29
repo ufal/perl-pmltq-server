@@ -1,4 +1,6 @@
 t/postgres/
 .nfs*
 cover_db
-config/pmltq_server.private.conf
+local
+config/pmltq_server.private.pl
+share/*.db

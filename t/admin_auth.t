@@ -2,11 +2,8 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
-use Mojo::URL;
-use Mojo::UserAgent::CookieJar;
-use PMLTQ::Server::Model::Permission ':constants';
+use Mojo::JSON;
 use File::Basename 'dirname';
-use File::Spec;
 
 use lib dirname(__FILE__);
 
@@ -15,44 +12,32 @@ require 'bootstrap.pl';
 my $t = test_app();
 my $tu = test_user();
 
-$t->ua->max_redirects(10);
+ok $t->app->routes->find('auth_sign_in'), 'Auth sign in route exists';
+my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
+ok ($auth_sign_in_url, 'Has auth sign in url');
 
-ok $t->app->routes->find('auth'), 'Auth route exists';
-my $auth_url = $t->app->url_for('admin_login');
-ok ($auth_url, 'Has auth url');
-
-$t->reset_session();
-$t->post_ok($auth_url => form => { })->status_is(400);
-
-$t->reset_session();
-$t->post_ok($auth_url => form => {
-  'auth.username' => 'blah',
-})->status_is(400);
+# Can't access admin api as a user
+my $list_treebanks_url = $t->app->url_for('list_treebanks');
+ok ($list_treebanks_url, 'List treebanks url exists');
 
 $t->reset_session();
-$t->post_ok($auth_url => form => {
-  'auth.password' => 'blah',
-})->status_is(400);
+$t->get_ok($list_treebanks_url)
+  ->status_is(401);
 
-$t->reset_session();
-$t->post_ok($auth_url => form => {
-  'auth.username' => $tu->username,
-  'auth.password' => 'tester'
-})->status_is(404);
+$t->post_ok($auth_sign_in_url => json => {
+  auth => {
+    username => 'tester',
+    password => 'tester'
+  }
+})->status_is(200);
 
-my $admin_permission = $t->app->mandel->collection('permission')->create({
-  name => ADMIN,
-  comment => 'All powerfull admin'
-});
-$admin_permission->save();
+$t->get_ok($list_treebanks_url)
+  ->status_is(403);
 
-$tu->push_permissions($admin_permission);
+$tu->is_admin(1);
+$tu->update;
 
-$t->reset_session();
-$t->post_ok($auth_url => form => {
-  'auth.username' => $tu->username,
-  'auth.password' => 'tester'
-})->status_is(200)
-  ->text_is('head > title' => 'Overview – PML-TQ Server');
+$t->get_ok($list_treebanks_url)
+  ->status_is(200);
 
 done_testing();

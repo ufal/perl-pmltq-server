@@ -1,0 +1,9 @@
+$HASH1 = {
+           code    => 'vi',
+           id      => 110,
+           language_group_id
+                   => 17,
+           name    => 'Vietnamese',
+           position
+                   => 0
+         };

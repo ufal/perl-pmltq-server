@@ -1,9 +1,6 @@
 package PMLTQ::Server::Authentication;
 
 use Mojo::Base 'Mojolicious::Plugin';
-use Mojo::JSON;
-use Mango::BSON qw/bson_oid bson_dbref/;
-use PMLTQ::Server::Model::Permission ':constants';
 use PMLTQ::Server::Validation 'check_password';
 
 sub register {
@@ -20,7 +17,7 @@ sub register {
 
 sub load_user {
   my ($self, $c, $user_id) = @_;
-  my $user = $c->mandel->collection('user')->search({_id => bson_oid($user_id)})->single;
+  my $user = $c->db->resultset('User')->find($user_id);
   $c->app->log->debug('Failed to load user.') unless $user;
   return $user;
 }
@@ -29,44 +26,30 @@ sub validate_user {
   my ($self, $c, $username, $password, $user_data) = @_;
 
   if ($user_data && $user_data->{persistent_token}) {
-    return $self->register_or_load($c, $user_data->{persistent_token}, $user_data->{organization}, $user_data);
+    return $self->register_or_load($c, { map { ($_ => $user_data->{$_}) } qw/persistent_token organization provider/ }, $user_data);
   }
-  my $user = $c->mandel->collection('user')->search({
-    username => $username,
-  })->single;
-  my $user_id = $user && check_password($user->password, $password) ? $user->id : undef;
+  my $user = $c->db->resultset('User')->single({ username => $username });
+  my $user_id = $user && $user->check_password($password) ? $user->id : undef;
   $c->app->log->debug("Authentication failed for: ${username}") unless $user;
   return defined $user_id ? "$user_id" : undef;
 }
 
 sub register_or_load {
-  my ($self, $c, $persistent_token, $organization, $data) = @_;
+  my ($self, $c, $search, $data) = @_;
 
-  my $users = $c->mandel->collection('user');
-  my $user = $users->search({
-    persistent_token => $persistent_token,
-    organization => $organization
-  })->single;
+  my $users_rs = $c->db->resultset('User');
+  my $user = $users_rs->single($search);
 
   unless ($user) {
-    my $permissions = $c->mandel->collection('permission');
-    # Create new record
-    # This is a copy from Controller::Admin::User
-    # TODO: refactor user creation
-    my $user_data = {
-      available_treebanks => [],
-      permissions => [bson_dbref($permissions->model->collection_name, shift @{$permissions->search({name => ALL_TREEBANKS})->distinct('_id')})],
-      stickers => '',
-      is_active => Mojo::JSON->true,
-      provider => '',
-      %$data
-    };
-
-    $user = $users->create($user_data)->save();
+    $user = $users_rs->new_result({
+      is_active => 1,
+      %$data,
+      is_admin => 0
+    });
+    $user->insert();
   }
 
-  my $user_id = $user->id;
-  return "$user_id";
+  return $user->id;
 }
 
 1;

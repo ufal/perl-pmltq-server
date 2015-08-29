@@ -118,7 +118,7 @@ sub query {
   my ($sth, $returns_nodes, $query_nodes, $evaluator);
   eval {
     ($sth, $returns_nodes, $query_nodes, $evaluator) =
-      $tb->search(
+      $tb->run_query(
         %$input,
         use_cursor => 1,
         debug_sql => (($input->{query} =~ /^#\s*DEBUG=1\s/) ? 1 : 0)
@@ -157,22 +157,15 @@ sub query {
       push @results, $row;
     }
 
-    $tb->record_history($self->history_key, $input->{query}, $self->current_user, sub {
-      my($rec, $err) = @_;
+    return $self->status_error({
+      code => 500,
+      message => "Database error while saving history: $err"
+    }) if $err;
 
-      return $self->status_error({
-        code => 500,
-        message => "Database error while saving history: $err"
-      }) if $err;
-
-      $self->render(json => {
-        ( $returns_nodes ? (nodes => [@nodes]) : () ),
-        results => [@results]
-      })
+    $self->render(json => {
+      ( $returns_nodes ? (nodes => [@nodes]) : () ),
+      results => [@results]
     });
-
-    $self->render_later;
-    return;
   };
 
   $err = $@;

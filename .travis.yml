@@ -1,21 +1,48 @@
 language: perl
+sudo: false
+
 perl:
   - "5.20"
   - "5.18"
   - "5.16"
   - "5.14"
+
 env:
-  - "MOJO_MAIL_TEST=1 PMLTQ_SERVER_TESTDB='mongodb://127.0.0.1:27017/pmltq-server-test'"
+  - MOJO_MAIL_TEST=1 PG_PORT=5432
+
+branches:
+  only:
+    - master
+
 before_install:
-  - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10"
-  - "echo 'deb http://repo.mongodb.org/apt/ubuntu '$(lsb_release -sc)'/mongodb-org/3.0 multiverse' | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list"
-  - "sudo apt-get update"
-  - "sudo apt-get install mongodb-org-server"
-  - "cpanm -n Devel::Cover::Report::Coveralls"
+  - cpanm -n Devel::Cover::Report::Coveralls
+  - cpanm -n Carton
+
+install:
+  - carton install
+
 before_script:
-  - "until nc -z localhost 27017; do echo Waiting for MongoDB; sleep 1; done"
-script: "HARNESS_PERL_SWITCHES='-MDevel::Cover' ./script/pmltq-server test && cover -report coveralls"
+  - psql -c 'create database test;' -U postgres
+  - pg_restore -d test -U postgres --no-acl --no-owner -w t/test_files/pdt20_mini/pdt20_mini.dump
+
+script: "HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local,^t/' carton exec ./script/pmltq-server test"
+
+after_success:
+  - cover -report coveralls
+
 notifications:
   email:
     recipients:
       - sedlakmichal@gmail.com
+    on_success: change
+    on_failure: always
+
+cache:
+  directories:
+    - local
+
+before_cache:
+  - rm -f local/cache/modules/02packages.details.txt
+
+addons:
+  postgresql: "9.3"
