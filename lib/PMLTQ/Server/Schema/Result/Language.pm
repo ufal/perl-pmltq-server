@@ -20,7 +20,7 @@ __PACKAGE__->null_position_value(undef);
 
 __PACKAGE__->set_primary_key('id');
 
-__PACKAGE__->add_unique_constraint('code_unique', ['code']);
+__PACKAGE__->add_unique_constraint('language_code_unique', ['code']);
 
 __PACKAGE__->belongs_to(
   'language_group',

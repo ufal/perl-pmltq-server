@@ -13,7 +13,7 @@ key_auth;
 
 group all => 'euler-dev';
 
-my $deploy_to = '/opt/pmltq-server';
+my $deploy_to = '/opt/pmltq-server-dev';
 my $keep_last = 5;
 
 my $date = run 'date -u +%Y%m%d%H%M%S';
@@ -29,6 +29,7 @@ task 'deploy', group => 'all', sub {
   upload ($deploy_package, "/tmp/$deploy_package");
 
   my $deploy_dir = "$deploy_to/releases/$date";
+  my $deploy_current = "$deploy_to/current";
   unless (is_dir($deploy_dir)) {
     Rex::Logger::debug("rmdir $deploy_dir");
     rmdir $deploy_dir;
@@ -36,12 +37,12 @@ task 'deploy', group => 'all', sub {
   mkdir $deploy_dir;
   run "cd $deploy_dir; unzip /tmp/$deploy_package";
 
-  # Putting pid file to shared dir is broken for some reason
-  # so we have to stop the server because pidfile is (may be)
-  # in 'current' directory
-  run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic stop pmltq';
+  my $live_version = eval {
+    readlink $deploy_current;
+  };
+  $live_version = basename($live_version) if $live_version;
 
-  run "ln -snf $deploy_dir $deploy_to/current";
+  run "ln -snf $deploy_dir $deploy_current";
 
   unlink "/tmp/$deploy_package";
 
@@ -55,11 +56,17 @@ task 'deploy', group => 'all', sub {
     mkdir "$shared_dir/log";
   }
 
-  my $config_file = "$shared_dir/pmltq_server.private.conf";
-  unless (is_file($config_file)) {
-    cp ("$deploy_dir/config/pmltq_server.private.conf.example", $config_file);
+  if (is_dir("$live_version/local")) {
+    cp "$live_version/local", "$deploy_current/local"
   }
-  run "ln -snf $config_file $deploy_to/current/config/pmltq_server.private.conf";
+
+  my $config_file = "$shared_dir/pmltq_server.private.pl";
+  my $start_server = 1;
+  unless (is_file($config_file)) {
+    cp ("$deploy_dir/config/pmltq_server.private.pl.example", $config_file);
+    $start_server = 0;
+  }
+  run "ln -snf $config_file $deploy_to/current/config/pmltq_server.private.pl";
 
   rmdir "$deploy_dir/log";
   run "ln -snf $shared_dir/log $deploy_dir/log";
@@ -68,9 +75,18 @@ task 'deploy', group => 'all', sub {
   Rex::Logger::info("Installing dependecies...");
   run 'installdeps',
     cwd => $deploy_dir,
-    command => '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && cpanm --quiet --installdeps --notest .';
+    command => '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && carton install --deployment';
 
-  run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic start pmltq';
+  if ($start_server) {
+    my $pid_file = "$shared_dir/pmltq-server.pid";
+    if (is_file($pid_file)) {
+      run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic reload pmltq-dev';
+    } else {
+      run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic start pmltq-dev';
+    }
+  } else  {
+    Rex::Logger::info("Not starting server, edit $config_file first");
+  }
 
   # Server cleanup
   my @releases = reverse sort glob("$deploy_to/releases/*");

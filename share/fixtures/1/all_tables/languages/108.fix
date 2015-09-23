@@ -1,9 +1,9 @@
 $HASH1 = {
-           code    => 'my',
+           code    => 'vi',
            id      => 108,
            language_group_id
-                   => 16,
-           name    => 'Burmese',
+                   => 17,
+           name    => 'Vietnamese',
            position
-                   => 5
+                   => 0
          };

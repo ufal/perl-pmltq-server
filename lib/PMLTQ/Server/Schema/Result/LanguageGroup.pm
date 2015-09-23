@@ -17,7 +17,7 @@ __PACKAGE__->null_position_value(undef);
 
 __PACKAGE__->set_primary_key('id');
 
-__PACKAGE__->add_unique_constraint('name_unique', ['name']);
+__PACKAGE__->add_unique_constraint('language_group_name_unique', ['name']);
 
 __PACKAGE__->has_many(
   languages => 'PMLTQ::Server::Schema::Result::Language',

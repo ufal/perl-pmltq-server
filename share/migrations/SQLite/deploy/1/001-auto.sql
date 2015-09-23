@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Fri Aug 28 13:43:50 2015
+-- Created on Wed Sep 23 14:03:46 2015
 -- 
 
 ;
@@ -13,7 +13,7 @@ CREATE TABLE language_groups (
   name varchar(200) NOT NULL,
   position integer
 );
-CREATE UNIQUE INDEX name_unique ON language_groups (name);
+CREATE UNIQUE INDEX language_group_name_unique ON language_groups (name);
 --
 -- Table: languages
 --
@@ -26,7 +26,7 @@ CREATE TABLE languages (
   FOREIGN KEY (language_group_id) REFERENCES language_groups(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX languages_idx_language_group_id ON languages (language_group_id);
-CREATE UNIQUE INDEX code_unique ON languages (code);
+CREATE UNIQUE INDEX language_code_unique ON languages (code);
 --
 -- Table: servers
 --
@@ -38,7 +38,7 @@ CREATE TABLE servers (
   username varchar(120),
   password varchar(120)
 );
-CREATE UNIQUE INDEX name_unique02 ON servers (name);
+CREATE UNIQUE INDEX server_name_unique ON servers (name);
 --
 -- Table: tags
 --
@@ -47,7 +47,7 @@ CREATE TABLE tags (
   name varchar(120) NOT NULL,
   comment varchar(250)
 );
-CREATE UNIQUE INDEX name_unique03 ON tags (name);
+CREATE UNIQUE INDEX tag_name_unique ON tags (name);
 --
 -- Table: users
 --
@@ -68,7 +68,7 @@ CREATE TABLE users (
 );
 CREATE INDEX idx_name ON users (username);
 CREATE INDEX idx_external ON users (persistent_token, organization, provider);
-CREATE UNIQUE INDEX username_unique ON users (name);
+CREATE UNIQUE INDEX user_username_unique ON users (name);
 --
 -- Table: query_files
 --
@@ -81,7 +81,7 @@ CREATE TABLE query_files (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX query_files_idx_user_id ON query_files (user_id);
-CREATE UNIQUE INDEX name_unique04 ON query_files (name, user_id);
+CREATE UNIQUE INDEX query_file_name_unique ON query_files (name, user_id);
 --
 -- Table: treebanks
 --
@@ -102,7 +102,7 @@ CREATE TABLE treebanks (
   FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
 );
 CREATE INDEX treebanks_idx_server_id ON treebanks (server_id);
-CREATE UNIQUE INDEX name_unique05 ON treebanks (name);
+CREATE UNIQUE INDEX treebank_name_unique ON treebanks (name);
 --
 -- Table: data_sources
 --

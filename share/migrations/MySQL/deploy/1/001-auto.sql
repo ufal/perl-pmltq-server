@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Fri Aug 28 13:43:50 2015
+-- Created on Wed Sep 23 14:03:45 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -12,7 +12,7 @@ CREATE TABLE `language_groups` (
   `name` varchar(200) NOT NULL,
   `position` integer NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `name_unique` (`name`)
+  UNIQUE `language_group_name_unique` (`name`)
 ) ENGINE=InnoDB;
 --
 -- Table: `languages`
@@ -25,7 +25,7 @@ CREATE TABLE `languages` (
   `position` integer NULL,
   INDEX `languages_idx_language_group_id` (`language_group_id`),
   PRIMARY KEY (`id`),
-  UNIQUE `code_unique` (`code`),
+  UNIQUE `language_code_unique` (`code`),
   CONSTRAINT `languages_fk_language_group_id` FOREIGN KEY (`language_group_id`) REFERENCES `language_groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 --
@@ -39,7 +39,7 @@ CREATE TABLE `servers` (
   `username` varchar(120) NULL,
   `password` varchar(120) NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `name_unique` (`name`)
+  UNIQUE `server_name_unique` (`name`)
 ) ENGINE=InnoDB;
 --
 -- Table: `tags`
@@ -49,7 +49,7 @@ CREATE TABLE `tags` (
   `name` varchar(120) NOT NULL,
   `comment` varchar(250) NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `name_unique` (`name`)
+  UNIQUE `tag_name_unique` (`name`)
 ) ENGINE=InnoDB;
 --
 -- Table: `users`
@@ -71,7 +71,7 @@ CREATE TABLE `users` (
   INDEX `idx_name` (`username`),
   INDEX `idx_external` (`persistent_token`, `organization`, `provider`),
   PRIMARY KEY (`id`),
-  UNIQUE `username_unique` (`name`)
+  UNIQUE `user_username_unique` (`name`)
 ) ENGINE=InnoDB;
 --
 -- Table: `query_files`
@@ -84,7 +84,7 @@ CREATE TABLE `query_files` (
   `last_use` datetime NOT NULL,
   INDEX `query_files_idx_user_id` (`user_id`),
   PRIMARY KEY (`id`),
-  UNIQUE `name_unique` (`name`, `user_id`),
+  UNIQUE `query_file_name_unique` (`name`, `user_id`),
   CONSTRAINT `query_files_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 --
@@ -106,7 +106,7 @@ CREATE TABLE `treebanks` (
   `last_modified` datetime NOT NULL,
   INDEX `treebanks_idx_server_id` (`server_id`),
   PRIMARY KEY (`id`),
-  UNIQUE `name_unique` (`name`),
+  UNIQUE `treebank_name_unique` (`name`),
   CONSTRAINT `treebanks_fk_server_id` FOREIGN KEY (`server_id`) REFERENCES `servers` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 --
