@@ -10,11 +10,11 @@ use Mojo::Util qw(b64_decode hmac_sha1_sum);
 use Mojo::JSON;
 use Mojo::URL;
 use Mojo::IOLoop::Server;
-use Mango::BSON qw/bson_oid bson_dbref/;
 use DBI;
 use DateTime;
 use IO::Capture::Stderr;
 
+use Data::Printer;
 
 use Treex::PML;
 use File::Which qw( which );
@@ -23,25 +23,30 @@ use POSIX qw(WNOHANG);
 
 use lib File::Spec->rel2abs(File::Spec->catdir(dirname(__FILE__), '..', 'lib'));
 
-my $loglevel = '';
-$ENV{MOJO_MODE} = 'test';
-$ENV{MOJO_MAIL_TEST} = 1;
-my $mongo_database = "pmltq-server-test-$$";
-unless ($ENV{PMLTQ_SERVER_TESTDB}) {
-  $ENV{PMLTQ_SERVER_TESTDB} = "mongodb://localhost/$mongo_database";
-} else {
-  $ENV{PMLTQ_SERVER_TESTDB} = Mojo::URL->new($ENV{PMLTQ_SERVER_TESTDB})->path("/$mongo_database")->to_string;
-}
+use Test::DBIx::Class {
+    schema_class => 'PMLTQ::Server::Schema',
+    connect_info => ['dbi:SQLite:dbname=:memory:','',''],
+    connect_opts => { name_sep => '.', quote_char => '`', },
+    fixture_class => '::Population',
+};
 
-#test_app()->app->db->db->command(dropDatabase => 1);
+fixtures_ok ['all_tables'] unless $ENV{PG_LOCAL};
+
+my $loglevel = '';
+
+BEGIN {
+  $ENV{MOJO_MODE} = 'test';
+  $ENV{MOJO_MAIL_TEST} = 1;
+}
 
 my $test_files = File::Spec->catdir(dirname(__FILE__), 'test_files');
 my $pg_dir = File::Spec->catdir(dirname(__FILE__), 'postgres');
 my $pg_expect_running = -d $pg_dir;
 my ($pg_running, $pg_restore, $pgsql, $pg_port);
 
+$pg_port = $ENV{PG_PORT} || Mojo::IOLoop::Server->generate_port;
 sub start_postgres {
-  $pg_port = $ENV{PG_PORT} || Mojo::IOLoop::Server->generate_port;
+  return if $ENV{TRAVIS}; # We use Travis Postgresql addon
 
   my $test_dsn = "DBI:Pg:dbname=test;host=127.0.0.1;port=$pg_port;user=postgres";
 
@@ -105,31 +110,44 @@ sub get_log {
 my ($app, $test_tb, $test_user, $admin_user, $encrypt);
 
 sub test_app {
-  return $app ||= Test::Mojo->new('PMLTQ::Server');
+  return $app if $app;
+
+  $app = Test::Mojo->new('PMLTQ::Server');
+  $app->app->db(Schema);
+
+  return $app;
+}
+
+sub test_db { test_app->app->db }
+
+sub test_server {
+  test_db->resultset('Server')->find_or_create({
+    id => 1,
+    name => 'Local test server',
+    host => 'localhost',
+    port => $pg_port,
+    username => 'postgres',
+    password => '',
+  });
 }
 
 sub test_treebank {
   return $test_tb if $test_tb;
 
-  my $treebanks = test_app()->app->mandel->collection('treebank');
+  my $treebanks = test_db->resultset('Treebank');
+  my $server = test_server();
   $test_tb = $treebanks->create({
     name => 'pdt20_mini',
     title => 'PDT 2.0 Sample',
-    driver => 'Pg',
-    host => 'localhost',
-    port => $pg_port,
+    server_id => $server->id,
     database => 'test',
-    username => 'postgres',
-    password => '',
-    public => Mojo::JSON->true,
-    anonaccess => Mojo::JSON->true,
-    data_sources => {
-      adata => File::Spec->catdir('pdt20_mini', 'data'),
-      tdata => File::Spec->catdir('pdt20_mini', 'data')
-    }
-  });
-
-  $test_tb->save();
+    is_public => 1,
+    is_free => 1,
+    data_sources => [
+      { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data') },
+      { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
+    ]
+  })->discard_changes;
 
   return $test_tb
 }
@@ -137,31 +155,21 @@ sub test_treebank {
 sub test_user {
   return $test_user if $test_user;
 
-  my $users = test_app()->app->mandel->collection('user');
-  $test_user = $users->create({
+  $test_user = test_db->resultset('User')->create({
     name => 'Joe Tester',
     username => 'tester',
-    password => encrypt_password('tester'),
+    password => 'tester',
     email => 'joe@happytesting.com',
-  });
-
-  $test_user->save();
+  })->discard_changes;
 
   return $test_user
-}
-
-sub encrypt_password {
-  my $password = shift;
-  require PMLTQ::Server::Validation;
-  ($encrypt ||= PMLTQ::Server::Validation::encrypt_password());
-  return $encrypt->($password);
 }
 
 sub test_admin {
   return $admin_user if $admin_user;
 
-  my $users = test_app()->app->mandel->collection('user');
-  $admin_user = $users->search({username => 'admin'})->single;
+  my $users = test_db->resultset('User');
+  $admin_user = $users->single({username => 'admin'});
 
   die 'No admin, hey?' unless $admin_user;
   return $admin_user;
@@ -273,8 +281,6 @@ sub extract_session {
 }
 
 END {
-  test_app()->app->db->db->command(dropDatabase => 1);
-
   if ($print_server_pid && $print_server_pid != 0) {
     kill TERM => $print_server_pid;
     # wait for kill TERM to take effect

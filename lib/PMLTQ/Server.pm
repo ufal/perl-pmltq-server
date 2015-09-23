@@ -1,41 +1,33 @@
 package PMLTQ::Server;
 use Mojo::Base 'Mojolicious';
 
-use Mango;
-use Mango::BSON 'bson_oid';
-use Lingua::EN::Inflect 1.895 qw/PL/;
-use Treex::PML;
-use PMLTQ;
-use PMLTQ::Server::Model;
-use PMLTQ::Server::Validation 'check_password';
 use File::Spec;
+use PMLTQ::Server::Schema;
+use Lingua::EN::Inflect 1.895 qw/PL/;
+use PMLTQ::Server::Validation 'check_password';
+use PMLTQ;
+use Treex::PML;
 
-has db => sub { state $mango = Mango->new($ENV{PMLTQ_SERVER_TESTDB} || shift->config->{mongo_uri}) };
+has database_connect_info => sub { $_[0]->config->{database} };
 
-has mandel => sub {
-  state $mandel = PMLTQ::Server::Model->new(
-    storage => shift->db,
-    namespaces => [qw/PMLTQ::Server::Model/]
-  );
-};
+has db => sub { state $schema = PMLTQ::Server::Schema->connect(shift->database_connect_info) };
 
 # This method will run once at server start
 sub startup {
   my $self = shift;
 
+  # Show log in STDERR
+  $self->log->handle(\*STDERR) if ($self->mode eq 'development' or $self->mode eq 'test');
+
+  $self->log->debug('Running in ' . $self->mode . ' mode');
+
+  # Get configuration first
+  $self->plugin('PMLTQ::Server::Config');
+
   # Setup resources directory
   Treex::PML::AddResourcePathAsFirst(PMLTQ->resources_dir);
 
-  $self->plugin('PMLTQ::Server::MultipleFileConfig' => {
-    dir => $self->home->rel_file('config'),
-    files => [
-               'pmltq_server.conf',
-               'pmltq_server.private.conf'
-             ],
-    force_plugins => [ 'Config::Any::Perl' ]
-  });
   $self->plugin('PMLTQ::Server::Mailgun' => $self->config->{mailgun}||{});
-  $self->plugin('ParamExpand');
   $self->plugin('PMLTQ::Server::ValidateTiny' => {explicit => 0});
   $self->plugin(Charset => {charset => 'utf8'});
   $self->plugin(HttpBasicAuth => {
@@ -47,66 +39,24 @@ sub startup {
     realm => 'PMLTQ'
   });
   $self->plugin('PMLTQ::Server::Authentication');
-  $self->plugin(Authorization => {
-    has_priv   => sub {
-      my ($app, $privilege, $extradata) = @_;
-      my $user = $app->current_user;
-      unless ($user) {
-        $self->app->log->debug('Failed to load user.');
-        return 0;
-      }
-      return $user->has_permission($privilege) || $user->has_permission('admin');
-    },
-    is_role    => sub { print STDERR 'TODO: is_role\n'; },
-    user_privs => sub { print STDERR 'TODO: user_privs\n'; },
-    user_role  => sub { print STDERR 'TODO: user_role\n'; },
-  });
-
   $self->plugin('PMLTQ::Server::Helpers');
-  $self->plugin('PMLTQ::Server::FormHelpers');
   $self->add_resource_shortcut();
-
-  # Fake PUT and DELETE methods
-  $self->hook(before_dispatch => sub {
-    my $c = shift;
-    return unless my $method = $c->req->params->param('_method');
-    $c->req->method($method);
-  });
-
-  # Show log in STDERR
-  $self->log->handle(\*STDERR) if $self->mode eq 'development' or $self->mode eq 'test';
-
-  # Setup all helpers
-  # $self->setup_helpers(); ###  moved to PMLTQ::Server::Helpers
 
   # Router
   my $r = $self->routes;
 
-  $r->any('/' => sub {
-    my $c = shift;
-    unless ($c->is_user_authenticated) {
-      $c->redirect_to($c->url_for('admin_login'));
-      return;
-    }
-    $c->redirect_to($c->url_for('admin_welcome'));
-  })->name('home');
-
-  # Authetication routes
-  my $auth = $r->route('/auth')->to(controller => 'Admin::Auth');
-  $auth->any([qw/GET POST/])->to(action => 'index')->name('admin_login');
-  $auth->get('/logout')->to(action => 'sign_out')->name('admin_logout');
-
-  my $admin = $r->route('/admin')->over(has_priv => 'admin')->to(controller => 'Admin');
-  $admin->get->to(action => 'welcome')->name('admin_welcome');
-  $admin->resource('user', controller => 'Admin::User', masscreate => 1);
-  $admin->resource('treebank', controller => 'Admin::Treebank');
-  $admin->resource('sticker', controller => 'Admin::Sticker');
-
-  my $profile = $r->get('/profile')->over(authenticated => 1)->to('Profile#index')->name('user_profile');
-  $profile->any([qw/GET POST/] => 'update')->over(has_priv => 'selfupdate')->to('Profile#update');
-
   # Treebank API version 1
   my $api = $r->under('/v1');
+
+  my $admin = $api->under('/admin')->to(controller => 'Auth', action => 'is_admin');
+  $admin->resource('user', controller => 'Admin::User');
+  $admin->resource('treebank', controller => 'Admin::Treebank');
+  $admin->resource('tag', controller => 'Admin::Tag');
+  $admin->resource('server', controller => 'Admin::Server');
+  $admin->resource('language', controller => 'Admin::Language');
+
+  # my $profile = $r->get('/profile')->over(authenticated => 1)->to('Profile#index')->name('user_profile');
+  # $profile->any([qw/GET POST/] => 'update')->over(has_priv => 'selfupdate')->to('Profile#update');
 
   my $api_auth = $api->route('/auth')->to(controller => 'Auth');
   $api_auth->get->to(action => 'check')->name('auth_check');
@@ -114,11 +64,11 @@ sub startup {
   $api_auth->delete->to(action => 'sign_out')->name('auth_sign_out');
   $api_auth->get('shibboleth')->to(action => 'sign_in_shibboleth')->name('auth_shibboleth');
 
-  $api->get('/treebanks')->to(controller => 'Treebank', action => 'list');
-  $api->get('/history')->to(controller => 'History', action => 'list');
+  $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
+  $api->get('/history')->to(controller => 'History', action => 'list')->name('history');
 
   my $treebank = $api->under('/treebanks/:treebank_id', ['treebank_id' => qr/[a-z0-9_-]+/])->
-    name('treebank')->to(controller => 'Treebank', action => 'initialize');
+    name('treebank')->to(controller => 'Treebank', action => 'initialize_single');
   $treebank->get->to('#metadata');
   $treebank->get ('metadata')->to('#metadata');
   $treebank->post('suggest')->to('#suggest');
@@ -153,24 +103,15 @@ sub add_resource_shortcut {
       # POST requests - creates a new resource
       $resource->post->to(action => 'create')->name("create_$name");
 
-      # POST requests - creates  multiple new resources
-      $r->route("/$plural/mass")->to(controller => $controller)->post->to(action => 'masscreate')->name("create_$plural") if $params->{masscreate};
-
-      # New form
-      $r->get("/$name/new")->to(controller => $controller, action => "new_$name")->name("new_$name");
-
-      # Multiple new form
-      $r->get("/$name/mass/new")->to(controller => $controller, action => "new_$plural")->name("new_$plural") if $params->{masscreate};
-
-      # Generate "/$name/:id" route, also handled by controller $name
+      # Generate "/$plural/:id" route, also handled by controller $name
 
       # resource routes might be chained, so we need to define an
       # individual id and pass its name to the controller (idname)
-      $resource = $r->under("/$name/:id" => ['id' => qr/[a-z0-9]+/])->
-        to(controller => $controller, action => "find_$name", "${name}_id" => 'id');
+      $resource = $r->under("/$plural/:id" => ['id' => qr/[0-9]+/])->
+        to(controller => $controller, action => 'find');
 
       # GET requests - lists a single resource
-      $resource->get->to(controller => $controller, action => 'show')->name("show_$name");
+      $resource->get->to(controller => $controller, action => 'get')->name("get_$name");
 
       # DELETE requests - deletes a resource
       $resource->delete->to(controller => $controller, action => 'remove')->name("delete_$name");
@@ -183,5 +124,4 @@ sub add_resource_shortcut {
     }
   );
 }
-
 1;

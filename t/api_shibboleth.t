@@ -128,8 +128,8 @@ logout();
 
 my $test_tb = test_treebank();
 my $test_user = test_user();
-$test_tb->anonaccess(Mojo::JSON->false);
-$test_tb->save();
+$test_tb->is_free(0);
+$test_tb->update;
 
 my $treebank_url = $t->app->url_for('treebank', treebank_id => $test_tb->id);
 my $auth_sign_in_url = $t->app->url_for('auth_sign_in');

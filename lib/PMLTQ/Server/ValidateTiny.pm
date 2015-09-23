@@ -32,7 +32,7 @@ sub register {
             $params ||= $c->req->params->to_hash();
 
             #Latest mojolicious has an issue in that it doesn't include route supplied parameters so we need to hack that in.
-            $params = { %{$params},  %{$c->stash->{'mojo.captures'}} };
+            #$params = { %{$params},  %{$c->stash->{'mojo.captures'}} };
 
             # Autofill fields
             if ( $conf->{autofields} ) {

@@ -1,7 +1,6 @@
 package PMLTQ::Server::Validation;
 
 use Mojo::Base -strict;
-use Mango::BSON qw/bson_oid bson_dbref/;
 use Mojo::JSON;
 use Crypt::Eksblowfish::Bcrypt qw(en_base64 bcrypt);
 use Encode qw(is_utf8 encode_utf8);
@@ -30,23 +29,25 @@ for (@VALIDATE_TINY_EXPORT) {
 }
 
 my @VALIDATE_EXPORT = qw/
-  convert_to_oids
   check_password
+  convert_to_oids
   encrypt_password
   force_arrayref
   force_bool
+  is_array
   is_array_of_hash
   is_hash
   is_in_str
   is_not_in
   is_password_equal
+  is_unique
   is_valid_driver
   is_valid_email
   is_valid_port_number
   list_of_dbrefs
   to_array_of_hash
-  to_hash
   to_dbref
+  to_hash
   /;
 
 our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
@@ -54,7 +55,7 @@ our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
 our @EXPORT = @EXPORT_OK;
 
 sub force_bool {
-  sub { !!$_[0] ? Mojo::JSON->true : Mojo::JSON->false }
+  sub { !!$_[0] ? 1 : 0 }
 }
 
 sub force_arrayref {
@@ -81,7 +82,7 @@ sub to_dbref {
   my $collection_name = shift;
   sub {
     my $arg = shift;
-    return undef unless $arg;
+    return unless $arg;
     return  bson_dbref( $collection_name, bson_oid($arg) ) ;
   };
 }
@@ -92,7 +93,7 @@ sub to_hash {
   sub {
     my $text = shift;
     my %h = map { m/$pattern/ ? ( $1 => $2 ) : ( 'ERROR' => undef ) } split( $delim, $text );
-    return undef if exists( $h{'ERROR'} ) and not defined( $h{'ERROR'} );
+    return if exists( $h{'ERROR'} ) and not defined( $h{'ERROR'} );
     return \%h;
   };
 }
@@ -114,7 +115,7 @@ sub to_array_of_hash {
       }
       else
       {
-        return undef;
+        return;
       }
     }
     return \@a;
@@ -164,7 +165,7 @@ sub is_password_equal {
   my ( $other, $err_msg ) = @_;
   $err_msg ||= 'Invalid value';
   sub {
-    return undef if !defined( $_[0] ) || $_[0] eq '';
+    return if !defined( $_[0] ) || $_[0] eq '';
     return defined $_[1]->{$other} && check_password($_[0], $_[1]->{$other})
       ? undef
       : $err_msg;
@@ -174,7 +175,7 @@ sub is_password_equal {
 sub is_valid_email {
   sub {
     my $email = shift;
-    return undef unless $email;
+    return unless $email;
     Email::Valid->address($email) ? undef : 'Invalid email';
   };
 }
@@ -204,11 +205,33 @@ sub is_not_in {
     }
 }
 
+sub is_unique {
+  my ($resultset, $id_name, $error) = @_;
+  sub {
+    my ($value, $param, $key) = @_;
+    my $rs = $resultset;
+    if ($param->{$id_name}) {
+      $rs = $rs->search({$id_name => {'!=' => $param->{$id_name}}});
+    }
+    $rs->search({$key => $value})->count ? $error : undef;
+  }
+}
+
 sub is_hash {
   my $error = shift;
   sub {
     my $h = shift;
-    ( $h and ref($h) eq 'HASH' ) ? undef : $error;
+    return unless defined($h);
+    ( ref($h) eq 'HASH' ) ? undef : $error;
+  };
+}
+
+sub is_array {
+  my $error = shift;
+  sub {
+    my $a = shift;
+    return unless defined($a);
+    ( ref($a) eq 'ARRAY' ) ? undef : $error;
   };
 }
 
@@ -216,7 +239,8 @@ sub is_array_of_hash {
   my $error = shift;
   sub {
     my $a = shift;
-    ( $a and ref($a) eq 'ARRAY' and all { $_ and ref($_) eq 'HASH' } @$a ) ? undef : $error;
+    return unless defined($a);
+    ( ref($a) eq 'ARRAY' and all { $_ and ref($_) eq 'HASH' } @$a ) ? undef : $error;
   };
 }
 

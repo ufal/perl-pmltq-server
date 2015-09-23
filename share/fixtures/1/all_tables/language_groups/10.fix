@@ -1,0 +1,5 @@
+$HASH1 = {
+           id       => 10,
+           name     => 'Other Semitic languages',
+           position => 9
+         };

@@ -5,32 +5,34 @@ use Mojo::Base 'Mojolicious::Controller';
 sub list {
   my $c = shift;
 
-  my $history = $c->mandel->collection('history');
+  $c->render(json => []);
 
-  my $user = $c->current_user;
-  if ($user) {
-    $history = $history->search({'user.$id' => $user->id});
-  } else {
-    my $history_key = $c->history_key;
-    $history = $history->search({history_key => $history_key});
-  }
+  # my $history = $c->mandel->collection('history');
 
-  my $treebank = $c->stash('tb');
-  $history = $history->search({'treebank.$id' => $treebank->id}) if $treebank;
+  # my $user = $c->current_user;
+  # if ($user) {
+  #   $history = $history->search({'user.$id' => $user->id});
+  # } else {
+  #   my $history_key = $c->history_key;
+  #   $history = $history->search({history_key => $history_key});
+  # }
 
-  $history->all(sub {
-    my($self, $err, $records) = @_;
-    if ($err) {
-      return $c->status_error({
-        code => 500,
-        message => $err
-      });
-    }
+  # my $treebank = $c->stash('tb');
+  # $history = $history->search({'treebank.$id' => $treebank->id}) if $treebank;
 
-    $c->render(json => $records);
-  });
+  # $history->all(sub {
+  #   my($self, $err, $records) = @_;
+  #   if ($err) {
+  #     return $c->status_error({
+  #       code => 500,
+  #       message => $err
+  #     });
+  #   }
 
-  $c->render_later;
+  #   $c->render(json => $records);
+  # });
+
+  # $c->render_later;
 }
 
 1;

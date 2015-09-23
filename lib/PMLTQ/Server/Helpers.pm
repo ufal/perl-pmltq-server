@@ -1,68 +1,50 @@
 package PMLTQ::Server::Helpers;
 
 use Mojo::Base 'Mojolicious::Plugin';
-use Mango::BSON 'bson_oid';
-use Digest::SHA qw(sha1_hex);
-
+use PMLTQ::Server::JSON qw(perl_key);
 use List::Util qw(min any);
-use Scalar::Util ();
 
 sub register {
   my ($self, $app, $conf) = @_;
-  $app->helper(mango => sub { shift->app->db });
-  $app->helper(mandel => sub { shift->app->mandel });
+  $app->helper(db => sub { shift->app->db });
 
-  # History
-  $app->helper(history_key => \&_history_key);
+  # Resultsets
+  $app->helper(public_treebanks => sub { shift->db->resultset('Treebank')->search_rs({ is_public => 1 }) });
 
-  # Generate field options from database collection
-  # Example: field_options('user', values_accessor => label_accessor)
-  $app->helper(field_options => sub {
-    my ($self, $name, $id_accessor, $label_accessor) = @_;
-    $id_accessor //= 'id';
-    $label_accessor //= 'label';
-
-    return {
-      map {
-        ($_->$id_accessor => $_->$label_accessor)
-      } @{$self->mandel->collection($name)->all}
-    }
-  });
-
-  # Common access helpers
-  $app->helper(users         => sub { shift->mandel->collection('user') });
-  $app->helper(treebanks     => sub { shift->mandel->collection('treebank') });
-  $app->helper(permissions   => sub { shift->mandel->collection('permission') });
-  $app->helper(stickers      => sub { shift->mandel->collection('sticker') });
-  $app->helper(history       => sub { shift->mandel->collection('history') });
-  $app->helper(drivers       => sub { state $drivers = [ [Pg => 'PostgreSQL'],[Oracle => 'Oracle'] ] });
-
-  $app->helper(mandelize     => sub {
-                                      my $a=shift;
-                                      my $obj = shift;
-                                      return unless $obj;
-                                      return $a->mandel->collection($obj->{'$ref'})->find_one({_id => $obj->{'$id'}})
-                                    });
-  # ERROR
+  # Error helpers
   $app->helper(status_error => \&_status_error);
   $app->helper(render_validation_errors => \&_render_validation_errors);
+  $app->helper(query_filter => sub {
+    my ($self, $hash) = @_;
 
-  # init after we have all helpers available
-  $app->mandel->initialize($app);
+    for (keys %$hash) {
+      my $value = delete $hash->{$_};
+      $value = 1 if ($value eq 'true');
+      $value = 0 if ($value eq 'false');
+      $hash->{perl_key($_)} = $value;
+    }
+
+    return $hash;
+  });
+
+  # Fake PUT and DELETE methods
+  $app->hook(before_dispatch => sub {
+    my $c = shift;
+    if (my $req_json = $c->req->json) {
+      _snake_hashref($req_json);
+    }
+  });
 }
 
-sub _history_key {
-  my $self = shift;
+sub _snake_hashref {
+  my $hash = shift;
 
-  my $current_user = $self->current_user;
-  return $current_user->id if $current_user;
-
-  my $key = $self->session->{history_key};
-  unless ($key) {
-    $key = sha1_hex(time() . rand() . (2 * rand()));
-    $self->session(history_key => $key);
+  for (keys %$hash) {
+    if (ref $hash->{$_} eq 'HASH') {
+      _snake_hashref($hash->{$_});
+    }
+    $hash->{perl_key($_)} = delete $hash->{$_};
   }
-  return $key;
 }
 
 sub _status_error {

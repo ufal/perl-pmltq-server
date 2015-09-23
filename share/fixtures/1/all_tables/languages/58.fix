@@ -1,0 +1,9 @@
+$HASH1 = {
+           code    => 'tg',
+           id      => 58,
+           language_group_id
+                   => 8,
+           name    => 'Tajiki (in Cyrillic script)',
+           position
+                   => 5
+         };

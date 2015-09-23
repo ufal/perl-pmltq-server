@@ -1,0 +1,65 @@
+$VAR1 = {
+          'might_have' => {
+                            'fetch' => 0
+                          },
+          'has_many' => {
+                          'fetch' => 0
+                        },
+          'sets' => [
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Treebank'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'QueryFile'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'LanguageGroup'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Server'
+                      },
+                      {
+                        'class' => 'Tag',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Manual',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Query',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'TreebankLanguage',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'UserTreebank',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'TreebankTag'
+                      },
+                      {
+                        'class' => 'Language',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'User'
+                      },
+                      {
+                        'class' => 'DataSource',
+                        'quantity' => 'all'
+                      }
+                    ],
+          'belongs_to' => {
+                            'fetch' => 0
+                          }
+        };

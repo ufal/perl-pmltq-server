@@ -1,0 +1,24 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
+
+use DBIx::Class::Migration::Script;
+use PMLTQ::Server;
+
+my $app = PMLTQ::Server->new;
+
+DBIx::Class::Migration::Script
+  ->run_with_options(
+    schema => $app->db,
+    target_dir => $app->home->rel_file('share'),
+    extra_schemaloader_args => {
+      schema_base_class => 'PMLTQ::Server::Schema',
+      result_base_class => 'PMLTQ::Server::Schema::Result',
+    },
+    databases => ['MySQL', 'SQLite', 'PostgreSQL'],
+  );
+

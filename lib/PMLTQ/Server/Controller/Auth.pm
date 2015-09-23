@@ -12,6 +12,30 @@ sub check {
   $c->render(json => { user => $c->is_user_authenticated ? $c->current_user : Mojo::JSON->false });
 }
 
+sub is_admin {
+  my $c = shift;
+
+  unless ($c->is_user_authenticated) {
+    $c->status_error({
+      code => 401,
+      message => 'Authentication required'
+    });
+
+    return;
+  }
+
+  if ($c->current_user && !$c->current_user->is_admin) {
+    $c->status_error({
+      code => 403,
+      message => 'Access denied'
+    });
+
+    return;
+  }
+
+  return 1;
+}
+
 sub sign_in {
   my $c = shift;
 
@@ -67,7 +91,8 @@ sub sign_in_shibboleth {
         name => $name,
         provider => 'Shibboleth',
         organization => $organization,
-        persistent_token => $persistent_token
+        persistent_token => $persistent_token,
+        access_all => 1
       })) {
       return $c->redirect_to($redirect . '#success');
     } else {

@@ -1,0 +1,9 @@
+$HASH1 = {
+           code    => 'hu',
+           id      => 75,
+           language_group_id
+                   => 11,
+           name    => 'Hungarian',
+           position
+                   => 0
+         };

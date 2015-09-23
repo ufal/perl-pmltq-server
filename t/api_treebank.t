@@ -20,7 +20,7 @@ my $tb = test_treebank();
 
 ## Metadata
 my $m = $tb->metadata;
-my @all_metadata = qw/homepage name id title stickers description anonymous attributes doc node_types relations schemas/;
+my @all_metadata = qw/id name title description homepage tags languages is_public is_free is_featured handle attributes doc node_types relations schemas/;
 ok(cmp_bag(
   [keys %$m],
   [@all_metadata]
@@ -40,7 +40,7 @@ is($e1, $e2, 'Evaluators are the same');
 ## Search
 
 my ($sth, $returns_nodes, $query_nodes, $evaluator) =
-$tb->search(
+$tb->run_query(
   query => 'a-node []',
   use_cursor => 1,
 );
@@ -135,8 +135,8 @@ is(scalar(@{$t->tx->res->json}), 1, 'Returned one treebank');
 $t->json_is("/0/$_", $tb->$_) for (qw/id name title description homepage/);
 
 # Set public to false
-$tb->public(Mojo::JSON->false);
-$tb->save();
+$tb->is_public(0);
+$tb->update();
 
 $t->get_ok($treebanks_url)
   ->status_is(200);
