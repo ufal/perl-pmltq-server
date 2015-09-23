@@ -89,7 +89,7 @@ schema:
           fields:
             - name
           match_type: ''
-          name: name_unique
+          name: language_group_name_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -151,7 +151,7 @@ schema:
           fields:
             - code
           match_type: ''
-          name: code_unique
+          name: language_code_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -447,7 +447,7 @@ schema:
             - name
             - user_id
           match_type: ''
-          name: name_unique
+          name: query_file_name_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -547,7 +547,7 @@ schema:
           fields:
             - name
           match_type: ''
-          name: name_unique
+          name: server_name_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -639,7 +639,7 @@ schema:
           fields:
             - name
           match_type: ''
-          name: name_unique
+          name: tag_name_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -853,7 +853,7 @@ schema:
           fields:
             - name
           match_type: ''
-          name: name_unique
+          name: treebank_name_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -1109,7 +1109,7 @@ schema:
           fields:
             - name
           match_type: ''
-          name: username_unique
+          name: user_username_unique
           on_delete: ''
           on_update: ''
           options: []

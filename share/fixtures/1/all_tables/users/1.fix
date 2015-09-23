@@ -2,7 +2,7 @@ $HASH1 = {
            access_all
                     => 1,
            created_at
-                    => '2015-08-28T12:39:53',
+                    => '2015-09-23T12:03:59',
            email    => undef,
            id       => 1,
            is_active
@@ -13,7 +13,7 @@ $HASH1 = {
            name     => 'Super Admin',
            organization
                     => undef,
-           password => '$2$08$cYEOM9pZfoaQRRPz0WVcIuCxRBPtEYpGuYth.3jH.KNTqxOol/5sK',
+           password => '$2$08$LbgcwGMuT6JT5oPsiRYkEeDyauZCWivprQ9TUF.fgV4HteAeI6Cqu',
            persistent_token
                     => undef,
            provider => undef,

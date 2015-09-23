@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('id');
 
-__PACKAGE__->add_unique_constraint('name_unique', ['name', 'user_id']);
+__PACKAGE__->add_unique_constraint('query_file_name_unique', ['name', 'user_id']);
 
 __PACKAGE__->belongs_to(
   user => 'PMLTQ::Server::Schema::Result::User', 'user_id'

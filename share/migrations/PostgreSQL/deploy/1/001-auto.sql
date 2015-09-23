@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Aug 28 13:43:50 2015
+-- Created on Wed Sep 23 14:03:46 2015
 -- 
 ;
 --
@@ -11,7 +11,7 @@ CREATE TABLE "language_groups" (
   "name" character varying(200) NOT NULL,
   "position" integer,
   PRIMARY KEY ("id"),
-  CONSTRAINT "name_unique" UNIQUE ("name")
+  CONSTRAINT "language_group_name_unique" UNIQUE ("name")
 );
 
 ;
@@ -25,7 +25,7 @@ CREATE TABLE "languages" (
   "name" character varying(120) NOT NULL,
   "position" integer,
   PRIMARY KEY ("id"),
-  CONSTRAINT "code_unique" UNIQUE ("code")
+  CONSTRAINT "language_code_unique" UNIQUE ("code")
 );
 CREATE INDEX "languages_idx_language_group_id" on "languages" ("language_group_id");
 
@@ -41,7 +41,7 @@ CREATE TABLE "servers" (
   "username" character varying(120),
   "password" character varying(120),
   PRIMARY KEY ("id"),
-  CONSTRAINT "name_unique" UNIQUE ("name")
+  CONSTRAINT "server_name_unique" UNIQUE ("name")
 );
 
 ;
@@ -53,7 +53,7 @@ CREATE TABLE "tags" (
   "name" character varying(120) NOT NULL,
   "comment" character varying(250),
   PRIMARY KEY ("id"),
-  CONSTRAINT "name_unique" UNIQUE ("name")
+  CONSTRAINT "tag_name_unique" UNIQUE ("name")
 );
 
 ;
@@ -75,7 +75,7 @@ CREATE TABLE "users" (
   "created_at" timestamp NOT NULL,
   "last_login" timestamp,
   PRIMARY KEY ("id"),
-  CONSTRAINT "username_unique" UNIQUE ("name")
+  CONSTRAINT "user_username_unique" UNIQUE ("name")
 );
 CREATE INDEX "idx_name" on "users" ("username");
 CREATE INDEX "idx_external" on "users" ("persistent_token", "organization", "provider");
@@ -91,7 +91,7 @@ CREATE TABLE "query_files" (
   "created_at" timestamp NOT NULL,
   "last_use" timestamp NOT NULL,
   PRIMARY KEY ("id"),
-  CONSTRAINT "name_unique" UNIQUE ("name", "user_id")
+  CONSTRAINT "query_file_name_unique" UNIQUE ("name", "user_id")
 );
 CREATE INDEX "query_files_idx_user_id" on "query_files" ("user_id");
 
@@ -114,7 +114,7 @@ CREATE TABLE "treebanks" (
   "created_at" timestamp NOT NULL,
   "last_modified" timestamp NOT NULL,
   PRIMARY KEY ("id"),
-  CONSTRAINT "name_unique" UNIQUE ("name")
+  CONSTRAINT "treebank_name_unique" UNIQUE ("name")
 );
 CREATE INDEX "treebanks_idx_server_id" on "treebanks" ("server_id");
 

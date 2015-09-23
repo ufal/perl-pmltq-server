@@ -1,45 +1,16 @@
 $VAR1 = {
-          'might_have' => {
-                            'fetch' => 0
-                          },
           'has_many' => {
                           'fetch' => 0
                         },
+          'belongs_to' => {
+                            'fetch' => 0
+                          },
+          'might_have' => {
+                            'fetch' => 0
+                          },
           'sets' => [
                       {
-                        'quantity' => 'all',
-                        'class' => 'Treebank'
-                      },
-                      {
-                        'quantity' => 'all',
-                        'class' => 'QueryFile'
-                      },
-                      {
-                        'quantity' => 'all',
-                        'class' => 'LanguageGroup'
-                      },
-                      {
-                        'quantity' => 'all',
-                        'class' => 'Server'
-                      },
-                      {
-                        'class' => 'Tag',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'class' => 'Manual',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'class' => 'Query',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'class' => 'TreebankLanguage',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'class' => 'UserTreebank',
+                        'class' => 'DataSource',
                         'quantity' => 'all'
                       },
                       {
@@ -51,15 +22,44 @@ $VAR1 = {
                         'quantity' => 'all'
                       },
                       {
-                        'quantity' => 'all',
-                        'class' => 'User'
+                        'class' => 'Server',
+                        'quantity' => 'all'
                       },
                       {
-                        'class' => 'DataSource',
+                        'quantity' => 'all',
+                        'class' => 'Tag'
+                      },
+                      {
+                        'class' => 'TreebankLanguage',
                         'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'LanguageGroup'
+                      },
+                      {
+                        'class' => 'QueryFile',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'UserTreebank',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Manual',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'User',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Treebank'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Query'
                       }
-                    ],
-          'belongs_to' => {
-                            'fetch' => 0
-                          }
+                    ]
         };

@@ -1,9 +1,9 @@
 $HASH1 = {
-           code    => 'ku-cyrl',
+           code    => 'tg',
            id      => 56,
            language_group_id
                    => 8,
-           name    => 'Kurdish in Cyrillic script',
+           name    => 'Tajiki',
            position
                    => 3
          };

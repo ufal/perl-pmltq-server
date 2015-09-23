@@ -12,7 +12,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('id');
 
-__PACKAGE__->add_unique_constraint('name_unique', ['name']);
+__PACKAGE__->add_unique_constraint('tag_name_unique', ['name']);
 
 __PACKAGE__->has_many( treebank_tags => 'PMLTQ::Server::Schema::Result::TreebankTag', 'tag_id', { cascade_copy => 0, cascade_delete => 1 } );
 
