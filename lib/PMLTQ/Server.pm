@@ -65,7 +65,10 @@ sub startup {
   $api_auth->get('shibboleth')->to(action => 'sign_in_shibboleth')->name('auth_shibboleth');
 
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
-  $api->get('/history')->to(controller => 'History', action => 'list')->name('history');
+
+  my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
+  my $query_file = $user->resource('query-file', controller => 'User::QueryFile');
+  $query_file->resource('query', controller => 'User::QueryFile::QueryRecord');
 
   my $treebank = $api->under('/treebanks/:treebank_id', ['treebank_id' => qr/[a-z0-9_-]+/])->
     name('treebank')->to(controller => 'Treebank', action => 'initialize_single');
@@ -79,10 +82,9 @@ sub startup {
   $treebank->get ('node-types')->to('#node_types');
   $treebank->get ('relations')->to('#relations');
   $treebank->get ('relation-target-types')->to('#relation_target_types');
-  $treebank->get ('history', 'treebank_history')->to(controller => 'History', action => 'list');
   $treebank->post('query')->to(controller => 'Query', action => 'query');
-  $treebank->post('query/svg', 'query_svg')->to(controller => 'Query', action => 'query_svg');
-  $treebank->post('svg')->to(controller => 'Query', action => 'result_svg');
+  $treebank->post('query/svg')->to(controller => 'Svg', action => 'query_svg')->name('query_svg');
+  $treebank->post('svg')->to(controller => 'Svg', action => 'result_svg')->name('result_svg');
 }
 
 sub add_resource_shortcut {
@@ -92,24 +94,37 @@ sub add_resource_shortcut {
       my $name = shift;
       my $params = { @_ ? (ref $_[0] ? %{ $_[0] } : @_) : () };
 
-      my $plural = PL($name, 10);
+      my $url = PL($name, 10);
       my $controller = $params->{controller} || "$name#";
+      my $plural_name = $url;
 
-      # Generate "/$name" route, handled by controller $name
-      my $resource = $r->route("/$plural")->to(controller => $controller);
+      $name =~ s/-/_/;
+      $plural_name =~ s/-/_/;
+      my $entity_id = "${name}_id";
+
+      my $parent = undef;
+      if ($r->name =~ m/(.*)_resource$/) {
+        $parent = $1;
+        $plural_name = "${parent}_${plural_name}";
+        $name = "${parent}_${name}";
+      }
+
+      # Generate "/$url" route, handled by controller $name
+      my $resource = $r->route("/$url")->to(controller => $controller, parent_entity => $parent);
 
       # GET requests - lists the collection of this resource
-      $resource->get->to(action => 'list')->name("list_$plural");
+      $resource->get->to(action => 'list')->name("list_$plural_name");
 
       # POST requests - creates a new resource
       $resource->post->to(action => 'create')->name("create_$name");
 
-      # Generate "/$plural/:id" route, also handled by controller $name
+      # Generate "/$url/:$entity_id" route, also handled by controller $name
 
       # resource routes might be chained, so we need to define an
       # individual id and pass its name to the controller (idname)
-      $resource = $r->under("/$plural/:id" => ['id' => qr/[0-9]+/])->
-        to(controller => $controller, action => 'find');
+      $resource = $r->under("/$url/:${entity_id}" => ["${entity_id}" => qr/[0-9]+/])
+        ->to(controller => $controller, action => 'find', entity_name => $name, entity_id_name => $entity_id, parent_entity => $parent)
+        ->name("${name}_resource");
 
       # GET requests - lists a single resource
       $resource->get->to(controller => $controller, action => 'get')->name("get_$name");
@@ -120,7 +135,7 @@ sub add_resource_shortcut {
       # PUT requests - updates a resource
       $resource->put->to(controller => $controller, action => 'update')->name("update_$name");
 
-      # return "/$name/:id" route so that potential child routes make sense
+      # return "/$url/:$entity_id" route so that potential child routes make sense
       return $resource;
     }
   );

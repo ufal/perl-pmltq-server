@@ -247,8 +247,9 @@ sub init_database {
 
   my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
 
-  my @cmd = ($pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '-w', $filename);
-  #say STDERR join(' ', @cmd);
+  # run with clean environment
+  my @cmd = ('/usr/bin/env', '-i', $pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '-w', $filename);
+  # say STDERR join(' ', @cmd);
   system(@cmd) == 0 or die "Restoring test database failed: $?";
 }
 

@@ -54,13 +54,15 @@ $t->app->config->{tree_print_service} = $print_server_url->path('/svg')->to_stri
 
 #diag $t->app->config->{tree_print_service};
 
-my $svg_url = $t->app->url_for('svg', treebank_id => $tb->id);
+ok $t->app->routes->find('result_svg'), 'Route exists';
+my $svg_url = $t->app->url_for('result_svg', treebank_id => $tb->id);
 ok ($svg_url, 'Constructing url for printing svg');
 $t->post_ok($svg_url => json => {
   nodes => ['109/a-node@a-ln94210-39-p2s1Bw5']
 })->status_is(200)->or(sub { diag p($t->tx->res->json) })
   ->header_is('Content-Type' => 'image/svg+xml');
 
+ok $t->app->routes->find('query_svg'), 'Route exists';
 my $query_svg_url = $t->app->url_for('query_svg', treebank_id => $tb->id);
 ok ($query_svg_url, 'Constructing url for printing svg query');
 

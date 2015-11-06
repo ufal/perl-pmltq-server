@@ -65,7 +65,8 @@ sub create {
 
 sub find {
   my $c = shift;
-  my $entity_id = $c->param('id');
+  my $entity_id_name = $c->stash->{entity_id_name};
+  my $entity_id = $c->param($entity_id_name);
   my $entity = $c->resultset->find($entity_id);
 
   unless ($entity) {
@@ -76,17 +77,25 @@ sub find {
     return;
   }
 
-  $c->stash(entity => $entity);
+  $c->entity($entity);
+}
+
+sub entity {
+  my $c = shift;
+
+  my $entity_name = $c->stash->{entity_name};
+  return $c->stash->{$entity_name} unless (@_);
+  $c->stash($entity_name, @_);
 }
 
 sub get {
   my $c = shift;
-  $c->render(json => $c->stash->{entity});
+  $c->render(json => $c->entity);
 }
 
 sub update {
   my $c = shift;
-  my $entity = $c->stash->{entity};
+  my $entity = $c->entity;
 
   my $input = { $entity->get_columns, %{$c->req->json} };
   $input = $c->_validate($input, $entity);
@@ -105,7 +114,7 @@ sub update {
 
 sub remove {
   my $c = shift;
-  my $entity = $c->stash->{entity};
+  my $entity = $c->entity;
 
   try {
     $entity->delete();

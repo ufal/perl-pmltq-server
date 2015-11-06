@@ -42,7 +42,7 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
-  queries => 'PMLTQ::Server::Schema::Result::Query',
+  query_records => 'PMLTQ::Server::Schema::Result::QueryRecord',
   { 'foreign.user_id' => 'self.id' },
   { cascade_copy => 0, cascade_delete => 1 },
 );
