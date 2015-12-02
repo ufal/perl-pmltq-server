@@ -6,10 +6,25 @@ use List::Util qw(first);
 use Mojo::JSON;
 use Encode qw(decode_utf8);
 
-sub check {
+sub render_user {
   my $c = shift;
 
   $c->render(json => { user => $c->is_user_authenticated ? $c->current_user : Mojo::JSON->false });
+}
+
+sub check {
+  my $c = shift;
+
+  $c->basic_auth({
+    invalid => sub {
+      any => sub {
+        my $ctrl = shift;
+        $ctrl->res->headers->remove('WWW-Authenticate');
+        $ctrl->res->code(200);
+        $ctrl->render_user;
+      }
+    }
+  }) and $c->render_user;
 }
 
 sub is_admin {
@@ -43,7 +58,7 @@ sub sign_in {
   #print STDERR $c->dumper($c->req->json);
   if(($auth_data = $c->_validate_auth($auth_data))
     && $c->authenticate($auth_data->{username}, $auth_data->{password})) {
-    $c->render( json => { user => $c->current_user } )
+    $c->render_user;
   } else {
     $c->app->log->debug('Invalid credentials');
     $c->status_error({

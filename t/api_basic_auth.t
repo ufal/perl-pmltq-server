@@ -17,8 +17,41 @@ my $ta = test_admin();
 my $tu = test_user();
 my $tt = test_treebank();
 
-# Restrict access to test treebank
+$t->reset_session();
+ok $t->app->routes->find('auth_check'), 'Auth check route exists';
+my $auth_check_url = $t->app->url_for('auth_check');
+ok ($auth_check_url, 'Has auth check url');
 
+$t->get_ok($auth_check_url)
+  ->status_is(200)
+  ->json_is('/user', Mojo::JSON->false);
+
+$auth_check_url->userinfo('admin:admin');
+$t->get_ok($auth_check_url)
+  ->status_is(200)
+  ->json_like('/user/username' => qr/admin/)
+  ->json_is('/user/password' => undef) # must be empty;
+  ->json_has('/user/availableTreebanks');
+
+$auth_check_url->userinfo('tester:tester');
+$t->get_ok($auth_check_url)
+  ->status_is(200)
+  ->json_like('/user/username' => qr/tester/)
+  ->json_is('/user/password' => undef) # must be empty;
+  ->json_has('/user/availableTreebanks');
+
+$auth_check_url = $t->app->url_for('auth_check'); # clear user info
+$t->get_ok($auth_check_url)
+  ->status_is(200)
+  ->json_like('/user/username' => qr/tester/);
+
+$auth_check_url->userinfo('fake:user');
+$t->get_ok($auth_check_url)
+  ->status_is(200)
+  ->json_like('/user/username' => qr/tester/);
+
+# Restrict access to test treebank
+$t->reset_session();
 ok $tt->is_free, 'Test treebank can be access by public';
 
 ok $t->app->routes->find('treebank'), 'Treebank api route exists';
