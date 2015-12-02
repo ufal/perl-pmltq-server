@@ -75,6 +75,7 @@ sub startup {
   $treebank->get ('data/*file')->to('#data');
   $treebank->get ('node')->to('#node');
   $treebank->get ('type')->to('#type');
+  $treebank->get ('schema')->to('#schema');
   $treebank->get ('node-types')->to('#node_types');
   $treebank->get ('relations')->to('#relations');
   $treebank->get ('relation-target-types')->to('#relation_target_types');
