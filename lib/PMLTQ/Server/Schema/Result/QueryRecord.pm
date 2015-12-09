@@ -9,7 +9,7 @@ __PACKAGE__->load_components('InflateColumn::DateTime', 'TimeStamp');
 __PACKAGE__->add_columns(
   id            => { data_type => 'integer', is_auto_increment => 1, is_nullable => 0 },
   name          => { data_type => 'varchar', is_nullable => 1, size => 120 },
-  query         => { data_type => 'text', is_nullable => 0, is_serializable => 1 },
+  query         => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
   user_id       => { data_type => 'integer', is_foreign_key => 1, is_nullable => 0 },
   query_file_id => { data_type => 'integer', is_foreign_key => 1, is_nullable => 1 },
   created_at    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },

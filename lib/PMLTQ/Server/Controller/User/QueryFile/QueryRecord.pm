@@ -22,7 +22,6 @@ sub _validate {
       [qw/name/] => filter(qw/trim strip/),
     ],
     checks => [
-      query => [is_required()],
       name => [is_long_at_most(120)],
     ]
   };

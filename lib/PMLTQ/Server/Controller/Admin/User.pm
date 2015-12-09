@@ -7,6 +7,8 @@ use PMLTQ::Server::Validation;
 
 has resultset_name => 'User';
 
+has search_fields => sub { [qw/name username email/] };
+
 sub _validate {
   my ($c, $user_data) = @_;
 
