@@ -10,7 +10,7 @@ SET foreign_key_checks=0;
 CREATE TABLE `query_records` (
   `id` integer NOT NULL auto_increment,
   `name` varchar(120) NULL,
-  `query` text NOT NULL,
+  `query` text NULL,
   `user_id` integer NOT NULL,
   `query_file_id` integer NULL,
   `created_at` datetime NOT NULL,

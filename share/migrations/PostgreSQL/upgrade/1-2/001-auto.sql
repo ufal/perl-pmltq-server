@@ -7,7 +7,7 @@ BEGIN;
 CREATE TABLE "query_records" (
   "id" serial NOT NULL,
   "name" character varying(120),
-  "query" text NOT NULL,
+  "query" text,
   "user_id" integer NOT NULL,
   "query_file_id" integer,
   "created_at" timestamp NOT NULL,

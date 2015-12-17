@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Fri Nov  6 20:16:27 2015
+-- Created on Thu Dec 17 14:03:25 2015
 -- 
 
 ;
@@ -131,7 +131,7 @@ CREATE INDEX manuals_idx_treebank_id ON manuals (treebank_id);
 CREATE TABLE query_records (
   id INTEGER PRIMARY KEY NOT NULL,
   name varchar(120),
-  query text NOT NULL,
+  query text,
   user_id integer NOT NULL,
   query_file_id integer,
   created_at datetime NOT NULL,

@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Nov  6 20:16:28 2015
+-- Created on Thu Dec 17 14:03:25 2015
 -- 
 ;
 --
@@ -149,7 +149,7 @@ CREATE INDEX "manuals_idx_treebank_id" on "manuals" ("treebank_id");
 CREATE TABLE "query_records" (
   "id" serial NOT NULL,
   "name" character varying(120),
-  "query" text NOT NULL,
+  "query" text,
   "user_id" integer NOT NULL,
   "query_file_id" integer,
   "created_at" timestamp NOT NULL,

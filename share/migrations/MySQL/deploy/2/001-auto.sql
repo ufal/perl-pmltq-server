@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Fri Nov  6 20:16:27 2015
+-- Created on Thu Dec 17 14:03:25 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -137,7 +137,7 @@ CREATE TABLE `manuals` (
 CREATE TABLE `query_records` (
   `id` integer NOT NULL auto_increment,
   `name` varchar(120) NULL,
-  `query` text NOT NULL,
+  `query` text NULL,
   `user_id` integer NOT NULL,
   `query_file_id` integer NULL,
   `created_at` datetime NOT NULL,

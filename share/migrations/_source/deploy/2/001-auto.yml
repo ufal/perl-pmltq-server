@@ -487,7 +487,7 @@ schema:
         query:
           data_type: text
           default_value: ~
-          is_nullable: 0
+          is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: query
