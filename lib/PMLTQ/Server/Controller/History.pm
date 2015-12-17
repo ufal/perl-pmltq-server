@@ -2,8 +2,28 @@ package PMLTQ::Server::Controller::History;
 
 use Mojo::Base 'Mojolicious::Controller';
 
+
+sub initialize {
+  my $c = shift;
+
+  unless ($c->is_user_authenticated) {
+    $c->status_error({
+      code => 401,
+      message => 'Authentication required'
+    });
+
+    return;
+  }
+
+  my $history = $c->db->resultset('QueryFile')->search_rs(user_id => $c->current_user->id);
+
+  return 1;
+}
+
 sub list {
   my $c = shift;
+
+  my $user = $c->current_user;
 
   $c->render(json => []);
 

@@ -23,9 +23,18 @@ __PACKAGE__->belongs_to(
 );
 
 __PACKAGE__->has_many(
-  queries => 'PMLTQ::Server::Schema::Result::Query',
+  queries => 'PMLTQ::Server::Schema::Result::QueryRecord',
   { 'foreign.query_file_id' => 'self.id' },
   { cascade_copy => 0, cascade_delete => 1 },
 );
+
+sub TO_JSON {
+   my $self = shift;
+
+   return {
+      (map { ($self->to_json_key($_) => [$self->$_]) } qw/queries/),
+      %{ $self->next::method },
+   }
+}
 
 1;

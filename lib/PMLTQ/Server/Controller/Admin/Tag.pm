@@ -7,6 +7,8 @@ use PMLTQ::Server::Validation;
 
 has resultset_name => 'Tag';
 
+has search_fields => sub { [qw/name comment/] };
+
 sub _validate {
   my ($c, $tag_data) = @_;
 

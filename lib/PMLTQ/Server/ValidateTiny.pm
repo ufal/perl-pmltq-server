@@ -47,6 +47,7 @@ sub register {
             # Remove fields duplications
             my %h;
             @{$rules->{fields}} = grep { !$h{$_}++ } @{$rules->{fields}};
+            $params = { map { defined $params->{$_} ? ($_ => $params->{$_}) : () } keys %h };
 
             # Check that there is an individual rule for every field
             if ( $conf->{explicit} ) {

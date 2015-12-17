@@ -1,57 +1,48 @@
 $VAR1 = {
-          'has_many' => {
-                          'fetch' => 0
-                        },
-          'belongs_to' => {
-                            'fetch' => 0
-                          },
-          'might_have' => {
-                            'fetch' => 0
-                          },
           'sets' => [
                       {
-                        'class' => 'DataSource',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'DataSource'
                       },
                       {
                         'quantity' => 'all',
                         'class' => 'TreebankTag'
                       },
                       {
-                        'class' => 'Language',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'Language'
                       },
                       {
-                        'class' => 'Server',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'Server'
                       },
                       {
                         'quantity' => 'all',
                         'class' => 'Tag'
                       },
                       {
-                        'class' => 'TreebankLanguage',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'TreebankLanguage'
                       },
                       {
                         'quantity' => 'all',
                         'class' => 'LanguageGroup'
                       },
                       {
-                        'class' => 'QueryFile',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'QueryFile'
                       },
                       {
-                        'class' => 'UserTreebank',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'UserTreebank'
                       },
                       {
-                        'class' => 'Manual',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'Manual'
                       },
                       {
-                        'class' => 'User',
-                        'quantity' => 'all'
+                        'quantity' => 'all',
+                        'class' => 'User'
                       },
                       {
                         'quantity' => 'all',
@@ -61,5 +52,14 @@ $VAR1 = {
                         'quantity' => 'all',
                         'class' => 'Query'
                       }
-                    ]
+                    ],
+          'might_have' => {
+                            'fetch' => 0
+                          },
+          'belongs_to' => {
+                            'fetch' => 0
+                          },
+          'has_many' => {
+                          'fetch' => 0
+                        }
         };

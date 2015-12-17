@@ -12,6 +12,17 @@ PML-TQ REST API server for querying treebanks.
     cpanm --installdeps .
     morbo ./script/pmltq-server
 
+# Updating database
+
+Be cautious to which database are you connected to. This can easily destroy data in the database by using these commands.
+
+If not sure, delete your `pmltq_server.private.pl` configuration and use default SQLite configuration.
+
+- Increase schema version in `PMLTQ::Schema`
+- Prepare a new version `./script/db-migration prepare`
+- Upgrade the current database `./script/db-migration upgrade`
+- Dump data for fixtures `./script/db-migration dump_all_datasets`
+
 # Deployment
 
 <(UFAL specific)>

@@ -7,6 +7,8 @@ use PMLTQ::Server::Validation;
 
 has resultset_name => 'Treebank';
 
+has search_fields => sub { [qw/name title/] };
+
 sub _validate {
   my ($c, $treebank_data) = @_;
 

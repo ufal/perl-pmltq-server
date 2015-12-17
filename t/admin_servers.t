@@ -54,7 +54,7 @@ $t->post_ok($create_server_url => json => $test_server)
   ->status_is(400)
   ->json_is('/error', 'server name already exists');
 
-my $update_server_url = $t->app->url_for('update_server', id => 1);
+my $update_server_url = $t->app->url_for('update_server', server_id => 1);
 ok ($update_server_url, 'Update server url exists');
 
 $test_server->{name} = 'Other name';
