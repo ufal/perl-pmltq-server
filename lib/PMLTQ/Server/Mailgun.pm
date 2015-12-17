@@ -11,8 +11,9 @@ sub register {
   my $mail_send;
 
   unless((exists $conf->{driver} and $conf->{driver} eq 'test') or exists $ENV{MOJO_MAIL_TEST}) {
-    die __PACKAGE__ . ': key is not defined' unless exists $conf->{key};
-    die __PACKAGE__ . ': domain is not defined' unless exists $conf->{domain};
+    warn __PACKAGE__ . ': key is not defined' unless exists $conf->{key};
+    warn __PACKAGE__ . ': domain is not defined' unless exists $conf->{domain};
+    return unless $conf->{key} && $conf->{domain};
     $mail_send = WWW::Mailgun->new($conf);
   }
 
@@ -20,6 +21,7 @@ sub register {
   $app->helper(
     mail => sub {
       ## TODO: sended mail counter (per day/per month)\
+      return unless ($mail_send);
       my $self = shift;
       my %params;
       if (@_ % 2 == 0) {
