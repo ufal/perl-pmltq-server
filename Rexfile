@@ -11,9 +11,9 @@ public_key "$home/.ssh/id_rsa.pub";
 private_key "$home/.ssh/id_rsa";
 key_auth;
 
-group all => 'euler-dev';
+group all => 'euler';
 
-my $deploy_to = '/opt/pmltq-server-dev';
+my $deploy_to = '/opt/pmltq-server';
 my $keep_last = 5;
 
 my $date = run 'date -u +%Y%m%d%H%M%S';
@@ -80,9 +80,9 @@ task 'deploy', group => 'all', sub {
   if ($start_server) {
     my $pid_file = "$shared_dir/pmltq-server.pid";
     if (is_file($pid_file)) {
-      run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic reload pmltq-dev';
+      run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic restart pmltq';
     } else {
-      run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic start pmltq-dev';
+      run '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && ubic start pmltq';
     }
   } else  {
     Rex::Logger::info("Not starting server, edit $config_file first");

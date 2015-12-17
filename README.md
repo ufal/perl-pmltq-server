@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/ufal/perl-pmltq-server.png)](https://travis-ci.org/ufal/perl-pmltq-server)
 [![Coverage Status](https://coveralls.io/repos/ufal/perl-pmltq-server/badge.svg)](https://coveralls.io/r/ufal/perl-pmltq-server)
 
-# PML-TQ Server - work in progress
+# PML-TQ Server
 
-This is a refactored version of PMLTQ::CGI server. It is an implementation of PML-TQ powered by SQL database.
+PML-TQ REST API server for querying treebanks.
 
 # Development
 
@@ -12,8 +12,19 @@ This is a refactored version of PMLTQ::CGI server. It is an implementation of PM
     cpanm --installdeps .
     morbo ./script/pmltq-server
 
-# TODO
+# Deployment
 
-- Treebank administration
-- TrEd compatible REST api
-- PMLTQ::Web compatible REST api
+<(UFAL specific)>
+
+The deployment uses [Rex](https://metacpan.org/pod/Rex) to facilitate the
+deployment. If you don't have Rex installed, install Rex by running:
+
+    cpanm -n Rex
+
+Also if you don't have that already upload you ssh keys on the server so you can deploy without inputting the password all the time.
+
+    ssh-copy-id pmltq@euler.ms.mff.cuni.cz
+
+Then you can deploy new version by running:
+
+    rex deploy
