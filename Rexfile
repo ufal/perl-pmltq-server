@@ -75,7 +75,7 @@ task 'deploy', group => 'all', sub {
   Rex::Logger::info("Installing dependecies...");
   run 'installdeps',
     cwd => $deploy_dir,
-    command => '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && carton install --deployment';
+    command => '[[ -s "$HOME/perl5/perlbrew/etc/bashrc" ]] && source $HOME/perl5/perlbrew/etc/bashrc && carton install';
 
   if ($start_server) {
     my $pid_file = "$shared_dir/pmltq-server.pid";
