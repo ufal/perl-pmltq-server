@@ -33,11 +33,7 @@ Bridge for other routes. Saves current treebank to stash under 'tb' key.
 sub list {
   my $c = shift;
 
-  $c->app->log->debug($c->dumper($c->req->params->to_hash));
-
   my $params = $c->_validate_params($c->req->params->to_hash);
-  $c->app->log->debug($c->dumper($params));
-
   my $attrs = $params->{pager} || {};
   $attrs->{order_by} = $params->{sort} if $params->{sort};
 
@@ -66,7 +62,7 @@ sub create {
   return $c->render_validation_errors unless $input;
 
   try {
-    my $entity = $c->resultset->create($input);
+    my $entity = $c->resultset->recursive_update($input);
     $c->render(json => $entity);
   } catch {
     $c->status_error({

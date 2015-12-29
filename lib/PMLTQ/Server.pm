@@ -54,6 +54,7 @@ sub startup {
   $admin->resource('tag', controller => 'Admin::Tag');
   $admin->resource('server', controller => 'Admin::Server');
   $admin->resource('language', controller => 'Admin::Language');
+  $admin->resource('language-group', controller => 'Admin::LanguageGroup');
 
   # my $profile = $r->get('/profile')->over(authenticated => 1)->to('Profile#index')->name('user_profile');
   # $profile->any([qw/GET POST/] => 'update')->over(has_priv => 'selfupdate')->to('Profile#update');
