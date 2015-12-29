@@ -42,6 +42,7 @@ my $treebank_data = {
     { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
   ],
   serverId => $test_server->id,
+  languages => [1, 2]
 };
 
 $t->post_ok($create_treebank_url => json => $treebank_data)
@@ -54,7 +55,8 @@ ok ($list_treebanks_url, 'List treebanks url exists');
 $t->get_ok($list_treebanks_url)
   ->status_is(200);
 
-$t->json_is("/0/$_", $treebank_data->{$_}) for keys %{$treebank_data};
+$t->json_is("/0/$_", $treebank_data->{$_}) for
+  grep { $_ !~ /languages/ } keys %{$treebank_data};
 
 # $t->post_ok($create_treebank_url => form => {
 #   map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
