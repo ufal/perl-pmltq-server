@@ -11,7 +11,7 @@ public_key "$home/.ssh/id_rsa.pub";
 private_key "$home/.ssh/id_rsa";
 key_auth;
 
-group all => 'euler';
+group all => 'euler.ms.mff.cuni.cz';
 
 my $deploy_to = '/opt/pmltq-server';
 my $keep_last = 5;
