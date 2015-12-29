@@ -40,7 +40,6 @@ task 'deploy', group => 'all', sub {
   my $live_version = eval {
     readlink $deploy_current;
   };
-  $live_version = basename($live_version) if $live_version;
 
   run "ln -snf $deploy_dir $deploy_current";
 
@@ -56,8 +55,8 @@ task 'deploy', group => 'all', sub {
     mkdir "$shared_dir/log";
   }
 
-  if (is_dir("$live_version/local")) {
-    cp "$live_version/local", "$deploy_current/local"
+  if ($live_version && is_dir("$live_version/local")) {
+    run "cp -R $live_version/local $deploy_current/local";
   }
 
   my $config_file = "$shared_dir/pmltq_server.private.pl";

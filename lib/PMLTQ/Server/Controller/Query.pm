@@ -151,6 +151,7 @@ sub query {
     while (my $row = $evaluator->cursor_next()) {
       push @results, $row;
     }
+    $evaluator->close_cursor();
 
     return $self->status_error({
       code => 500,
