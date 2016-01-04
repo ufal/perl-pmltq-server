@@ -3,6 +3,7 @@ package PMLTQ::Server::Controller::Admin::Language;
 # ABSTRACT: Managing languages in administration
 
 use Mojo::Base 'PMLTQ::Server::Controller::CRUD';
+use PMLTQ::Server::Validation;
 
 has resultset_name => 'Language';
 

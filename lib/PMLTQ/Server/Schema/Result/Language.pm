@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->position_column('position');
-__PACKAGE__->grouping_column('language_group');
+__PACKAGE__->grouping_column('language_group_id');
 __PACKAGE__->null_position_value(undef);
 
 __PACKAGE__->set_primary_key('id');

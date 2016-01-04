@@ -21,7 +21,8 @@ __PACKAGE__->add_unique_constraint('language_group_name_unique', ['name']);
 
 __PACKAGE__->has_many(
   languages => 'PMLTQ::Server::Schema::Result::Language',
-  'language_group_id',
+  { 'foreign.language_group_id' => 'self.id' },
+  { cascade_copy => 0, cascade_delete => 0 }
 );
 
 1;
