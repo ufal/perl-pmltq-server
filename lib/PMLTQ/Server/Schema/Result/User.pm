@@ -24,6 +24,7 @@ __PACKAGE__->add_columns(
     encode_check_method => 'check_password',
     is_serializable => 0
   },
+  allowed_treebanks     => { data_type => 'varchar', is_nullable => 1, size => 250 },
   access_all       => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
   is_admin         => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
   is_active        => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
