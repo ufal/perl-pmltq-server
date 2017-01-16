@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(
   username         => { data_type => 'varchar', is_nullable => 1, size => 120 },
   email            => { data_type => 'varchar', is_nullable => 1, size => 120 },
   password => {
-    data_type => 'char',
+    data_type => 'varchar', # hashes are 59-60 chars long - backward compatibility to Bcrypt key_nul=1 option !!!
     size => 60,
     is_nullable => 1,
     encode_column => 1,
