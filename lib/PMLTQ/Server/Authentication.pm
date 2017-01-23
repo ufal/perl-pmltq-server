@@ -30,7 +30,7 @@ sub validate_user {
   }
   my $user = $c->db->resultset('User')->single({ username => $username });
   my $user_id = $user && $user->check_password($password) ? $user->id : undef;
-  $c->app->log->debug("Authentication failed for: ${username}") unless $user;
+  $c->app->log->debug("Authentication failed for: ${username}") unless $user_id;
   return defined $user_id ? "$user_id" : undef;
 }
 

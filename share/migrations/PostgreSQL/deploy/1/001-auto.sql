@@ -68,7 +68,7 @@ CREATE TABLE "users" (
   "name" character varying(120),
   "username" character varying(120),
   "email" character varying(120),
-  "password" character(60),
+  "password" character varying(60),
   "access_all" boolean DEFAULT '0' NOT NULL,
   "is_admin" boolean DEFAULT '0' NOT NULL,
   "is_active" boolean DEFAULT '0' NOT NULL,

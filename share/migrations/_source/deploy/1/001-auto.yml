@@ -1209,7 +1209,7 @@ schema:
           size:
             - 250
         password:
-          data_type: char
+          data_type: varchar
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
