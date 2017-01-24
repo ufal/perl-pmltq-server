@@ -1,19 +1,19 @@
 {
-   "belongs_to" : {
+   "has_many" : {
       "fetch" : 0
    },
    "sets" : [
       {
-         "quantity" : "all",
-         "class" : "Language"
-      },
-      {
-         "class" : "Server",
+         "class" : "QueryRecord",
          "quantity" : "all"
       },
       {
-         "quantity" : "all",
-         "class" : "UserTreebank"
+         "class" : "Treebank",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserTag",
+         "quantity" : "all"
       },
       {
          "class" : "TreebankTag",
@@ -21,10 +21,14 @@
       },
       {
          "quantity" : "all",
-         "class" : "DataSource"
+         "class" : "QueryFile"
       },
       {
-         "class" : "Manual",
+         "quantity" : "all",
+         "class" : "TreebankLanguage"
+      },
+      {
+         "class" : "LanguageGroup",
          "quantity" : "all"
       },
       {
@@ -33,37 +37,33 @@
       },
       {
          "quantity" : "all",
+         "class" : "UserTreebank"
+      },
+      {
+         "class" : "DataSource",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Language"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Server"
+      },
+      {
+         "class" : "Manual",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
          "class" : "User"
-      },
-      {
-         "class" : "QueryRecord",
-         "quantity" : "all"
-      },
-      {
-         "class" : "TreebankLanguage",
-         "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "UserTag"
-      },
-      {
-         "quantity" : "all",
-         "class" : "LanguageGroup"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Treebank"
-      },
-      {
-         "class" : "QueryFile",
-         "quantity" : "all"
       }
    ],
-   "might_have" : {
+   "belongs_to" : {
       "fetch" : 0
    },
-   "has_many" : {
+   "might_have" : {
       "fetch" : 0
    }
 }
