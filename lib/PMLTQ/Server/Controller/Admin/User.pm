@@ -23,7 +23,7 @@ sub _validate {
       [qw/name username password email/] => is_long_at_most(120),
       username => is_unique($c->resultset, 'id', 'username already exists'),
       email => is_valid_email(),
-      treebanks => is_array("invalid treebank list format")
+      treebanks => is_array("invalid treebank list format"),
       tags => is_array("invalid tag list format")
     ]
   };
