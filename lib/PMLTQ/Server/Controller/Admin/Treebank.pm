@@ -13,12 +13,12 @@ sub _validate {
   my ($c, $treebank_data) = @_;
 
   my $rules = {
-    fields => [qw/id server_id database name title homepage handle is_public is_free is_featured
+    fields => [qw/id server_id database name title homepage handle is_public is_free is_all_logged is_featured
                   description data_sources manuals languages tags/],
     filters => [
       # Remove spaces from all
       [qw/name title database homepage description/] => filter(qw/trim/),
-      [qw/is_public is_free is_featured/] => force_bool(),
+      [qw/is_public is_free is_all_logged is_featured/] => force_bool(),
     ],
     checks => [
       [qw/name database/] => is_long_at_most(120),
