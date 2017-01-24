@@ -1,14 +1,13 @@
 {
-   "has_many" : {
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "might_have" : {
       "fetch" : 0
    },
    "sets" : [
       {
-         "class" : "QueryRecord",
-         "quantity" : "all"
-      },
-      {
-         "class" : "Treebank",
+         "class" : "TreebankTag",
          "quantity" : "all"
       },
       {
@@ -16,19 +15,11 @@
          "quantity" : "all"
       },
       {
-         "class" : "TreebankTag",
+         "class" : "UserTreebank",
          "quantity" : "all"
       },
       {
-         "quantity" : "all",
-         "class" : "QueryFile"
-      },
-      {
-         "quantity" : "all",
-         "class" : "TreebankLanguage"
-      },
-      {
-         "class" : "LanguageGroup",
+         "class" : "Language",
          "quantity" : "all"
       },
       {
@@ -36,34 +27,43 @@
          "quantity" : "all"
       },
       {
+         "class" : "QueryRecord",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Server",
+         "quantity" : "all"
+      },
+      {
          "quantity" : "all",
-         "class" : "UserTreebank"
+         "class" : "TreebankLanguage"
+      },
+      {
+         "class" : "Treebank",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "QueryFile"
+      },
+      {
+         "class" : "LanguageGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Manual"
       },
       {
          "class" : "DataSource",
          "quantity" : "all"
       },
       {
-         "quantity" : "all",
-         "class" : "Language"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Server"
-      },
-      {
-         "class" : "Manual",
+         "class" : "User",
          "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "User"
       }
    ],
-   "belongs_to" : {
-      "fetch" : 0
-   },
-   "might_have" : {
+   "has_many" : {
       "fetch" : 0
    }
 }

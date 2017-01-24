@@ -1,0 +1,69 @@
+$VAR1 = {
+          'sets' => [
+                      {
+                        'class' => 'TreebankTag',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'UserTag'
+                      },
+                      {
+                        'class' => 'UserTreebank',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Language',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Tag',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'QueryRecord'
+                      },
+                      {
+                        'class' => 'Server',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'TreebankLanguage'
+                      },
+                      {
+                        'class' => 'Treebank',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'QueryFile',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'LanguageGroup'
+                      },
+                      {
+                        'class' => 'Manual',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'DataSource'
+                      },
+                      {
+                        'class' => 'User',
+                        'quantity' => 'all'
+                      }
+                    ],
+          'has_many' => {
+                          'fetch' => 0
+                        },
+          'belongs_to' => {
+                            'fetch' => 0
+                          },
+          'might_have' => {
+                            'fetch' => 0
+                          }
+        };
