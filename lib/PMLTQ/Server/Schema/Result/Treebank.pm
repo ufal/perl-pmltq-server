@@ -168,7 +168,8 @@ sub accessible {
   my ($self, $user) = @_;
 
   return 1 if $self->is_free;
-  return $user->can_access_treebank($self->id) if $user;
+  return 1 if $user && $self->is_all_logged;
+  return $user->can_access_treebank($self->id,$self->treebank_tags) if $user;
   return 0;
 }
 
