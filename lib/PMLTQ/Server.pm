@@ -29,7 +29,7 @@ sub startup {
 
   $self->plugin('PMLTQ::Server::Mailgun' => $self->config->{mailgun}||{});
   $self->plugin('PMLTQ::Server::ValidateTiny' => {explicit => 0});
-  $self->plugin(Charset => {charset => 'utf8'});
+  # $self->plugin(Charset => {charset => 'utf8'}); not in Mojolicious v7+
   $self->plugin(HttpBasicAuth => {
     validate => sub {
       my ($c, $username, $password, $realm) = @_;
