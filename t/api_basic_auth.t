@@ -93,7 +93,7 @@ $t->get_ok($treebank_url)
 
 $tt->is_all_logged(0); # Disable anonymouse flag
 $tt->update();
-ok !$tt->is_all_logged, 'Test treebank cannot be access by all loged users';
+ok !$tt->is_all_logged, 'Test treebank cannot be access by all logged users';
 
 $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
