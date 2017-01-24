@@ -13,6 +13,7 @@ env:
 branches:
   only:
     - master
+    - treebank_priv
 
 before_install:
   - cpanm -n Devel::Cover::Report::Coveralls
