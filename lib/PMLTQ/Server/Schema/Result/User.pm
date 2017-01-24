@@ -24,7 +24,6 @@ __PACKAGE__->add_columns(
     encode_check_method => 'check_password',
     is_serializable => 0
   },
-  allowed_treebanks     => { data_type => 'varchar', is_nullable => 1, size => 250 },
   access_all       => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
   is_admin         => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
   is_active        => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
@@ -38,6 +37,12 @@ __PACKAGE__->add_unique_constraint('user_username_unique', ['name']);
 
 __PACKAGE__->has_many(
   available_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',
+  { 'foreign.user_id' => 'self.id' },
+  { cascade_copy => 0, cascade_delete => 1 },
+);
+
+__PACKAGE__->has_many(
+  available_tags => 'PMLTQ::Server::Schema::Result::UserTag',
   { 'foreign.user_id' => 'self.id' },
   { cascade_copy => 0, cascade_delete => 1 },
 );
@@ -77,10 +82,12 @@ sub new {
 }
 
 sub can_access_treebank {
-  my ($self, $treebank_id) = @_;
-
-  return 1 if $self->access_all;
-  return $self->available_treebanks->search({treebank_id => $treebank_id})->count;
+  my ($self, $treebank_id, $tag_ids) = @_;
+  my %tags = map {$_=>1} @$tag_ids;
+  return 1 if $self->access_all; # user can access all treebanks
+  return 1 if $self->available_treebanks->search({treebank_id => $treebank_id})->count; # available nonfree treebanks for current user
+  return 1 if grep {exists $tags{$_->treebank_id}} $self->available_tags->search(undef, {columns => {qw/tag_id/}}); # treeank and user has the same tag
+  return 0;
 }
 
 sub mail {
