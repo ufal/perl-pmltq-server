@@ -101,6 +101,23 @@ $treebank_url->userinfo('tester:tester');
 $t->get_ok($treebank_url)
   ->status_is(403);
 
+use Data::Dumper;
+$tu->add_to_treebanks($tt);
+$tu->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+$tu->set_treebanks([]);
+$tu->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
 $tu->access_all(1);
 $tu->update();
 
