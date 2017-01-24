@@ -53,6 +53,7 @@ $t->get_ok($auth_check_url)
 # Restrict access to test treebank
 $t->reset_session();
 ok $tt->is_free, 'Test treebank can be access by public';
+ok $tt->is_all_logged, 'Test treebank can access all logged users';
 
 ok $t->app->routes->find('treebank'), 'Treebank api route exists';
 my $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
@@ -83,6 +84,16 @@ $t->get_ok($treebank_url)
 $t->reset_session();
 $t->get_ok($treebank_url)
   ->status_is(401);
+
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+$tt->is_all_logged(0); # Disable anonymouse flag
+$tt->update();
+ok !$tt->is_all_logged, 'Test treebank cannot be access by all loged users';
 
 $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);

@@ -143,6 +143,7 @@ sub test_treebank {
     database => 'test',
     is_public => 1,
     is_free => 1,
+    is_all_logged => 1,
     data_sources => [
       { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data') },
       { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
