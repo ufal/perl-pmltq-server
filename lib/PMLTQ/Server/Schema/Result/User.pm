@@ -41,11 +41,15 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 1 },
 );
 
+__PACKAGE__->many_to_many( treebanks => 'available_treebanks', 'treebank' );
+
 __PACKAGE__->has_many(
   available_tags => 'PMLTQ::Server::Schema::Result::UserTag',
   { 'foreign.user_id' => 'self.id' },
   { cascade_copy => 0, cascade_delete => 1 },
 );
+
+__PACKAGE__->many_to_many( tags => 'available_tags', 'tag' );
 
 __PACKAGE__->has_many(
   query_records => 'PMLTQ::Server::Schema::Result::QueryRecord',
