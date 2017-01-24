@@ -2,7 +2,6 @@
 
 use warnings;
 use strict;
-
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
 
@@ -10,11 +9,10 @@ use DBIx::Class::Migration::Script;
 use PMLTQ::Server;
 
 my $app = PMLTQ::Server->new;
-
 DBIx::Class::Migration::Script
   ->run_with_options(
     schema => $app->db,
-    target_dir => $app->home->rel_file('share'),
+    target_dir => $app->home->rel_file('share').'',# HACK to avoid this error in new Mojolicious: Attribute (target_dir) does not pass the type constraint because: Validation failed for 'Str' with value Mojo::Home=
     extra_schemaloader_args => {
       schema_base_class => 'PMLTQ::Server::Schema',
       result_base_class => 'PMLTQ::Server::Schema::Result',
