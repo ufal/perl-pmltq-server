@@ -21,7 +21,7 @@ If not sure, delete your `pmltq_server.private.pl` configuration and use default
 - Increase schema version in `PMLTQ::Schema`
 - Prepare a new version `./script/db-migration prepare`
 - Upgrade the current database `./script/db-migration upgrade`
-- Dump data for fixtures `./script/db-migration dump_all_datasets`
+- Dump data for fixtures `./script/db-migration dump_all_sets`
 
 # Deployment
 
