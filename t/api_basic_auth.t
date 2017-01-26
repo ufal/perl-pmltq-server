@@ -16,6 +16,7 @@ my $t = test_app();
 my $ta = test_admin();
 my $tu = test_user();
 my $tt = test_treebank();
+my $tg = test_tag('TAG');
 
 $t->reset_session();
 ok $t->app->routes->find('auth_check'), 'Auth check route exists';
@@ -101,7 +102,7 @@ $treebank_url->userinfo('tester:tester');
 $t->get_ok($treebank_url)
   ->status_is(403);
 
-use Data::Dumper;
+# adding treebank tt to available_treebanks
 $tu->add_to_treebanks($tt);
 $tu->update();
 $t->reset_session();
@@ -110,6 +111,7 @@ $treebank_url->userinfo('tester:tester');
 $t->get_ok($treebank_url)
   ->status_is(200);
 
+# removing treebank tt from available_treebanks
 $tu->set_treebanks([]);
 $tu->update();
 $t->reset_session();
@@ -117,6 +119,34 @@ $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
 $treebank_url->userinfo('tester:tester');
 $t->get_ok($treebank_url)
   ->status_is(403);
+
+# adding tag tg to treebank
+$tt->add_to_tags($tg);
+$tt->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
+# adding tag tg to user
+$tu->add_to_tags($tg);
+$tu->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+# removing tag tg from treebank
+$tt->set_tags([]);
+$tt->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
 
 $tu->access_all(1);
 $tu->update();

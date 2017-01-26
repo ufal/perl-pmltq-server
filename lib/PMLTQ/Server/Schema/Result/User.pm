@@ -87,10 +87,10 @@ sub new {
 
 sub can_access_treebank {
   my ($self, $treebank_id, $tag_ids) = @_;
-  my %tags = map {$_=>1} @$tag_ids;
+  my %tags = map {$_->id=>1} @{$tag_ids//[]};
   return 1 if $self->access_all; # user can access all treebanks
   return 1 if $self->available_treebanks->search({treebank_id => $treebank_id})->count; # available nonfree treebanks for current user
-  return 1 if grep {exists $tags{$_->treebank_id}} $self->available_tags->search(undef, {columns => [qw/tag_id/]}); # treeank and user has the same tag
+  return 1 if grep {exists $tags{$_->tag_id}} $self->available_tags->search(undef, {columns => [qw/tag_id/]}); # treeank and user has the same tag
   return 0;
 }
 

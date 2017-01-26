@@ -73,6 +73,15 @@ __PACKAGE__->has_many(
 
 __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
+# __PACKAGE__->has_many(
+#   user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',
+#   'user_id',
+#   { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
+# );
+
+# __PACKAGE__->many_to_many( users => 'user_treebanks', 'user' );
+
+
 sub TO_JSON {
    my $self = shift;
 
@@ -169,7 +178,7 @@ sub accessible {
 
   return 1 if $self->is_free;
   return 1 if $user && $self->is_all_logged;
-  return $user->can_access_treebank($self->id,$self->treebank_tags) if $user;
+  return $user->can_access_treebank($self->id,[$self->tags()->all]) if $user;
   return 0;
 }
 
