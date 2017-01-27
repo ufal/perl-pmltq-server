@@ -73,13 +73,10 @@ __PACKAGE__->has_many(
 
 __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
-# __PACKAGE__->has_many(
-#   user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',
-#   'user_id',
-#   { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
-# );
 
-# __PACKAGE__->many_to_many( users => 'user_treebanks', 'user' );
+# __PACKAGE__->has_many( user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',  'user_id',  { cascade_copy => 0, cascade_delete => 1 });
+
+#__PACKAGE__->many_to_many( users => 'user_treebanks', 'treebank_id' );
 
 
 sub TO_JSON {

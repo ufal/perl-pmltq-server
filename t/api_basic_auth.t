@@ -103,7 +103,7 @@ $t->get_ok($treebank_url)
   ->status_is(403);
 
 # adding treebank tt to available_treebanks
-$tu->add_to_treebanks($tt);
+$tu->add_to_available_treebanks($tt);
 $tu->update();
 $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
@@ -112,7 +112,7 @@ $t->get_ok($treebank_url)
   ->status_is(200);
 
 # removing treebank tt from available_treebanks
-$tu->set_treebanks([]);
+$tu->set_available_treebanks([]);
 $tu->update();
 $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
@@ -130,7 +130,7 @@ $t->get_ok($treebank_url)
   ->status_is(403);
 
 # adding tag tg to user
-$tu->add_to_tags($tg);
+$tu->add_to_available_tags($tg);
 $tu->update();
 $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);

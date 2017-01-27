@@ -13,7 +13,7 @@ sub _validate {
   my ($c, $user_data) = @_;
 
   my $rules = {
-    fields => [qw/name username password email is_active is_admin access_all treebanks tags/],
+    fields => [qw/name username password email is_active is_admin access_all available_treebanks available_tags/],
     filters => [
       # Remove spaces from all
       [qw/name username email/] => filter(qw/trim strip/),
@@ -23,8 +23,8 @@ sub _validate {
       [qw/name username password email/] => is_long_at_most(120),
       username => is_unique($c->resultset, 'id', 'username already exists'),
       email => is_valid_email(),
-      treebanks => is_array("invalid treebank list format"),
-      tags => is_array("invalid tag list format")
+      available_treebanks => is_array("invalid treebank list format"),
+      available_tags => is_array("invalid tag list format")
     ]
   };
 

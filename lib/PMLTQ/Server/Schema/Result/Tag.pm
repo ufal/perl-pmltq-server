@@ -18,8 +18,9 @@ __PACKAGE__->has_many( treebank_tags => 'PMLTQ::Server::Schema::Result::Treebank
 
 __PACKAGE__->many_to_many( treebanks => 'treebank_languages', 'tag_id' );
 
-# __PACKAGE__->has_many( user_tags => 'PMLTQ::Server::Schema::Result::UserTag', 'user_id', { cascade_copy => 0, cascade_delete => 1 } );
+__PACKAGE__->has_many( user_tags => 'PMLTQ::Server::Schema::Result::UserTag', 'tag_id', { cascade_copy => 0, cascade_delete => 1 } );
 
-# __PACKAGE__->many_to_many( users => 'user_languages', 'user_id' );
+__PACKAGE__->many_to_many( users => 'user_tags', 'tag_id' );
+
 
 1;
