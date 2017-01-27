@@ -1045,7 +1045,7 @@ schema:
             - tag_id
           match_type: ''
           name: user_tags_fk_tag_id
-          on_delete: ''
+          on_delete: CASCADE
           on_update: ''
           options: []
           reference_fields:

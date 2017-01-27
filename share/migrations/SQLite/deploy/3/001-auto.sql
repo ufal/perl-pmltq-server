@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Tue Jan 24 17:44:16 2017
+-- Created on Fri Jan 27 11:03:45 2017
 -- 
 
 ;
@@ -149,7 +149,7 @@ CREATE TABLE user_tags (
   user_id integer NOT NULL,
   tag_id integer NOT NULL,
   PRIMARY KEY (user_id, tag_id),
-  FOREIGN KEY (tag_id) REFERENCES tags(id),
+  FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX user_tags_idx_tag_id ON user_tags (tag_id);

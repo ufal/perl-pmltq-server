@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Jan 24 17:44:16 2017
+-- Created on Fri Jan 27 11:03:45 2017
 -- 
 ;
 --
@@ -243,7 +243,7 @@ ALTER TABLE "query_records" ADD CONSTRAINT "query_records_fk_user_id" FOREIGN KE
 
 ;
 ALTER TABLE "user_tags" ADD CONSTRAINT "user_tags_fk_tag_id" FOREIGN KEY ("tag_id")
-  REFERENCES "tags" ("id") DEFERRABLE;
+  REFERENCES "tags" ("id") ON DELETE CASCADE DEFERRABLE;
 
 ;
 ALTER TABLE "user_tags" ADD CONSTRAINT "user_tags_fk_user_id" FOREIGN KEY ("user_id")

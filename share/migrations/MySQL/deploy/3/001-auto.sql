@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Tue Jan 24 17:44:16 2017
+-- Created on Fri Jan 27 11:03:45 2017
 -- 
 ;
 SET foreign_key_checks=0;
@@ -158,7 +158,7 @@ CREATE TABLE `user_tags` (
   INDEX `user_tags_idx_tag_id` (`tag_id`),
   INDEX `user_tags_idx_user_id` (`user_id`),
   PRIMARY KEY (`user_id`, `tag_id`),
-  CONSTRAINT `user_tags_fk_tag_id` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`id`),
+  CONSTRAINT `user_tags_fk_tag_id` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_tags_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 --

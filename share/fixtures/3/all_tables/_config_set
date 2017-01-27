@@ -1,19 +1,35 @@
 $VAR1 = {
           'sets' => [
                       {
-                        'class' => 'TreebankTag',
+                        'quantity' => 'all',
+                        'class' => 'QueryFile'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'QueryRecord'
+                      },
+                      {
+                        'class' => 'Manual',
                         'quantity' => 'all'
                       },
                       {
                         'quantity' => 'all',
-                        'class' => 'UserTag'
+                        'class' => 'Treebank'
                       },
                       {
-                        'class' => 'UserTreebank',
+                        'quantity' => 'all',
+                        'class' => 'Language'
+                      },
+                      {
+                        'class' => 'DataSource',
                         'quantity' => 'all'
                       },
                       {
-                        'class' => 'Language',
+                        'quantity' => 'all',
+                        'class' => 'TreebankLanguage'
+                      },
+                      {
+                        'class' => 'TreebankTag',
                         'quantity' => 'all'
                       },
                       {
@@ -22,39 +38,23 @@ $VAR1 = {
                       },
                       {
                         'quantity' => 'all',
-                        'class' => 'QueryRecord'
-                      },
-                      {
-                        'class' => 'Server',
-                        'quantity' => 'all'
+                        'class' => 'Server'
                       },
                       {
                         'quantity' => 'all',
-                        'class' => 'TreebankLanguage'
-                      },
-                      {
-                        'class' => 'Treebank',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'class' => 'QueryFile',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'quantity' => 'all',
-                        'class' => 'LanguageGroup'
-                      },
-                      {
-                        'class' => 'Manual',
-                        'quantity' => 'all'
-                      },
-                      {
-                        'quantity' => 'all',
-                        'class' => 'DataSource'
+                        'class' => 'UserTag'
                       },
                       {
                         'class' => 'User',
                         'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'UserTreebank'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'LanguageGroup'
                       }
                     ],
           'has_many' => {

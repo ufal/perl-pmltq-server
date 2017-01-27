@@ -1,69 +1,69 @@
 {
-   "belongs_to" : {
-      "fetch" : 0
-   },
-   "might_have" : {
-      "fetch" : 0
-   },
    "sets" : [
       {
-         "class" : "TreebankTag",
-         "quantity" : "all"
-      },
-      {
-         "class" : "UserTag",
-         "quantity" : "all"
-      },
-      {
-         "class" : "UserTreebank",
-         "quantity" : "all"
-      },
-      {
-         "class" : "Language",
-         "quantity" : "all"
-      },
-      {
-         "class" : "Tag",
-         "quantity" : "all"
+         "quantity" : "all",
+         "class" : "QueryFile"
       },
       {
          "class" : "QueryRecord",
          "quantity" : "all"
       },
       {
-         "class" : "Server",
+         "class" : "Manual",
          "quantity" : "all"
       },
       {
          "quantity" : "all",
-         "class" : "TreebankLanguage"
+         "class" : "Treebank"
       },
       {
-         "class" : "Treebank",
+         "class" : "Language",
          "quantity" : "all"
       },
       {
          "quantity" : "all",
-         "class" : "QueryFile"
+         "class" : "DataSource"
+      },
+      {
+         "class" : "TreebankLanguage",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "TreebankTag"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Tag"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Server"
+      },
+      {
+         "class" : "UserTag",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "User"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserTreebank"
       },
       {
          "class" : "LanguageGroup",
          "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Manual"
-      },
-      {
-         "class" : "DataSource",
-         "quantity" : "all"
-      },
-      {
-         "class" : "User",
-         "quantity" : "all"
       }
    ],
    "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
       "fetch" : 0
    }
 }

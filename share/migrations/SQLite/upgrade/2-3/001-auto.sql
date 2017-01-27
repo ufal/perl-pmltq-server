@@ -8,7 +8,7 @@ CREATE TABLE user_tags (
   user_id integer NOT NULL,
   tag_id integer NOT NULL,
   PRIMARY KEY (user_id, tag_id),
-  FOREIGN KEY (tag_id) REFERENCES tags(id),
+  FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

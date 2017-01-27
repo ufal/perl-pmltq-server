@@ -14,7 +14,7 @@ CREATE INDEX "user_tags_idx_user_id" on "user_tags" ("user_id");
 
 ;
 ALTER TABLE "user_tags" ADD CONSTRAINT "user_tags_fk_tag_id" FOREIGN KEY ("tag_id")
-  REFERENCES "tags" ("id") DEFERRABLE;
+  REFERENCES "tags" ("id") ON DELETE CASCADE DEFERRABLE;
 
 ;
 ALTER TABLE "user_tags" ADD CONSTRAINT "user_tags_fk_user_id" FOREIGN KEY ("user_id")
