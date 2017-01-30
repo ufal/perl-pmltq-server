@@ -1,0 +1,69 @@
+{
+   "sets" : [
+      {
+         "quantity" : "all",
+         "class" : "QueryFile"
+      },
+      {
+         "class" : "QueryRecord",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Manual",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Treebank"
+      },
+      {
+         "class" : "Language",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "DataSource"
+      },
+      {
+         "class" : "TreebankLanguage",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "TreebankTag"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Tag"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Server"
+      },
+      {
+         "class" : "UserTag",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "User"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserTreebank"
+      },
+      {
+         "class" : "LanguageGroup",
+         "quantity" : "all"
+      }
+   ],
+   "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   }
+}

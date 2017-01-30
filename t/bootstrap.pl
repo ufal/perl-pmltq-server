@@ -143,6 +143,7 @@ sub test_treebank {
     database => 'test',
     is_public => 1,
     is_free => 1,
+    is_all_logged => 1,
     data_sources => [
       { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data') },
       { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
@@ -175,25 +176,34 @@ sub test_admin {
   return $admin_user;
 }
 
-sub add_stickers {
-  my @stickers = @_ ; # parent sticker should be before children in the list
-  my @added;
-  my $collection = test_app()->app->mandel->collection('sticker');
-  for my $sticker (@stickers){
-    my ($name,$comment,$parentIdx) = @$sticker;
-    my $parent = undef;
-    $parent = $collection->search({name => $stickers[$parentIdx]->[0]})->single if defined $parentIdx;
-    my $s = $collection->create({
-      name => $name,
-      comment => $comment,
-      $parent ? (parent => bson_dbref( 'stickers', bson_oid($parent->id) )):()
-      });
-    $s->save();
-    push @added,$s;
-  }
-
-  return [@added]
+sub test_tag {
+  my $name = shift // 'DefaultTestTag';
+  
+  my $tag = test_db->resultset('Tag')->create({
+    name => $name
+  })->discard_changes;
+  return $tag;
 }
+
+# sub add_stickers {
+#   my @stickers = @_ ; # parent sticker should be before children in the list
+#   my @added;
+#   my $collection = test_app()->app->mandel->collection('sticker');
+#   for my $sticker (@stickers){
+#     my ($name,$comment,$parentIdx) = @$sticker;
+#     my $parent = undef;
+#     $parent = $collection->search({name => $stickers[$parentIdx]->[0]})->single if defined $parentIdx;
+#     my $s = $collection->create({
+#       name => $name,
+#       comment => $comment,
+#       $parent ? (parent => bson_dbref( 'stickers', bson_oid($parent->id) )):()
+#       });
+#     $s->save();
+#     push @added,$s;
+#   }
+
+#   return [@added]
+# }
 
 my $print_server_pid;
 

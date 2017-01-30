@@ -1,0 +1,9 @@
+$HASH1 = {
+           code    => 'mo',
+           id      => 42,
+           language_group_id
+                   => 4,
+           name    => 'Moldovan (deprecated: use Romanian)',
+           position
+                   => 9
+         };

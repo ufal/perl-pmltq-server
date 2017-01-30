@@ -36,10 +36,20 @@ __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint('user_username_unique', ['name']);
 
 __PACKAGE__->has_many(
-  available_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',
+  user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',
   { 'foreign.user_id' => 'self.id' },
   { cascade_copy => 0, cascade_delete => 1 },
 );
+
+__PACKAGE__->many_to_many( available_treebanks => 'user_treebanks', 'treebank' );
+
+__PACKAGE__->has_many(
+  user_tags => 'PMLTQ::Server::Schema::Result::UserTag',
+  { 'foreign.user_id' => 'self.id' },
+  { cascade_copy => 0, cascade_delete => 1 },
+);
+
+__PACKAGE__->many_to_many( available_tags => 'user_tags', 'tag' );
 
 __PACKAGE__->has_many(
   query_records => 'PMLTQ::Server::Schema::Result::QueryRecord',
@@ -76,10 +86,12 @@ sub new {
 }
 
 sub can_access_treebank {
-  my ($self, $treebank_id) = @_;
-
-  return 1 if $self->access_all;
-  return $self->available_treebanks->search({treebank_id => $treebank_id})->count;
+  my ($self, $treebank_id, $tag_ids) = @_;
+  my %tags = map {$_->id=>1} @{$tag_ids//[]};
+  return 1 if $self->access_all; # user can access all treebanks
+  return 1 if $self->user_treebanks->search({treebank_id => $treebank_id})->count; # available nonfree treebanks for current user
+  return 1 if grep {exists $tags{$_->tag_id}} $self->user_tags->search(undef, {columns => [qw/tag_id/]}); # treeank and user has the same tag
+  return 0;
 }
 
 sub mail {
@@ -100,7 +112,9 @@ sub TO_JSON {
    my $self = shift;
 
    return {
-      $self->to_json_key('available_treebanks') => [map { $_->treebank_id } $self->available_treebanks->search(undef, {columns => [qw/treebank_id/]})],
+      # $self->to_json_key('treebanks') => [map { $_->treebank_id } $self->available_treebanks->search(undef, {columns => [qw/treebank_id/]})],
+      # $self->to_json_key('available_tags') => [map { $_->tag_id } $self->available_tags->search(undef, {columns => [qw/tag_id/]})],
+      (map { ($self->to_json_key($_) => [$self->$_]) } qw/available_treebanks available_tags/),
       %{ $self->next::method },
    }
 }

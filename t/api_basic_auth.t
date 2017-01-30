@@ -16,6 +16,7 @@ my $t = test_app();
 my $ta = test_admin();
 my $tu = test_user();
 my $tt = test_treebank();
+my $tg = test_tag('TAG');
 
 $t->reset_session();
 ok $t->app->routes->find('auth_check'), 'Auth check route exists';
@@ -53,6 +54,7 @@ $t->get_ok($auth_check_url)
 # Restrict access to test treebank
 $t->reset_session();
 ok $tt->is_free, 'Test treebank can be access by public';
+ok $tt->is_all_logged, 'Test treebank can access all logged users';
 
 ok $t->app->routes->find('treebank'), 'Treebank api route exists';
 my $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
@@ -88,7 +90,63 @@ $t->reset_session();
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
 $treebank_url->userinfo('tester:tester');
 $t->get_ok($treebank_url)
+  ->status_is(200);
+
+$tt->is_all_logged(0); # Disable anonymouse flag
+$tt->update();
+ok !$tt->is_all_logged, 'Test treebank cannot be access by all logged users';
+
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
   ->status_is(403);
+
+# adding treebank tt to available_treebanks
+$tu->add_to_available_treebanks($tt);
+$tu->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+# removing treebank tt from available_treebanks
+$tu->set_available_treebanks([]);
+$tu->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
+# adding tag tg to treebank
+$tt->add_to_tags($tg);
+$tt->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
+# adding tag tg to user
+$tu->add_to_available_tags($tg);
+$tu->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+# removing tag tg from treebank
+$tt->set_tags([]);
+$tt->update();
+$t->reset_session();
+$treebank_url = $t->app->url_for('treebank', treebank_id => $tt->id);
+$treebank_url->userinfo('tester:tester');
+$t->get_ok($treebank_url)
+  ->status_is(403);
+
 
 $tu->access_all(1);
 $tu->update();

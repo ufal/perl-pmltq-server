@@ -25,6 +25,7 @@ __PACKAGE__->add_columns(
   description   => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
   is_public     => { data_type => 'boolean', is_nullable => 0, default_value => 1 },
   is_free       => { data_type => 'boolean', is_nullable => 0, default_value => 0 },
+  is_all_logged => { data_type => 'boolean', is_nullable => 0, default_value => 1 },
   is_featured   => { data_type => 'boolean', is_nullable => 0, default_value => 0 },
   created_at    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_modified => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
@@ -71,6 +72,12 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
+
+
+# __PACKAGE__->has_many( user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',  'user_id',  { cascade_copy => 0, cascade_delete => 1 });
+
+#__PACKAGE__->many_to_many( users => 'user_treebanks', 'treebank_id' );
+
 
 sub TO_JSON {
    my $self = shift;
@@ -167,7 +174,8 @@ sub accessible {
   my ($self, $user) = @_;
 
   return 1 if $self->is_free;
-  return $user->can_access_treebank($self->id) if $user;
+  return 1 if $user && $self->is_all_logged;
+  return $user->can_access_treebank($self->id,[$self->tags()->all]) if $user;
   return 0;
 }
 
