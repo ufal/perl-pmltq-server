@@ -160,7 +160,7 @@ sub list_data {
   return json {
     tags => [$self->tags()->all],
     languages => [$self->languages()->all],
-    map { ( $_ => $self->$_ ) } qw/id name title description homepage is_public is_free is_featured handle/
+    map { ( $_ => $self->$_ ) } qw/id name title description homepage is_public is_free is_featured is_all_logged handle/
   }
 }
 
