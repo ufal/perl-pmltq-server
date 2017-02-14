@@ -64,6 +64,7 @@ sub startup {
   $api_auth->post->to(action => 'sign_in')->name('auth_sign_in');
   $api_auth->delete->to(action => 'sign_out')->name('auth_sign_out');
   $api_auth->get('shibboleth')->to(action => 'sign_in_shibboleth')->name('auth_shibboleth');
+  $api_auth->get('ldc')->to(action => 'sign_in_ldc')->name('auth_ldc');
 
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
 
