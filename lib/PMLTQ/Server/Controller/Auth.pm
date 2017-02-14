@@ -9,7 +9,8 @@ use Encode qw(decode_utf8);
 sub render_user {
   my $c = shift;
 
-  $c->render(json => { user => $c->is_user_authenticated ? $c->current_user : Mojo::JSON->false });
+  $c->render(json => { user => $c->is_user_authenticated ? $c->current_user : Mojo::JSON->false,
+             login_with => $c->config->{login_with} // {local => 1} });
 }
 
 sub check {

@@ -12,6 +12,11 @@
   # Without protecting url with Shibboleth opens your app to attackers because anyone
   # could fake Shibboleth headers.
   shibboleth => 0,
+  login_with => {
+    local => 1,
+    shibboleth => 0,
+    ldc => 0
+  },
   tree_print_service => 'http://localhost:8070/svg',
   nodes_to_query_service => 'http://localhost:8070/pmltq',
   data_dir => '/opt/pmltq/data',
