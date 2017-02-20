@@ -29,6 +29,7 @@ __PACKAGE__->add_columns(
   is_featured   => { data_type => 'boolean', is_nullable => 0, default_value => 0 },
   created_at    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_modified => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
+  documentation   => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
 );
 
 __PACKAGE__->set_primary_key('id');
