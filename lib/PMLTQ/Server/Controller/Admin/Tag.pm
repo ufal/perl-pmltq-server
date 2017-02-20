@@ -13,7 +13,7 @@ sub _validate {
   my ($c, $tag_data) = @_;
 
   my $rules = {
-    fields => [qw/id name comment/],
+    fields => [qw/id name comment documentation/],
     filters => [
       [qw/name comment/] => filter(qw/trim strip/),
     ],
