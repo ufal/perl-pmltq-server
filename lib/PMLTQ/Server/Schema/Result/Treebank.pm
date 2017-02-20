@@ -145,8 +145,21 @@ sub metadata {
     relations => $relations,
     attributes => \%attributes,
     doc => $self->generate_doc,
+    documentation => $self->get_documentation,
     %{$list_data}
   }
+}
+
+=head2 get_documentation
+
+Returns documentation for treebank or joined documentation for all its tags
+
+=cut
+
+sub get_documentation {
+  my $self = shift;
+
+  return $self->documentation || join("\n\n",map {$_->documentation} $self->tags()->all);
 }
 
 =head2 list_data
@@ -159,7 +172,7 @@ sub list_data {
   my $self = shift;
 
   return json {
-    tags => [$self->tags()->all],
+    tags => [ map { $_->list_data } $self->tags()->all],
     languages => [$self->languages()->all],
     map { ( $_ => $self->$_ ) } qw/id name title description homepage is_public is_free is_featured is_all_logged handle/
   }

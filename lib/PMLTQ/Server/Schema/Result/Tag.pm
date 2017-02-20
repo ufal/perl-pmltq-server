@@ -1,6 +1,7 @@
 package PMLTQ::Server::Schema::Result::Tag;
 
 use Mojo::Base qw/PMLTQ::Server::Schema::Result/;
+use PMLTQ::Server::JSON 'json';
 
 __PACKAGE__->table('tags');
 
@@ -23,5 +24,19 @@ __PACKAGE__->has_many( user_tags => 'PMLTQ::Server::Schema::Result::UserTag', 't
 
 __PACKAGE__->many_to_many( users => 'user_tags', 'tag_id' );
 
+
+=head2 list_data
+
+Metadata for tag list
+
+=cut
+
+sub list_data {
+  my $self = shift;
+
+  return json {
+    map { ( $_ => $self->$_ ) } qw/id name comment/ # excluding documentation in list format
+  }
+}
 
 1;
