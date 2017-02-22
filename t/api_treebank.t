@@ -20,7 +20,7 @@ my $tb = test_treebank();
 
 ## Metadata
 my $m = $tb->metadata;
-my @all_metadata = qw/id name title description homepage tags languages is_public is_all_logged is_free is_featured handle attributes doc node_types relations schemas/;
+my @all_metadata = qw/id name title description documentation homepage tags languages is_public is_all_logged is_free is_featured handle attributes doc node_types relations schemas/;
 ok(cmp_bag(
   [keys %$m],
   [@all_metadata]
