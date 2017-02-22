@@ -29,6 +29,7 @@ __PACKAGE__->add_columns(
   is_featured   => { data_type => 'boolean', is_nullable => 0, default_value => 0 },
   created_at    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_modified => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
+  documentation   => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -144,8 +145,21 @@ sub metadata {
     relations => $relations,
     attributes => \%attributes,
     doc => $self->generate_doc,
+    documentation => $self->get_documentation,
     %{$list_data}
   }
+}
+
+=head2 get_documentation
+
+Returns documentation for treebank or joined documentation for all its tags
+
+=cut
+
+sub get_documentation {
+  my $self = shift;
+
+  return $self->documentation || join("\n\n",map {$_->documentation} $self->tags()->all);
 }
 
 =head2 list_data
@@ -158,7 +172,7 @@ sub list_data {
   my $self = shift;
 
   return json {
-    tags => [$self->tags()->all],
+    tags => [ map { $_->list_data } $self->tags()->all],
     languages => [$self->languages()->all],
     map { ( $_ => $self->$_ ) } qw/id name title description homepage is_public is_free is_featured is_all_logged handle/
   }
