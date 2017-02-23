@@ -17,6 +17,8 @@ my $tu = test_user();
 my $tb = test_treebank();
 my $tg1 = test_tag('TAG1','TAG1DOC');
 my $tg2 = test_tag('TAG2','TAG2DOC');
+my $tg1nodoc = test_tag('TAG1NODOC');
+my $tg2nodoc = test_tag('TAG2NODOC');
 
 # Test model
 
@@ -200,6 +202,16 @@ $t->get_ok($treebank_url)
   ->status_is(200);
 
 is($t->tx->res->json->{documentation}, $tb->documentation, 'Treebank uses treebank documentation');
+
+# test two tags without doc and treebank without doc
+$tb->documentation('');
+$tb->set_tags([$tg1nodoc,$tg2nodoc]);
+$tb->update();
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+is($t->tx->res->json->{documentation}, '', 'Treebank does not have documentation');
 
 
 done_testing();
