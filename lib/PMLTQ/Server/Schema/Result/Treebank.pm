@@ -159,7 +159,7 @@ Returns documentation for treebank or joined documentation for all its tags
 sub get_documentation {
   my $self = shift;
 
-  return $self->documentation || join("\n\n",map {$_->documentation} $self->tags()->all);
+  return $self->documentation || join("\n\n",map {$_->documentation} grep {$_->documentation} $self->tags()->all);
 }
 
 =head2 list_data
