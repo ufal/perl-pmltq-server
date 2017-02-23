@@ -24,12 +24,127 @@ $t->post_ok($t->app->url_for('auth_sign_in') => json => {
   }
 })->status_is(200);
 
+my $create_user_url = $t->app->url_for('create_user');
+ok ($create_user_url, 'Create user url exists');
+
+my $user_data = {
+  name => 'Joe Tester',
+  username => 'joe',
+  password => 's3cret',
+  email => 'joe@example.com',
+};
+
+$t->post_ok($create_user_url => json => $user_data)
+  ->status_is(200)->or(sub { diag p($t->tx->res->json) })
+  ->json_has('/id');
+my $user_resp_data = $t->tx->res->json;
+
+$t->post_ok($create_user_url => json => $user_data)
+  ->status_is(400)
+  ->content_like(qr/username already exists/);
+
 my $list_users_url = $t->app->url_for('list_users');
 ok ($list_users_url, 'List users url exists');
 
 $t->get_ok($list_users_url)
   ->status_is(200);
 
+
+$t->json_is("/1/$_", $user_data->{$_}) for # first(0) user is admin
+  grep { $_ !~ /password/ } keys %{$user_data};
+$t->json_is("/1/password", undef, "Dont send password");
+
+$t->delete_ok($t->app->url_for('auth_sign_out'))
+  ->status_is(200,"Admin sign out");
+
+$t->get_ok($list_users_url)
+  ->status_is(401)
+  ->content_like(qr/Authentication required/);
+
+# login as a user
+$t->post_ok($t->app->url_for('auth_sign_in') => json => {
+  auth => {
+    map {$_ => $user_data->{$_}} qw/username password/
+  }
+})->status_is(200);
+
+$t->delete_ok($t->app->url_for('auth_sign_out'))
+  ->status_is(200,"$user_data->{name} sign out");
+
+# admin login, changing user password
+$t->post_ok($t->app->url_for('auth_sign_in') => json => {
+  auth => {
+    username => 'admin',
+    password => 'admin'
+  }
+})->status_is(200);
+my $update_user_url = $t->app->url_for('update_user', user_id => $user_resp_data->{id});
+ok ($update_user_url, 'Update user url exists');
+
+$t->get_ok($list_users_url)
+  ->status_is(200);
+
+$user_resp_data->{password} = 'new_pass';
+
+$t->put_ok($update_user_url => json => $user_resp_data)
+  ->status_is(200)->or(sub { diag p($t->tx->res->json) })
+  ->json_has('/id');
+
+$t->delete_ok($t->app->url_for('auth_sign_out'))
+  ->status_is(200,"$user_data->{name} sign out");
+
+# try to user login with new password
+
+$t->post_ok($t->app->url_for('auth_sign_in') => json => {
+  auth => {
+    map {$_ => $user_resp_data->{$_}} qw/username password/
+  }
+})->status_is(200)
+  ->json_is("/user/email",$user_resp_data->{email});
+
+$t->delete_ok($t->app->url_for('auth_sign_out'))
+  ->status_is(200,"$user_resp_data->{name} sign out");
+
+
+
+
+TODO: {
+  local $TODO = 'leave password blank when editing user';
+
+  # admin login, changing user data (leaving password blank)
+  $t->post_ok($t->app->url_for('auth_sign_in') => json => {
+    auth => {
+      username => 'admin',
+      password => 'admin'
+    }
+  })->status_is(200);
+
+  $t->get_ok($list_users_url)
+    ->status_is(200);
+
+  my $user_data_blank_pass = {%{$user_resp_data}};
+  $user_data_blank_pass->{password} = ''; # Do not fill password while editing user
+  $user_data_blank_pass->{email} = 'joe.tester@example.com';
+
+  $t->put_ok($update_user_url => json => $user_data_blank_pass)
+    ->status_is(200)->or(sub { diag p($t->tx->res->json) })
+    ->json_has('/id');
+
+  $t->delete_ok($t->app->url_for('auth_sign_out'))
+    ->status_is(200,"$user_data->{name} sign out");
+
+  # try to user login without change password
+
+  $t->post_ok($t->app->url_for('auth_sign_in') => json => {
+    auth => {
+      map {$_ => $user_resp_data->{$_}} qw/username password/
+    }
+  })->status_is(200)
+    ->json_is("/user/email",$user_data_blank_pass->{email});
+
+  $t->delete_ok($t->app->url_for('auth_sign_out'))
+    ->status_is(200,"$user_resp_data->{name} sign out");
+}
 # my $new_user_url = $t->app->url_for('new_user');
 # ok ($new_user_url, 'New user url exists');
 
