@@ -74,6 +74,14 @@ __PACKAGE__->has_many(
 
 __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
+__PACKAGE__->has_many(
+  prov_ids => 'PMLTQ::Server::Schema::Result::TreebankProvID',
+  'treebank_id',
+  { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
+);
+
+__PACKAGE__->many_to_many( prov_ids => 'treebank_provider_ids', 'prov_id' );
+
 
 # __PACKAGE__->has_many( user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',  'user_id',  { cascade_copy => 0, cascade_delete => 1 });
 
@@ -146,6 +154,7 @@ sub metadata {
     attributes => \%attributes,
     doc => $self->generate_doc,
     documentation => $self->get_documentation,
+    prov_ids => [$self->prov_ids()->all],
     %{$list_data}
   }
 }
