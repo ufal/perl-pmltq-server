@@ -22,7 +22,8 @@ ok ($list_treebanks_url, 'List treebanks url exists');
 
 $t->reset_session();
 $t->get_ok($list_treebanks_url)
-  ->status_is(401);
+  ->status_is(401)
+  ->content_like(qr/Authentication required/);
 
 $t->post_ok($auth_sign_in_url => json => {
   auth => {
@@ -32,7 +33,8 @@ $t->post_ok($auth_sign_in_url => json => {
 })->status_is(200);
 
 $t->get_ok($list_treebanks_url)
-  ->status_is(403);
+  ->status_is(403)
+  ->content_like(qr/Access denied/);
 
 $tu->is_admin(1);
 $tu->update;

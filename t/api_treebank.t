@@ -15,12 +15,16 @@ start_postgres();
 my $t = test_app();
 my $tu = test_user();
 my $tb = test_treebank();
+my $tg1 = test_tag('TAG1','TAG1DOC');
+my $tg2 = test_tag('TAG2','TAG2DOC');
+my $tg1nodoc = test_tag('TAG1NODOC');
+my $tg2nodoc = test_tag('TAG2NODOC');
 
 # Test model
 
 ## Metadata
 my $m = $tb->metadata;
-my @all_metadata = qw/id name title description homepage tags languages is_public is_free is_featured handle attributes doc node_types relations schemas/;
+my @all_metadata = qw/id name title description documentation homepage tags languages is_public is_all_logged is_free is_featured handle attributes doc node_types relations schemas/;
 ok(cmp_bag(
   [keys %$m],
   [@all_metadata]
@@ -133,6 +137,7 @@ $t->get_ok($treebanks_url)
 
 is(scalar(@{$t->tx->res->json}), 1, 'Returned one treebank');
 $t->json_is("/0/$_", $tb->$_) for (qw/id name title description homepage/);
+$t->json_hasnt("/0/documentation", "treebank has documentation field in list");
 
 # Set public to false
 $tb->is_public(0);
@@ -154,6 +159,7 @@ $t->get_ok($treebank_url)
 my @returned_keys = qw/id name title description homepage/;
 
 $t->json_is("/$_", $tb->$_) for @returned_keys;
+$t->json_has("/documentation", "Treebank has documentation field");
 
 # URL with name
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tb->name);
@@ -162,5 +168,50 @@ $t->get_ok($treebank_url)
   ->status_is(200);
 
 $t->json_is("/$_", $tb->$_) for @returned_keys;
+$t->json_has("/documentation", "Treebank has documentation field");
+
+# testing documentation and tag documentation
+$tb->add_to_tags($tg1);
+$tb->update();
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+$t->json_has("/tags", "treebank has tag field");
+is(scalar(@{$t->tx->res->json->{tags}}), 1, 'Treebank has one tag');
+$t->json_hasnt("/tags/0/documentation", "Tag documentation is not sended in tag");
+is($t->tx->res->json->{documentation}, $tg1->documentation, 'Treebank uses TAG1 documentation');
+
+
+# testing concatenation of tags documentation
+$tb->add_to_tags($tg2);
+$tb->update();
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+is(scalar(@{$t->tx->res->json->{tags}}), 2, 'Treebank has two tags');
+my ($tg1doc,$tg2doc) = map {$_->documentation} ($tg1,$tg2);
+ok($t->tx->res->json->{documentation} =~ /^\s*(\Q$tg1doc\E\s*\Q$tg2doc\E|\Q$tg2doc\E\s*\Q$tg1doc\E)\s*$/, 'Treebank uses concatenation of TAG1 and TAG2 documentation (dont care about order) and nothing more');
+
+# use treebank documentation when is set
+$tb->documentation('TBDOC');
+$tb->update();
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+is($t->tx->res->json->{documentation}, $tb->documentation, 'Treebank uses treebank documentation');
+
+# test two tags without doc and treebank without doc
+$tb->documentation('');
+$tb->set_tags([$tg1nodoc,$tg2nodoc]);
+$tb->update();
+
+$t->get_ok($treebank_url)
+  ->status_is(200);
+
+is($t->tx->res->json->{documentation}, '', 'Treebank does not have documentation');
+
 
 done_testing();

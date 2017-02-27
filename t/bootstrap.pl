@@ -178,9 +178,11 @@ sub test_admin {
 
 sub test_tag {
   my $name = shift // 'DefaultTestTag';
+  my $documentation = shift;
   
   my $tag = test_db->resultset('Tag')->create({
-    name => $name
+    name => $name,
+    documentation => $documentation
   })->discard_changes;
   return $tag;
 }

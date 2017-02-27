@@ -14,7 +14,8 @@ sub _validate {
 
   my $rules = {
     fields => [qw/id server_id database name title homepage handle is_public is_free is_all_logged is_featured
-                  description data_sources manuals languages tags/],
+                  description data_sources manuals languages tags
+                  documentation/],
     filters => [
       # Remove spaces from all
       [qw/name title database homepage description/] => filter(qw/trim/),
