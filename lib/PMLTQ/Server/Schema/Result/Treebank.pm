@@ -90,7 +90,7 @@ sub TO_JSON {
    my $self = shift;
 
    return {
-      (map { ($self->to_json_key($_) => [$self->$_]) } qw/data_sources languages manuals tags/),
+      (map { ($self->to_json_key($_) => [$self->$_]) } qw/data_sources languages manuals tags treebank_provider_ids/),
       %{ $self->next::method },
    }
 }
@@ -152,7 +152,6 @@ sub metadata {
     attributes => \%attributes,
     doc => $self->generate_doc,
     documentation => $self->get_documentation,
-    prov_ids => [$self->prov_ids()->all],
     %{$list_data}
   }
 }
