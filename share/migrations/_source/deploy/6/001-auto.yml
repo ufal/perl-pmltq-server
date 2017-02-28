@@ -799,7 +799,7 @@ schema:
           type: FOREIGN KEY
       fields:
         provider:
-          data_type: integer
+          data_type: varchar
           default_value: ~
           is_nullable: 0
           is_primary_key: 1
@@ -807,7 +807,7 @@ schema:
           name: provider
           order: 2
           size:
-            - 0
+            - 250
         provider_id:
           data_type: varchar
           default_value: ~

@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Tue Feb 28 11:09:48 2017
+-- Created on Tue Feb 28 13:43:59 2017
 -- 
 
 ;
@@ -149,7 +149,7 @@ CREATE INDEX query_records_idx_user_id ON query_records (user_id);
 --
 CREATE TABLE treebank_provider_ids (
   treebank_id integer NOT NULL,
-  provider integer NOT NULL,
+  provider varchar(250) NOT NULL,
   provider_id varchar(120) NOT NULL,
   PRIMARY KEY (treebank_id, provider, provider_id),
   FOREIGN KEY (treebank_id) REFERENCES treebanks(id) ON DELETE CASCADE ON UPDATE CASCADE

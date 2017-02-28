@@ -6,7 +6,7 @@ BEGIN;
 ;
 CREATE TABLE "treebank_provider_ids" (
   "treebank_id" integer NOT NULL,
-  "provider" integer NOT NULL,
+  "provider" character varying(250) NOT NULL,
   "provider_id" character varying(120) NOT NULL,
   PRIMARY KEY ("treebank_id", "provider", "provider_id")
 );

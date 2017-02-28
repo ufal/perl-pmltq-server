@@ -9,7 +9,7 @@ SET foreign_key_checks=0;
 ;
 CREATE TABLE `treebank_provider_ids` (
   `treebank_id` integer NOT NULL,
-  `provider` integer NOT NULL,
+  `provider` varchar(250) NOT NULL,
   `provider_id` varchar(120) NOT NULL,
   INDEX `treebank_provider_ids_idx_treebank_id` (`treebank_id`),
   PRIMARY KEY (`treebank_id`, `provider`, `provider_id`),

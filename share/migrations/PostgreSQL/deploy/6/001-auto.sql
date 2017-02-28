@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Feb 28 11:09:48 2017
+-- Created on Tue Feb 28 13:43:59 2017
 -- 
 ;
 --
@@ -168,7 +168,7 @@ CREATE INDEX "query_records_idx_user_id" on "query_records" ("user_id");
 --
 CREATE TABLE "treebank_provider_ids" (
   "treebank_id" integer NOT NULL,
-  "provider" integer NOT NULL,
+  "provider" character varying(250) NOT NULL,
   "provider_id" character varying(120) NOT NULL,
   PRIMARY KEY ("treebank_id", "provider", "provider_id")
 );

@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Tue Feb 28 11:09:48 2017
+-- Created on Tue Feb 28 13:43:59 2017
 -- 
 ;
 SET foreign_key_checks=0;
@@ -156,7 +156,7 @@ CREATE TABLE `query_records` (
 --
 CREATE TABLE `treebank_provider_ids` (
   `treebank_id` integer NOT NULL,
-  `provider` integer NOT NULL,
+  `provider` varchar(250) NOT NULL,
   `provider_id` varchar(120) NOT NULL,
   INDEX `treebank_provider_ids_idx_treebank_id` (`treebank_id`),
   PRIMARY KEY (`treebank_id`, `provider`, `provider_id`),
