@@ -88,9 +88,9 @@ __PACKAGE__->has_many(
 
 sub TO_JSON {
    my $self = shift;
-
    return {
-      (map { ($self->to_json_key($_) => [$self->$_]) } qw/data_sources languages manuals tags treebank_provider_ids/),
+      (map { ($self->to_json_key($_) => [$self->$_]) } qw/data_sources languages manuals tags/),
+      $self->to_json_key('treebank_provider_ids') => { map {$self->to_json_key($_->provider) => $_->provider_id } $self->treebank_provider_ids()->all},
       %{ $self->next::method },
    }
 }
