@@ -36,6 +36,7 @@ my @VALIDATE_EXPORT = qw/
   force_bool
   is_array
   is_array_of_hash
+  is_provider_ids
   is_hash
   is_in_str
   is_not_in
@@ -48,6 +49,7 @@ my @VALIDATE_EXPORT = qw/
   to_array_of_hash
   to_dbref
   to_hash
+  to_array_of_hash_key_value
   /;
 
 our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
@@ -119,6 +121,15 @@ sub to_array_of_hash {
       }
     }
     return \@a;
+  };
+}
+
+sub to_array_of_hash_key_value {
+  my $key   = shift;
+  my $value = shift;
+  sub {
+    my $h = shift;
+    return [map {{$key => $_, $value => $h->{$_}}} keys %$h ];
   };
 }
 
@@ -214,6 +225,17 @@ sub is_unique {
       $rs = $rs->search({$id_name => {'!=' => $param->{$id_name}}});
     }
     $rs->search({$key => $value})->count ? $error : undef;
+  }
+}
+
+sub is_provider_ids {
+  my $providers = shift//{};
+
+  sub {
+    my $h = shift;
+    return unless defined($h);
+    my @errors = grep {$_} map {(! $providers->{$_}) ? "Unknown provider '$_'." : (($h->{$_} ) ? '' : "Value of '$_' must be nonempty string" )} keys %$h;
+    @errors ? join(' ',@errors) : undef;
   }
 }
 
