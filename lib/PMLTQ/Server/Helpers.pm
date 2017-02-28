@@ -11,6 +11,11 @@ sub register {
   # Resultsets
   $app->helper(public_treebanks => sub { shift->db->resultset('Treebank')->search_rs({ is_public => 1 }) });
 
+  $app->helper(providers => sub { # external providers
+    my $c = 1;
+    map {$_ -> $c++} qw/shibboleth ldc/;
+  });
+
   # Error helpers
   $app->helper(status_error => \&_status_error);
   $app->helper(render_validation_errors => \&_render_validation_errors);
