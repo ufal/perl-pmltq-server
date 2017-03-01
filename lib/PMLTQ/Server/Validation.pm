@@ -234,7 +234,7 @@ sub is_provider_ids {
   sub {
     my $h = shift;
     return unless defined($h);
-    my @errors = grep {$_} map {(! $providers->{$_}) ? "Unknown provider '$_'." : (($h->{$_} ) ? '' : "Value of '$_' must be nonempty string" )} keys %$h;
+    my @errors = grep {$_} map {(! $providers->{$_}) ? "Unknown provider '$_'." : (($h->{$_} && !ref($h->{$_}) ) ? '' : "Value of '$_' must be nonempty string" )} keys %$h;
     @errors ? join(' ',@errors) : undef;
   }
 }
