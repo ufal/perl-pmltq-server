@@ -72,7 +72,7 @@ $t->put_ok($update_treebank_url => json => $treebank_resp_data)
 $t->put_ok($update_treebank_url => json => { %$treebank_resp_data, name=>$_})
   ->status_is(400, "wrong name $_")
   ->content_like(qr/match/)
-     for (qw/_id 3id id:id/);
+     for (qw/id:id/);
 
 
 # test multiple IDs
@@ -88,7 +88,6 @@ $treebank_resp_data->{treebankProviderIds} = {INVALIDPROVIDER => 'ldc01'};
 $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(400)
   ->content_like(qr/Unknown provider/);
-
 
 $treebank_resp_data->{treebankProviderIds} = {ldc => ''};
 
@@ -108,6 +107,13 @@ $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(400)
   ->content_like(qr/string/);
 
+
+# delete treebank
+my $delete_treebank_url = $t->app->url_for('delete_treebank', treebank_id => $treebank_resp_data->{id});
+ok ($update_treebank_url, 'Delete treebank url exists');
+
+$t->delete_ok($delete_treebank_url => json => $treebank_resp_data)
+  ->status_is(200);
 
 
 # $t->post_ok($create_treebank_url => form => {
