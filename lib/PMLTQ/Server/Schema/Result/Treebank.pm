@@ -74,6 +74,12 @@ __PACKAGE__->has_many(
 
 __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
+__PACKAGE__->has_many(
+  treebank_provider_ids => 'PMLTQ::Server::Schema::Result::TreebankProvID',
+  'treebank_id',
+  { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
+);
+
 
 # __PACKAGE__->has_many( user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',  'user_id',  { cascade_copy => 0, cascade_delete => 1 });
 
@@ -82,9 +88,9 @@ __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
 sub TO_JSON {
    my $self = shift;
-
    return {
       (map { ($self->to_json_key($_) => [$self->$_]) } qw/data_sources languages manuals tags/),
+      $self->to_json_key('treebank_provider_ids') => { map {$self->to_json_key($_->provider) => $_->provider_id } $self->treebank_provider_ids()->all},
       %{ $self->next::method },
    }
 }
