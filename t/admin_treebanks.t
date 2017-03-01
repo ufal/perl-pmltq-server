@@ -60,7 +60,7 @@ $t->get_ok($list_treebanks_url)
 $t->json_is("/0/$_", $treebank_data->{$_}) for
   grep { $_ !~ /languages/ } keys %{$treebank_data};
 
-
+# test update: 
 my $update_treebank_url = $t->app->url_for('update_treebank', treebank_id => $treebank_resp_data->{id});
 ok ($update_treebank_url, 'Update treebank url exists');
 
@@ -68,17 +68,26 @@ $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(200, "treebank update without any change")->or(sub { diag p($t->tx->res->json) })
   ->json_has('/id');
 
-$treebank_resp_data->{treebankProviderIds} = {ldc => 'ldc01'};
+# test name restrictions
+$t->put_ok($update_treebank_url => json => { %$treebank_resp_data, name=>$_})
+  ->status_is(400, "wrong name $_")
+  ->content_like(qr/match/)
+     for (qw/_id 3id id:id/);
+
+
+# test multiple IDs
+$treebank_resp_data->{treebankProviderIds} = {ldc => 'ldc01', shibboleth => 'sh01'};
 
 $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(200, 'add valid id')->or(sub { diag p($t->tx->res->json) })
   ->json_has('/id');
+ok(cmp_deeply($t->tx->res->json->{treebankProviderIds}, $treebank_resp_data->{treebankProviderIds}), 'has valid multiple IDs');
 
 $treebank_resp_data->{treebankProviderIds} = {INVALIDPROVIDER => 'ldc01'};
 
 $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(400)
-  ->content_like(qr/Unknown provider/);;
+  ->content_like(qr/Unknown provider/);
 
 
 $treebank_resp_data->{treebankProviderIds} = {ldc => ''};
@@ -98,6 +107,8 @@ $treebank_resp_data->{treebankProviderIds} = {ldc => {}};
 $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(400)
   ->content_like(qr/string/);
+
+
 
 # $t->post_ok($create_treebank_url => form => {
 #   map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data

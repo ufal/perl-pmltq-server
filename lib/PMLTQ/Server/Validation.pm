@@ -45,6 +45,7 @@ my @VALIDATE_EXPORT = qw/
   is_valid_driver
   is_valid_email
   is_valid_port_number
+  is_regex_matching
   list_of_dbrefs
   to_array_of_hash
   to_dbref
@@ -190,7 +191,13 @@ sub is_valid_email {
     Email::Valid->address($email) ? undef : 'Invalid email';
   };
 }
-
+sub is_regex_matching {
+  my ($regex,$err) = @_;
+  sub {
+    my $text = shift;
+    $text =~ m/$regex/ ? undef : $err;
+  }
+}
 sub is_valid_port_number {
   sub {
     my $port = shift;
