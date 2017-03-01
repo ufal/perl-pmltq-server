@@ -57,12 +57,17 @@ ok ($list_treebanks_url, 'List treebanks url exists');
 $t->get_ok($list_treebanks_url)
   ->status_is(200);
 
+ok(cmp_bag([map {$_->{id}} @{$treebank_resp_data->{languages}}], $treebank_data->{languages}));
+
 $t->json_is("/0/$_", $treebank_data->{$_}) for
   grep { $_ !~ /languages/ } keys %{$treebank_data};
+
 
 # test update: 
 my $update_treebank_url = $t->app->url_for('update_treebank', treebank_id => $treebank_resp_data->{id});
 ok ($update_treebank_url, 'Update treebank url exists');
+
+$treebank_resp_data->{languages} = [map {$_->{id}} @{$treebank_resp_data->{languages}}];
 
 $t->put_ok($update_treebank_url => json => $treebank_resp_data)
   ->status_is(200, "treebank update without any change")->or(sub { diag p($t->tx->res->json) })
