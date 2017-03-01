@@ -25,7 +25,7 @@ sub _validate {
       [qw/name database/] => is_long_at_most(120),
       [qw/title homepage handle/] => is_long_at_most(120),
       [qw/name title database data_sources server_id/] => is_required(),
-      name => [is_unique($c->resultset, 'id', 'treebank name already exists'),is_regex_matching(qr/^[a-z][-_a-z0-9]*$/, 'name must match /^[a-z][-_a-z0-9]*$/')],
+      name => [is_unique($c->resultset, 'id', 'treebank name already exists'),is_regex_matching(qr/^[a-z0-9_-]+$/, 'name must match /^[a-z0-9_-]+$/')],
       data_sources => is_array_of_hash("invalid data_sources format"),
       manuals => is_array_of_hash("invalid documentation format"),
       treebank_provider_ids => [is_hash("invalid provider IDs format"),is_provider_ids($c->config->{login_with})],
