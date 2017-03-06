@@ -16,6 +16,7 @@ branches:
     - treebank_priv
     - tb_help
     - multiple_ids
+    - fix_suggest
 
 before_install:
   - cpanm -n Devel::Cover::Report::Coveralls
