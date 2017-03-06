@@ -1,10 +1,13 @@
-package PMLTQ::Server::Controller::Treebank;
+package PMLTQ::Server::Controller::Suggest;
 
 # ABSTRACT: Suggest query based on given nodes
 
 use Mojo::Base 'Mojolicious::Controller';
 use PMLTQ::Common;
 use PMLTQ::Server::Validation;
+
+
+use Treex::PML::Schema qw(:constants);
 
 sub suggest {
   my $c = shift;
@@ -42,7 +45,7 @@ sub suggest {
   }
 
   my $url = Mojo::URL->new($c->config->{nodes_to_query_service});
-  $url->query(p => join('|', @paths), ($input->{vars} ? (r => $input->{vars}) : ()));
+  $url->query(p => join('|', map {join('',@$_)} @paths), ($input->{vars} ? (r => $input->{vars}) : ()));
   $c->app->ua->get($url => sub {
       my ($ua, $tx) = @_;
       if (my $res = $tx->success) {

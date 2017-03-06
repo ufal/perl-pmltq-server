@@ -75,7 +75,7 @@ sub startup {
     name('treebank')->to(controller => 'Treebank', action => 'initialize_single');
   $treebank->get->to('#metadata');
   $treebank->get ('metadata')->to('#metadata');
-  $treebank->post('suggest')->to('#suggest');
+  $treebank->post('suggest')->to(controller => 'Suggest', action => 'suggest');
   $treebank->get ('data/*file')->to('#data');
   $treebank->get ('node')->to('#node');
   $treebank->get ('type')->to('#type');
