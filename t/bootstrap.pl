@@ -163,12 +163,7 @@ sub test_user {
   my $username = $userpar->{username};
   return $test_user{$username} if exists $test_user{$username};
 
-  $test_user{$username} = test_db->resultset('User')->create({
-    name => 'Joe Tester',
-    username => 'tester',
-    password => 'tester',
-    email => 'joe@happytesting.com',
-  })->discard_changes;
+  $test_user{$username} = test_db->resultset('User')->create($userpar)->discard_changes;
 
   return $test_user{$username}
 }
