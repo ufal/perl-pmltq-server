@@ -152,9 +152,55 @@ $t->delete_ok($delete_query_file_url)
 $t->get_ok($get_query_file_url)
   ->status_is(404);
 
+my $auth_sign_out_url = $t->app->url_for('auth_sign_out');
+$t->delete_ok($auth_sign_out_url)
+  ->status_is(200);
+
 # Check if database is empty
 
 ok(test_db()->resultset('QueryFile')->count() == 0, 'No query files');
 ok(test_db()->resultset('QueryRecord')->count() == 0, 'No queries');
+
+
+
+# test that queryFiles are not shared among users
+
+TODO: {
+  local $TODO = 'query files are not shared among users';
+  
+  my $tu2_data = {username => 'tu2', password => 'tu2'};
+  my $tu2 = test_user($tu2_data);
+  $t->post_ok($auth_sign_in_url => json => {
+    auth => $tu2_data
+  })->status_is(200);
+
+  my $query_file2 = {
+    name => 'test_file_2'
+  };
+  $t->post_ok($create_query_file_url => json => $query_file2)
+    ->status_is(200);
+
+  $t->get_ok($list_query_files_url)
+    ->status_is(200);
+
+  $t->json_is("/0/$_", $query_file2->{$_}) for keys %{$query_file2};
+
+  ok (@{$t->tx->res->json} == 1, 'One query file is in the list');
+
+  $t->delete_ok($auth_sign_out_url)
+    ->status_is(200);
+
+  $t->post_ok($auth_sign_in_url => json => {
+    auth => {
+      username => 'tester',
+      password => 'tester'
+    }
+  })->status_is(200);
+
+  $t->get_ok($list_query_files_url)
+    ->status_is(200);
+
+  ok (@{$t->tx->res->json} == 0, 'No query file is in the list');
+}
 
 done_testing();
