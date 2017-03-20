@@ -232,7 +232,7 @@ sub is_unique {
       $rs = $rs->search({$id_name => {'!=' => $param->{$id_name}}});
     }
     for my $f (@{$filter//[]}) {
-      $rs = $rs->search({$f => {'==' => $param->{$f}}}); 
+      $rs = $rs->search({$f => $param->{$f}}); 
     }
     $rs->search({$key => $value})->count ? $error : undef;
   }
