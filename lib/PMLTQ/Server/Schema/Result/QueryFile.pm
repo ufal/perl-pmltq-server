@@ -2,6 +2,8 @@ package PMLTQ::Server::Schema::Result::QueryFile;
 
 use Mojo::Base qw/PMLTQ::Server::Schema::Result/;
 
+use PMLTQ::Server::JSON 'json';
+
 __PACKAGE__->table('query_files');
 
 __PACKAGE__->load_components('InflateColumn::DateTime', 'TimeStamp');
@@ -37,4 +39,13 @@ sub TO_JSON {
    }
 }
 
+
+sub list_data {
+  my $self = shift;
+
+  return json {
+    (map { ( $_ => $self->$_ ) } qw/id name user_id created_at last_use/),
+    $self->to_json_key('queries') => [$self->queries()->all]
+  }
+}
 1;

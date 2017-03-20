@@ -41,6 +41,9 @@ $t->post_ok($auth_sign_in_url => json => {
 $t->post_ok($create_query_file_url => json => $query_file)
   ->status_is(200);
 
+$t->post_ok($create_query_file_url => json => $query_file)
+  ->status_is(400);
+
 ok $t->app->routes->find('list_query_files'), 'Route exists';
 my $list_query_files_url = $t->app->url_for('list_query_files');
 ok ($list_query_files_url, 'List query files url exists');
@@ -78,13 +81,17 @@ my $query_record = {
 $t->post_ok($create_query_file_queries_url => json => $query_record)
   ->status_is(200);
 
+
+$t->get_ok($list_query_files_url)
+  ->status_is(200);
+  $t->json_is("/0/queries/0/$_", $query_record->{$_}) for keys %{$query_record};
+
 ok $t->app->routes->find('list_query_file_queries'), 'Route exists';
 my $list_query_file_queries_url = $t->app->url_for('list_query_file_queries', query_file_id => $fetched_file->{id});
 ok ($list_query_file_queries_url, 'List query file queries file url exists');
 
 $t->get_ok($list_query_file_queries_url)
   ->status_is(200);
-
 $t->json_is("/0/$_", $query_record->{$_}) for keys %{$query_record};
 
 ok (@{$t->tx->res->json} == 1, 'One query file is in the list');
@@ -165,57 +172,52 @@ ok(test_db()->resultset('QueryRecord')->count() == 0, 'No queries');
 
 # test that queryFiles are not shared among users
 
-TODO: {
-  local $TODO = 'query files are not shared among users';
+my $tu2_data = {username => 'tu2', password => 'tu2'};
+my $tu2 = test_user($tu2_data);
+$t->post_ok($auth_sign_in_url => json => {
+  auth => $tu2_data
+})->status_is(200);
 
-  my $tu2_data = {username => 'tu2', password => 'tu2'};
-  my $tu2 = test_user($tu2_data);
-  $t->post_ok($auth_sign_in_url => json => {
-    auth => $tu2_data
-  })->status_is(200);
+my $query_file2 = {
+  name => 'test_file_2'
+};
+$t->post_ok($create_query_file_url => json => $query_file2)
+  ->status_is(200);
 
-  my $query_file2 = {
-    name => 'test_file_2'
-  };
-  $t->post_ok($create_query_file_url => json => $query_file2)
-    ->status_is(200);
+$t->get_ok($list_query_files_url)
+  ->status_is(200);
 
-  $t->get_ok($list_query_files_url)
-    ->status_is(200);
+$t->json_is("/0/$_", $query_file2->{$_}) for keys %{$query_file2};
 
-  $t->json_is("/0/$_", $query_file2->{$_}) for keys %{$query_file2};
+is (scalar @{$t->tx->res->json} , 1, 'One query file is in the list');
 
-  ok (@{$t->tx->res->json} == 1, 'One query file is in the list');
+$t->delete_ok($auth_sign_out_url)
+  ->status_is(200);
 
-  $t->delete_ok($auth_sign_out_url)
-    ->status_is(200);
+$t->post_ok($auth_sign_in_url => json => {
+  auth => {
+    username => 'tester',
+    password => 'tester'
+  }
+})->status_is(200);
 
-  $t->post_ok($auth_sign_in_url => json => {
-    auth => {
-      username => 'tester',
-      password => 'tester'
-    }
-  })->status_is(200);
+$t->get_ok($list_query_files_url)
+  ->status_is(200);
 
-  $t->get_ok($list_query_files_url)
-    ->status_is(200);
+is (scalar @{$t->tx->res->json} , 0, 'No query file is in the list');
 
-  ok (@{$t->tx->res->json} == 0, 'No query file is in the list');
+$t->post_ok($create_query_file_url => json => $query_file2)
+  ->status_is(200, 'insert new query file with thw same name');
 
+$t->get_ok($list_query_files_url)
+  ->status_is(200);
 
-  local $TODO = 'allow same query file name among users';
-  $t->post_ok($create_query_file_url => json => $query_file2)
-    ->status_is(200, 'insert new query file with thw same name');
+$t->json_is("/0/$_", $query_file2->{$_}) for keys %{$query_file2};
 
-  $t->get_ok($list_query_files_url)
-    ->status_is(200);
+is (scalar @{$t->tx->res->json} , 1, 'One query file is in the list');
+ok (!(grep {$_->{userId} != $tu->id} @{$t->tx->res->json}), 'all query files belongs to current user');
 
-  $t->json_is("/0/$_", $query_file2->{$_}) for keys %{$query_file2};
-
-  ok (@{$t->tx->res->json} == 1, 'One query file is in the list');
-
-  $t->delete_ok($auth_sign_out_url)
-    ->status_is(200);
-}
+$t->delete_ok($auth_sign_out_url)
+  ->status_is(200);
 
 done_testing();

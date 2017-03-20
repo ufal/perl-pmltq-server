@@ -25,4 +25,18 @@ sub _validate {
   return $data;
 }
 
+
+=head1 METHODS
+
+=head2 list query file for current user
+
+=cut
+
+sub list {
+  my $c = shift;
+
+  my @query_files = map {$_->list_data} $c->db->resultset('QueryFile')->search_rs({user_id => $c->current_user->id})->all;
+  $c->render(json => \@query_files);
+}
+
 1;
