@@ -167,7 +167,7 @@ ok(test_db()->resultset('QueryRecord')->count() == 0, 'No queries');
 
 TODO: {
   local $TODO = 'query files are not shared among users';
-  
+
   my $tu2_data = {username => 'tu2', password => 'tu2'};
   my $tu2 = test_user($tu2_data);
   $t->post_ok($auth_sign_in_url => json => {
@@ -201,6 +201,21 @@ TODO: {
     ->status_is(200);
 
   ok (@{$t->tx->res->json} == 0, 'No query file is in the list');
+
+
+  local $TODO = 'allow same query file name among users';
+  $t->post_ok($create_query_file_url => json => $query_file2)
+    ->status_is(200, 'insert new query file with thw same name');
+
+  $t->get_ok($list_query_files_url)
+    ->status_is(200);
+
+  $t->json_is("/0/$_", $query_file2->{$_}) for keys %{$query_file2};
+
+  ok (@{$t->tx->res->json} == 1, 'One query file is in the list');
+
+  $t->delete_ok($auth_sign_out_url)
+    ->status_is(200);
 }
 
 done_testing();
