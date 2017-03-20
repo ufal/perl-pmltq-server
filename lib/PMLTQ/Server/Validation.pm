@@ -224,12 +224,15 @@ sub is_not_in {
 }
 
 sub is_unique {
-  my ($resultset, $id_name, $error) = @_;
+  my ($resultset, $id_name, $error, $filter) = @_;
   sub {
     my ($value, $param, $key) = @_;
     my $rs = $resultset;
     if ($param->{$id_name}) {
       $rs = $rs->search({$id_name => {'!=' => $param->{$id_name}}});
+    }
+    for my $f (@{$filter//[]}) {
+      $rs = $rs->search({$f => {'==' => $param->{$f}}}); 
     }
     $rs->search({$key => $value})->count ? $error : undef;
   }
