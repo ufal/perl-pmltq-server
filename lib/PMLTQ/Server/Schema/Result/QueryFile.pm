@@ -10,6 +10,8 @@ __PACKAGE__->add_columns(
   id          => { data_type => 'integer', is_auto_increment => 1, is_nullable => 0 },
   name        => { data_type => 'varchar', is_nullable => 0, size => 120 },
   user_id     => { data_type => 'integer', is_foreign_key => 1, is_nullable => 1 },
+  is_public   => { data_type => 'boolean', is_nullable => 0, default_value => 0 },
+  description => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
   created_at  => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_use    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
 );
