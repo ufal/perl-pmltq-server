@@ -139,6 +139,18 @@ sub query {
 
   return unless $sth;
 
+  my $user = $self->current_user;
+  if($user) {
+    my $history = $user->history();
+    $self->db->resultset('QueryRecord')->create({
+      name => time(),
+      user_id => $user->id,
+      query => $input->{query},
+      query_file_id => $history->id,
+      first_used_treebank => $tb->id
+    });
+  }
+
   $self->app->log->debug('[BEGIN_SQL]');
   $self->app->log->debug($evaluator->get_sql);
   $self->app->log->debug('[END_SQL]');

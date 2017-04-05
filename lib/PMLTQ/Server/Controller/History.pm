@@ -2,7 +2,6 @@ package PMLTQ::Server::Controller::History;
 
 use Mojo::Base 'Mojolicious::Controller';
 
-
 sub initialize {
   my $c = shift;
 
@@ -15,8 +14,13 @@ sub initialize {
     return;
   }
 
-  my $history = $c->db->resultset('QueryFile')->search_rs(user_id => $c->current_user->id);
+  my $history = $c->db->resultset('QueryFile')->single({user_id => $c->current_user->id, name => 'HISTORY'});
 
+  unless($history) {
+    $history = $c->db->resultset('QueryFile')->create({name => 'HISTORY',user_id => $c->current_user->id})
+  }
+
+  $c->stash(history => $history);
   return 1;
 }
 
@@ -24,8 +28,11 @@ sub list {
   my $c = shift;
 
   my $user = $c->current_user;
+  unless($c->stash('history')){
+    $c->initialize();
+  }
 
-  $c->render(json => []);
+  $c->render(json => [$c->stash('history')]);
 
   # my $history = $c->mandel->collection('history');
 
