@@ -71,7 +71,7 @@ sub startup {
   my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
   my $query_file = $user->resource('query-file', controller => 'User::QueryFile');
   $query_file->resource('query', controller => 'User::QueryFile::QueryRecord');
-  $user->get('history')->to(controller => 'History', action => 'list');
+  $user->get('history')->to(controller => 'History', action => 'list')->name('history');
 
   my $treebank = $api->under('/treebanks/:treebank_id', ['treebank_id' => qr/[a-z0-9_-]+/])->
     name('treebank')->to(controller => 'Treebank', action => 'initialize_single');
