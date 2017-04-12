@@ -34,6 +34,7 @@ my @VALIDATE_EXPORT = qw/
   encrypt_password
   force_arrayref
   force_bool
+  collapse_query
   is_array
   is_array_of_hash
   is_hash
@@ -44,6 +45,7 @@ my @VALIDATE_EXPORT = qw/
   is_valid_driver
   is_valid_email
   is_valid_port_number
+  is_integer
   list_of_dbrefs
   to_array_of_hash
   to_dbref
@@ -66,6 +68,19 @@ sub convert_to_oids {
   sub {
     $_[0] && @$_[0] > 0 ? [ map { bson_oid($_) } @$_[0] ] : $_[0];
   };
+}
+
+sub collapse_query {
+  sub {
+    my $str = shift;
+    $str =~ s/\n\s*#[^\n]*/ /g; # remove comments
+    $str =~ s/^\s*#[^\n]*/ /g; # remove comments
+    $str =~ s/^\s*//;
+    $str =~ s/\s*$//;
+    $str =~ s/\s+/ /g; # collapsing spaces - ignoring 'strings' !!! FIX THIS
+    $str =~ s/ ?([-+=:~!*,;<>&|\?\.\/\(\)\[\]\{\}0-9]+) ?/$1/g;# remove spaces around operators and numbers
+    return $str;
+  }
 }
 
 sub list_of_dbrefs {
@@ -184,6 +199,13 @@ sub is_valid_port_number {
   sub {
     my $port = shift;
     ( $port =~ m/^\d+$/ and $port >= 1 and $port <= 65535 ) ? undef : 'Invalid port number';
+  };
+}
+
+sub is_integer {
+  sub {
+    my $num = shift;
+    ( $num =~ m/^[\+\-]?\d+$/ ) ? undef : 'Invalid number';
   };
 }
 

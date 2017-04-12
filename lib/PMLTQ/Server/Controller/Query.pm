@@ -3,6 +3,7 @@ package PMLTQ::Server::Controller::Query;
 # ABSTRACT: Handling everything related to query execution
 
 use Mojo::Base 'Mojolicious::Controller';
+use PMLTQ::Server::Validation;
 
 =head1 METHODS
 
@@ -142,13 +143,18 @@ sub query {
   my $user = $self->current_user;
   if($user) {
     my $history = $user->history();
+    my $time = time();
+    my $collapsed = collapse_query()->($input->{query});
     $self->db->resultset('QueryRecord')->create({
-      name => time(),
+      name => $time,
       user_id => $user->id,
       query => $input->{query},
       query_file_id => $history->id,
-      first_used_treebank => $tb->id
+      first_used_treebank => $tb->id,
+      ord => $time,
+      hash => $collapsed,
     });
+    $self->app->log->debug('[COLLAPSED]: '.$collapsed);
   }
 
   $self->app->log->debug('[BEGIN_SQL]');
