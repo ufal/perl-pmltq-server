@@ -17,6 +17,7 @@ branches:
     - tb_help
     - multiple_ids
     - fix_suggest
+    - recentQueries
 
 before_install:
   - cpanm -n Devel::Cover::Report::Coveralls
