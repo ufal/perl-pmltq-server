@@ -69,7 +69,7 @@ sub startup {
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
 
   my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
-  my $query_file = $user->resource('query-file', controller => 'User::QueryFile');
+  my $query_file = $user->resource('query-file', controller => 'User::QueryFile', action => 'list');
   $query_file->resource('query', controller => 'User::QueryFile::QueryRecord');
   $user->get('history')->to(controller => 'History', action => 'list')->name('history');
 
