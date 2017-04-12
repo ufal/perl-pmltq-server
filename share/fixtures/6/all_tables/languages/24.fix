@@ -1,9 +1,0 @@
-$HASH1 = {
-           code    => 'fy',
-           id      => 24,
-           language_group_id
-                   => 3,
-           name    => 'Frisian',
-           position
-                   => 2
-         };

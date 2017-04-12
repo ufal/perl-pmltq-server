@@ -1,9 +1,0 @@
-$HASH1 = {
-           code    => 'dsb',
-           id      => 12,
-           language_group_id
-                   => 2,
-           name    => 'Lower Sorbian',
-           position
-                   => 3
-         };

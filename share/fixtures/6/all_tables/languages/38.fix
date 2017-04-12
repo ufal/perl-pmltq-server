@@ -1,9 +1,0 @@
-$HASH1 = {
-           code    => 'rm',
-           id      => 38,
-           language_group_id
-                   => 4,
-           name    => 'Rhaeto-Romance',
-           position
-                   => 5
-         };

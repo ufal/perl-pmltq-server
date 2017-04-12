@@ -1,9 +1,0 @@
-$HASH1 = {
-           code    => 'cu',
-           id      => 21,
-           language_group_id
-                   => 2,
-           name    => 'Old Church Slavonic',
-           position
-                   => 12
-         };

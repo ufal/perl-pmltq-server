@@ -1,9 +1,0 @@
-$HASH1 = {
-           code    => 'oc',
-           id      => 37,
-           language_group_id
-                   => 4,
-           name    => 'Occitan',
-           position
-                   => 4
-         };

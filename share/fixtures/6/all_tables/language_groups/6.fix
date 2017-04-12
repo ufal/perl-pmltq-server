@@ -1,5 +1,0 @@
-$HASH1 = {
-           id       => 6,
-           name     => 'Baltic languages',
-           position => 5
-         };

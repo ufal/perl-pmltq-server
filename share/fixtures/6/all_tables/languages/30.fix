@@ -1,9 +1,0 @@
-$HASH1 = {
-           code    => 'nn',
-           id      => 30,
-           language_group_id
-                   => 3,
-           name    => 'Nynorsk (New Norwegian)',
-           position
-                   => 8
-         };
