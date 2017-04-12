@@ -63,14 +63,14 @@ is(scalar @{$t->tx->res->json->[0]->{queries}}, 1, "Not saving invalid query");
 my $list_query_files_url = $t->app->url_for('list_query_files');
 ok ($list_query_files_url, 'List query files url exists');
 
-$t->get_ok($list_query_files_url => json => {history_list => 1})
+$t->get_ok($list_query_files_url => form => {history_list => 1})
   ->status_is(200);
 
 is(scalar @{$t->tx->res->json}, 1, "HISTORY is in query files");
 is($t->tx->res->json->[0]->{name},'HISTORY', "HISTORY is in query files");
 
 
-$t->get_ok($list_query_files_url)
+$t->get_ok($list_query_files_url => form => {history_list => 0})
   ->status_is(200);
 
 is(scalar @{$t->tx->res->json}, 0, "HISTORY is not in query files (listing without history)");
