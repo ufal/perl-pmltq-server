@@ -28,6 +28,9 @@ sub register {
             $rules = { checks => $rules } if ref $rules eq 'ARRAY';
             $rules->{fields} ||= [];
 
+            my $postprocess = $rules->{postprocess} // [];
+            delete $rules->{postprocess};
+
             # Validate GET+POST parameters by default
             $params ||= $c->req->params->to_hash();
 
@@ -79,7 +82,16 @@ sub register {
 
             if ( $result->success ) {
                 $log->debug('ValidateTiny: Successful');
-                return $result->data;
+
+                my $resultdata = $result->data;
+                {  # run transformation
+                  my %h = @{ $postprocess };
+                  for my $f (keys %h) {
+                    $resultdata->{$f} = $h{$f}($resultdata->{$f});
+                  }
+                }
+
+                return $resultdata;
             } else {
                 $log->debug( 'ValidateTiny: Failed: ' . join( ', ', keys %{ $result->error } ) );
                 $c->stash( 'validate_tiny.errors' => $result->error );

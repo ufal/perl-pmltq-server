@@ -107,7 +107,7 @@ sub get_log {
   return \@lines;
 }
 
-my ($app, $test_tb, $test_user, $admin_user, $encrypt);
+my ($app, $test_tb, %test_user, $admin_user, $encrypt);
 
 sub test_app {
   return $app if $app;
@@ -154,16 +154,18 @@ sub test_treebank {
 }
 
 sub test_user {
-  return $test_user if $test_user;
-
-  $test_user = test_db->resultset('User')->create({
+  my $userpar = shift // { 
     name => 'Joe Tester',
     username => 'tester',
     password => 'tester',
-    email => 'joe@happytesting.com',
-  })->discard_changes;
+    email => 'joe@happytesting.com'};
+  die "WRONG PARAMS: At least username and password must be set in the hash"  unless ref($userpar) && exists($userpar->{username}) && exists($userpar->{password});
+  my $username = $userpar->{username};
+  return $test_user{$username} if exists $test_user{$username};
 
-  return $test_user
+  $test_user{$username} = test_db->resultset('User')->create($userpar)->discard_changes;
+
+  return $test_user{$username}
 }
 
 sub test_admin {

@@ -37,6 +37,7 @@ my @VALIDATE_EXPORT = qw/
   collapse_query
   is_array
   is_array_of_hash
+  is_provider_ids
   is_hash
   is_in_str
   is_not_in
@@ -46,10 +47,12 @@ my @VALIDATE_EXPORT = qw/
   is_valid_email
   is_valid_port_number
   is_integer
+  is_regex_matching
   list_of_dbrefs
   to_array_of_hash
   to_dbref
   to_hash
+  to_array_of_hash_key_value
   /;
 
 our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
@@ -137,6 +140,15 @@ sub to_array_of_hash {
   };
 }
 
+sub to_array_of_hash_key_value {
+  my $key   = shift;
+  my $value = shift;
+  sub {
+    my $h = shift;
+    return [map {{$key => $_, $value => $h->{$_}}} keys %$h ];
+  };
+}
+
 sub _bcrypt {
   my ($plain_text, $settings) = @_;
 
@@ -194,7 +206,13 @@ sub is_valid_email {
     Email::Valid->address($email) ? undef : 'Invalid email';
   };
 }
-
+sub is_regex_matching {
+  my ($regex,$err) = @_;
+  sub {
+    my $text = shift;
+    $text =~ m/$regex/ ? undef : $err;
+  }
+}
 sub is_valid_port_number {
   sub {
     my $port = shift;
@@ -228,14 +246,28 @@ sub is_not_in {
 }
 
 sub is_unique {
-  my ($resultset, $id_name, $error) = @_;
+  my ($resultset, $id_name, $error, $filter) = @_;
   sub {
     my ($value, $param, $key) = @_;
     my $rs = $resultset;
     if ($param->{$id_name}) {
       $rs = $rs->search({$id_name => {'!=' => $param->{$id_name}}});
     }
+    for my $f (@{$filter//[]}) {
+      $rs = $rs->search({$f => $param->{$f}}); 
+    }
     $rs->search({$key => $value})->count ? $error : undef;
+  }
+}
+
+sub is_provider_ids {
+  my $providers = shift//{};
+
+  sub {
+    my $h = shift;
+    return unless defined($h);
+    my @errors = grep {$_} map {(! $providers->{$_}) ? "Unknown provider '$_'." : (($h->{$_} && !ref($h->{$_}) ) ? '' : "Value of '$_' must be nonempty string" )} keys %$h;
+    @errors ? join(' ',@errors) : undef;
   }
 }
 

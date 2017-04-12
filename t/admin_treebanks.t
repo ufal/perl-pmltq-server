@@ -49,14 +49,77 @@ $t->post_ok($create_treebank_url => json => $treebank_data)
   ->status_is(200)->or(sub { diag p($t->tx->res->json) })
   ->json_has('/id');
 
+my $treebank_resp_data = $t->tx->res->json;
+
 my $list_treebanks_url = $t->app->url_for('list_treebanks');
 ok ($list_treebanks_url, 'List treebanks url exists');
 
 $t->get_ok($list_treebanks_url)
   ->status_is(200);
 
+ok(cmp_bag([map {$_->{id}} @{$treebank_resp_data->{languages}}], $treebank_data->{languages}));
+
 $t->json_is("/0/$_", $treebank_data->{$_}) for
   grep { $_ !~ /languages/ } keys %{$treebank_data};
+
+
+# test update: 
+my $update_treebank_url = $t->app->url_for('update_treebank', treebank_id => $treebank_resp_data->{id});
+ok ($update_treebank_url, 'Update treebank url exists');
+
+$treebank_resp_data->{languages} = [map {$_->{id}} @{$treebank_resp_data->{languages}}];
+
+$t->put_ok($update_treebank_url => json => $treebank_resp_data)
+  ->status_is(200, "treebank update without any change")->or(sub { diag p($t->tx->res->json) })
+  ->json_has('/id');
+
+# test name restrictions
+$t->put_ok($update_treebank_url => json => { %$treebank_resp_data, name=>$_})
+  ->status_is(400, "wrong name $_")
+  ->content_like(qr/match/)
+     for (qw/id:id/);
+
+
+# test multiple IDs
+$treebank_resp_data->{treebankProviderIds} = {ldc => 'ldc01', shibboleth => 'sh01'};
+
+$t->put_ok($update_treebank_url => json => $treebank_resp_data)
+  ->status_is(200, 'add valid id')->or(sub { diag p($t->tx->res->json) })
+  ->json_has('/id');
+ok(cmp_deeply($t->tx->res->json->{treebankProviderIds}, $treebank_resp_data->{treebankProviderIds}), 'has valid multiple IDs');
+
+$treebank_resp_data->{treebankProviderIds} = {INVALIDPROVIDER => 'ldc01'};
+
+$t->put_ok($update_treebank_url => json => $treebank_resp_data)
+  ->status_is(400)
+  ->content_like(qr/Unknown provider/);
+
+$treebank_resp_data->{treebankProviderIds} = {ldc => ''};
+
+$t->put_ok($update_treebank_url => json => $treebank_resp_data)
+  ->status_is(400)
+  ->content_like(qr/string/);
+
+$treebank_resp_data->{treebankProviderIds} = [];
+
+$t->put_ok($update_treebank_url => json => $treebank_resp_data)
+  ->status_is(400)
+  ->content_like(qr/format/);
+
+$treebank_resp_data->{treebankProviderIds} = {ldc => {}};
+
+$t->put_ok($update_treebank_url => json => $treebank_resp_data)
+  ->status_is(400)
+  ->content_like(qr/string/);
+
+
+# delete treebank
+my $delete_treebank_url = $t->app->url_for('delete_treebank', treebank_id => $treebank_resp_data->{id});
+ok ($update_treebank_url, 'Delete treebank url exists');
+
+$t->delete_ok($delete_treebank_url => json => $treebank_resp_data)
+  ->status_is(200);
+
 
 # $t->post_ok($create_treebank_url => form => {
 #   map { ("treebank.$_" => $treebank_data{$_}) } keys %treebank_data
