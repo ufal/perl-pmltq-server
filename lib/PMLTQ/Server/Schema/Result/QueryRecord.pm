@@ -43,8 +43,20 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->has_many( query_record_treebanks => 'PMLTQ::Server::Schema::Result::QueryRecordTreebank', 'query_record_id', { cascade_copy => 0, cascade_delete => 1 } );
 
+__PACKAGE__->many_to_many( treebanks => 'query_record_treebanks', 'treebank' );
+
 #__PACKAGE__->belongs_to(
 #  treebank => 'PMLTQ::Server::Schema::Result::Treebank', 'first_used_treebank'
 #);
+
+
+sub TO_JSON {
+   my $self = shift;
+
+   return {
+      (map { ($self->to_json_key($_) => {map {$_->id => $_->name} $self->$_}) } qw/treebanks/),
+      %{ $self->next::method },
+   }
+}
 
 1;
