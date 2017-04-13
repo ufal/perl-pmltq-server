@@ -150,12 +150,18 @@ sub query {
       user_id => $user->id,
       query => $input->{query},
       query_file_id => $history->id,
-      first_used_treebank => $tb->id,
+      #first_used_treebank => $tb->id,
       ord => $time,
       hash => $collapsed,
     });
+    $self->app->log->debug('[USER]: '.$user->id.'  '.$user->name);
     $self->app->log->debug('[COLLAPSED]: '.$collapsed);
+
   }
+
+  $self->app->log->debug('[BEGIN_PMLTQ]');
+  $self->app->log->debug($input->{query});
+  $self->app->log->debug('[END_PMLTQ]');
 
   $self->app->log->debug('[BEGIN_SQL]');
   $self->app->log->debug($evaluator->get_sql);

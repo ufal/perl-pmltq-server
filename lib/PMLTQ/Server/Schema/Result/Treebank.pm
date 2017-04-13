@@ -81,6 +81,14 @@ __PACKAGE__->has_many(
 );
 
 
+__PACKAGE__->has_many(
+  query_record_treebanks => 'PMLTQ::Server::Schema::Result::QueryRecordTreebank',
+  'treebank_id',
+  { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
+);
+
+__PACKAGE__->many_to_many( query_records => 'query_record_treebanks', 'query_record' );
+
 # __PACKAGE__->has_many( user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',  'user_id',  { cascade_copy => 0, cascade_delete => 1 });
 
 #__PACKAGE__->many_to_many( users => 'user_treebanks', 'treebank_id' );

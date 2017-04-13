@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
   description         => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
   ord                 => { data_type => 'integer', is_nullable => 1, default_value => 0 },
   eval_num            => { data_type => 'integer', is_nullable => 1, default_value => 0 },
-  first_used_treebank => { data_type => 'integer', is_foreign_key => 1, is_nullable => 1 },
+  #first_used_treebank => { data_type => 'integer', is_foreign_key => 1, is_nullable => 1 },
   created_at          => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_use            => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
   hash => {
@@ -41,8 +41,10 @@ __PACKAGE__->belongs_to(
   user => 'PMLTQ::Server::Schema::Result::User', 'user_id'
 );
 
-__PACKAGE__->belongs_to(
-  treebank => 'PMLTQ::Server::Schema::Result::Treebank', 'first_used_treebank'
-);
+__PACKAGE__->has_many( query_record_treebanks => 'PMLTQ::Server::Schema::Result::QueryRecordTreebank', 'query_record_id', { cascade_copy => 0, cascade_delete => 1 } );
+
+#__PACKAGE__->belongs_to(
+#  treebank => 'PMLTQ::Server::Schema::Result::Treebank', 'first_used_treebank'
+#);
 
 1;
