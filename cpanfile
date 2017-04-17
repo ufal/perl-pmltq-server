@@ -1,6 +1,6 @@
 requires 'Mojolicious', '6.11';
 requires 'DBIx::Class', '0.082820';
-requires 'PMLTQ', '0.8.3';
+requires 'PMLTQ', '1.1.0';
 
 requires 'DateTime', '1.18';
 requires 'DateTime::Format::Strptime', '1.56';

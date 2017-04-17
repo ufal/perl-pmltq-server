@@ -2,12 +2,13 @@ package PMLTQ::Server::Schema::Result::Treebank;
 
 use Mojo::Base qw/PMLTQ::Server::Schema::Result/;
 
+use File::Spec;
+use PMLTQ::Common;
 use PMLTQ::Server::JSON 'json';
 use PMLTQ::SQLEvaluator;
-use Treex::PML;
-use File::Spec;
+use Scalar::Util 'weaken';
 use Treex::PML::Schema;
-use PMLTQ::Common;
+use Treex::PML;
 use URI;
 
 __PACKAGE__->table('treebanks');
@@ -212,13 +213,11 @@ Note: C<$evaluator> and C<$evaluator2> are actually the same instances.
 
 =cut
 
-my $evaluators = {};
-
 sub get_evaluator {
   my $self = shift;
   my $key = $self->id;
 
-  unless ($evaluators->{$key}) {
+  unless ($self->{_evaluator}) {
     my $server = $self->server;
     my $evaluator = PMLTQ::SQLEvaluator->new(undef, {
       connect => {
@@ -231,10 +230,10 @@ sub get_evaluator {
       }
     });
     $evaluator->connect();
-    $evaluators->{$key} = $evaluator;
+    $self->{_evaluator} = $evaluator;
   }
 
-  return $evaluators->{$key};
+  return $self->{_evaluator};
 }
 
 =head2 record_history
@@ -322,7 +321,7 @@ sub locate_file {
   my ($self, $f) = @_;
   my $evaluator = $self->get_evaluator();
   my $schemas = $evaluator->run_sql_query(qq{SELECT "root","data_dir","schema_file" FROM "#PML"},
-                                          { RaiseError=>1 });
+                                          { RaiseError=>1, AutoInactiveDestroy=>1 });
   for my $schema (@$schemas) {
     for my $what ('__#files','__#references') {
       my $n = $schema->[0].$what;
@@ -330,6 +329,7 @@ sub locate_file {
       # print STDERR "testing: $what $n $f\n";
       my $count = $evaluator->run_sql_query(qq{SELECT count(1) FROM "$n" WHERE "file"=?}, {
           RaiseError=>1,
+          AutoInactiveDestroy=>1,
           Bind=>[ $f ],
         });
       if ($count->[0][0]) {
@@ -421,6 +421,7 @@ sub generate_doc {
         if (ref($sth) and !$sth->err) {
           my $row = $sth->fetch;
           $doc{value} = $row->[0];
+          $sth->finish;
         }
         last SCHEMA;
       }
@@ -428,6 +429,19 @@ sub generate_doc {
   }
 
   return \%doc;
+}
+
+sub DESTORY {
+  my $self = shift;
+
+  # cleanup connection
+  if ($self->{_evaluator}) {
+    if ($self->{_evaluator}->{dbi}) {
+      $self->{_evaluator}->{dbi}->disconnect();
+      undef $self->{_evaluator}->{dbi};
+    }
+    undef $self->{_evaluator};
+  }
 }
 
 1;

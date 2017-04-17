@@ -132,11 +132,10 @@ sub test_server {
 }
 
 sub test_treebank {
-  return $test_tb if $test_tb;
-
   my $treebanks = test_db->resultset('Treebank');
   my $server = test_server();
-  $test_tb = $treebanks->create({
+  return $treebanks->recursive_update({
+    id => 1,
     name => 'pdt20_mini',
     title => 'PDT 2.0 Sample',
     server_id => $server->id,
@@ -149,8 +148,6 @@ sub test_treebank {
       { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
     ]
   })->discard_changes;
-
-  return $test_tb
 }
 
 sub test_user {

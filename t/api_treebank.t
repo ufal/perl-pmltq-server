@@ -39,6 +39,11 @@ isa_ok($e2, 'PMLTQ::SQLEvaluator');
 
 is($e1, $e2, 'Evaluators are the same');
 
+undef $tb;
+$tb = test_treebank();
+$e2 = $tb->get_evaluator;
+isnt($e1, $e2, 'Evaluators are not the same');
+
 ## History tested in history.t
 
 ## Search
