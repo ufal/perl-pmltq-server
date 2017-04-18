@@ -158,9 +158,9 @@ sub query {
       query_record_id => $query_record->id,
       treebank_id => => $tb->id
     });
-    $self->app->log->debug('[QUERY RECORD]: '.$input->{query_record_id});
-    $self->app->log->debug($self->db->resultset('QueryRecord')->find($input->{query_record_id}));
     if($input->{query_record_id} && $self->db->resultset('QueryRecord')->find($input->{query_record_id}) ){
+      $self->app->log->debug('[QUERY RECORD]: '.$input->{query_record_id});
+      $self->app->log->debug($self->db->resultset('QueryRecord')->find($input->{query_record_id}));
       $self->db->resultset('QueryRecordTreebank')->find_or_create({
         query_record_id => $input->{query_record_id},
         treebank_id => => $tb->id
