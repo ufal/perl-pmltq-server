@@ -142,7 +142,7 @@ sub TO_JSON {
 
 sub history {
   my $self = shift;
-  my $history = $self->query_files->single({name => 'HISTORY'});
+  my $history = $self->query_files->find_or_create({name => 'HISTORY', user_id => $self->id});
   return $history;
 }
 
