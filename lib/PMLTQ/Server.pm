@@ -64,12 +64,14 @@ sub startup {
   $api_auth->post->to(action => 'sign_in')->name('auth_sign_in');
   $api_auth->delete->to(action => 'sign_out')->name('auth_sign_out');
   $api_auth->get('shibboleth')->to(action => 'sign_in_shibboleth')->name('auth_shibboleth');
+  $api_auth->get('ldc')->to(action => 'sign_in_ldc')->name('auth_ldc');
 
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
 
   my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
   my $query_file = $user->resource('query-file', controller => 'User::QueryFile');
   $query_file->resource('query', controller => 'User::QueryFile::QueryRecord');
+  $user->get('history')->to(controller => 'History', action => 'list')->name('history');
 
   my $treebank = $api->under('/treebanks/:treebank_id', ['treebank_id' => qr/[a-z0-9_-]+/])->
     name('treebank')->to(controller => 'Treebank', action => 'initialize_single');

@@ -3,6 +3,7 @@ package PMLTQ::Server::Controller::Query;
 # ABSTRACT: Handling everything related to query execution
 
 use Mojo::Base 'Mojolicious::Controller';
+use PMLTQ::Server::Validation;
 
 =head1 METHODS
 
@@ -138,6 +139,41 @@ sub query {
   }
 
   return unless $sth;
+
+  my $user = $self->current_user;
+  if($user) {
+    my $history = $user->history();
+    my $time = time();
+    my $collapsed = collapse_query()->($input->{query});
+    my $query_record = $self->db->resultset('QueryRecord')->create({
+      name => $time,
+      user_id => $user->id,
+      query => $input->{query},
+      query_file_id => $history->id,
+      #first_used_treebank => $tb->id,
+      ord => $time,
+      hash => $collapsed,
+    });
+    $self->db->resultset('QueryRecordTreebank')->create({
+      query_record_id => $query_record->id,
+      treebank_id => => $tb->id
+    });
+    if($input->{query_record_id} && $self->db->resultset('QueryRecord')->find($input->{query_record_id}) ){
+      $self->app->log->debug('[QUERY RECORD]: '.$input->{query_record_id});
+      $self->app->log->debug($self->db->resultset('QueryRecord')->find($input->{query_record_id}));
+      $self->db->resultset('QueryRecordTreebank')->find_or_create({
+        query_record_id => $input->{query_record_id},
+        treebank_id => => $tb->id
+      });
+    }
+    $self->app->log->debug('[USER]: '.$user->id.'  '.$user->name);
+    $self->app->log->debug('[COLLAPSED]: '.$collapsed);
+
+  }
+
+  $self->app->log->debug('[BEGIN_PMLTQ]');
+  $self->app->log->debug($input->{query});
+  $self->app->log->debug('[END_PMLTQ]');
 
   $self->app->log->debug('[BEGIN_SQL]');
   $self->app->log->debug($evaluator->get_sql);

@@ -9,7 +9,8 @@ use Encode qw(decode_utf8);
 sub render_user {
   my $c = shift;
 
-  $c->render(json => { user => $c->is_user_authenticated ? $c->current_user : Mojo::JSON->false });
+  $c->render(json => { user => $c->is_user_authenticated ? $c->current_user : Mojo::JSON->false,
+             login_with => $c->config->{login_with} // {local => 1} });
 }
 
 sub check {
@@ -54,6 +55,11 @@ sub is_admin {
 sub sign_in {
   my $c = shift;
 
+  unless ($c->config->{login_with}->{local}) {
+    $c->rendered(404);
+    return;
+  }
+
   my $auth_data = $c->req->json('/auth') || {};
   #print STDERR $c->dumper($c->req->json);
   if(($auth_data = $c->_validate_auth($auth_data))
@@ -68,11 +74,27 @@ sub sign_in {
   }
 }
 
+sub sign_in_ldc {
+  my $c = shift;
+
+  unless ($c->config->{login_with}->{ldc}) {
+    $c->rendered(404);
+    return;
+  }
+
+  ## TODO
+}
+
 # TODO: check Shibboleth attributes to actually create user accounts
 sub sign_in_shibboleth {
   my $c = shift;
 
   unless ($c->config->{shibboleth}) {
+    $c->rendered(404);
+    return;
+  }
+
+  unless ($c->config->{login_with}->{shibboleth}) {
     $c->rendered(404);
     return;
   }

@@ -34,8 +34,9 @@ sub _validate {
 
 sub list {
   my $c = shift;
+  my $showhist = $c->req->param('history_list') // 0;
 
-  my @query_files = map {$_->list_data} $c->db->resultset('QueryFile')->search_rs({user_id => $c->current_user->id})->all;
+  my @query_files = grep { $showhist || !($_->{name} eq 'HISTORY') } map {$_->list_data} $c->db->resultset('QueryFile')->search_rs({user_id => $c->current_user->id})->all;
   $c->render(json => \@query_files);
 }
 

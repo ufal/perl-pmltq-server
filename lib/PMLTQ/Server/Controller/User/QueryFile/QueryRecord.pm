@@ -14,19 +14,26 @@ has resultset => sub {
 };
 
 sub _validate {
-  my ($c, $data) = @_;
+  my ($c, $data, $current) = @_;
 
   my $rules = {
-    fields => [qw/query name/],
+    fields => [qw/query name ord/],
     filters => [
       [qw/name/] => filter(qw/trim strip/),
     ],
     checks => [
       name => [is_long_at_most(120)],
+      ord  => is_integer()
     ]
   };
+  $data->{ord} //= time();
+
+  if($current) { # on query update
+    $data->{treebanks} = [] unless $current->query eq $data->{query};
+  }
 
   $data = $c->do_validation($rules, $data);
+  $data->{hash} = collapse_query()->($data->{query});
   $data->{user_id} = $c->current_user->id;
   $data->{query_file_id} = $c->stash->{query_file}->id;
 

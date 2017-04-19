@@ -140,4 +140,10 @@ sub TO_JSON {
 #   $self->patch({last_login => DateTime->now()}, sub {my($user, $err) = @_;});
 # }
 
+sub history {
+  my $self = shift;
+  my $history = $self->query_files->find_or_create({name => 'HISTORY', user_id => $self->id});
+  return $history;
+}
+
 1;

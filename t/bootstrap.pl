@@ -107,7 +107,7 @@ sub get_log {
   return \@lines;
 }
 
-my ($app, $test_tb, %test_user, $admin_user, $encrypt);
+my ($app, %test_tb, %test_user, $admin_user, $encrypt);
 
 sub test_app {
   return $app if $app;
@@ -132,13 +132,17 @@ sub test_server {
 }
 
 sub test_treebank {
-  return $test_tb if $test_tb;
+  my $tbpar = shift // {
+    name => 'pdt20_mini',
+    title => 'PDT 2.0 Sample',
+  };
+  die "WRONG PARAMS: At least name and title must be set in the hash"  unless ref($tbpar) && exists($tbpar->{name}) && exists($tbpar->{title});
+  my $tbname = $tbpar->{name};
+  return $test_tb{$tbname} if exists $test_tb{$tbname};
 
   my $treebanks = test_db->resultset('Treebank');
   my $server = test_server();
-  $test_tb = $treebanks->create({
-    name => 'pdt20_mini',
-    title => 'PDT 2.0 Sample',
+  $test_tb{$tbname} = $treebanks->create({
     server_id => $server->id,
     database => 'test',
     is_public => 1,
@@ -147,10 +151,11 @@ sub test_treebank {
     data_sources => [
       { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data') },
       { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
-    ]
+    ],
+    %$tbpar
   })->discard_changes;
 
-  return $test_tb
+  return $test_tb{$tbname}
 }
 
 sub test_user {
