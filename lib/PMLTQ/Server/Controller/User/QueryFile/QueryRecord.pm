@@ -14,7 +14,7 @@ has resultset => sub {
 };
 
 sub _validate {
-  my ($c, $data) = @_;
+  my ($c, $data, $current) = @_;
 
   my $rules = {
     fields => [qw/query name ord/],
@@ -27,6 +27,10 @@ sub _validate {
     ]
   };
   $data->{ord} //= time();
+
+  if($current) { # on query update
+    $data->{treebanks} = [] unless $current->query eq $data->{query};
+  }
 
   $data = $c->do_validation($rules, $data);
   $data->{hash} = collapse_query()->($data->{query});

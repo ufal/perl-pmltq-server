@@ -168,11 +168,7 @@ subtest "Edit query (fixing evaluated treebank list)" => sub { # edit query
 
   $t->get_ok($list_query_files_url => form => {history_list => 0}) # get lists without history
     ->status_is(200);
-  TODO: {
-    local $TODO = 'Remove assigned treebank when changing query';
-    is(scalar keys %{$t->tx->res->json->[0]->{queries}->[$_]->{treebanks}}, 0, "Record has no treebank assigned - was changed and not evaluated");
-  }
-
+  is(scalar keys %{$t->tx->res->json->[0]->{queries}->[0]->{treebanks}}, 0, "Record has no treebank assigned - was changed and not evaluated");
 };
 
 done_testing();
