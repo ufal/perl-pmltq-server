@@ -137,7 +137,7 @@ $fetched_query_record->{name} = 'A name';
 # got {tb_id => tb_name}
 $fetched_query_record->{treebanks} = [ keys %{$fetched_query_record->{treebanks}}];
 # send [tb_id]
-$t->put_ok($get_query_file_query_url => json => $fetched_query_record)
+$t->put_ok($update_query_file_query_url => json => $fetched_query_record)
   ->status_is(200);
 
 $t->json_is("/$_", $fetched_query_record->{$_}) for grep {! $_ eq 'treebanks'} keys %{$fetched_query_record};
