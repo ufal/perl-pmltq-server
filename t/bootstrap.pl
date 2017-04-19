@@ -107,7 +107,7 @@ sub get_log {
   return \@lines;
 }
 
-my ($app, $test_tb, %test_user, $admin_user, $encrypt);
+my ($app, %test_tb, %test_user, $admin_user, $encrypt);
 
 sub test_app {
   return $app if $app;
@@ -137,11 +137,12 @@ sub test_treebank {
     title => 'PDT 2.0 Sample',
   };
   die "WRONG PARAMS: At least name and title must be set in the hash"  unless ref($tbpar) && exists($tbpar->{name}) && exists($tbpar->{title});
-  return $test_tb if $test_tb;
+  my $tbname = $tbpar->{name};
+  return $test_tb{$tbname} if exists $test_tb{$tbname};
 
   my $treebanks = test_db->resultset('Treebank');
   my $server = test_server();
-  $test_tb = $treebanks->create({
+  $test_tb{$tbname} = $treebanks->create({
     server_id => $server->id,
     database => 'test',
     is_public => 1,
@@ -154,7 +155,7 @@ sub test_treebank {
     %$tbpar
   })->discard_changes;
 
-  return $test_tb
+  return $test_tb{$tbname}
 }
 
 sub test_user {
