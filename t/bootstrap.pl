@@ -300,6 +300,18 @@ sub extract_session {
     return $session;
 }
 
+sub login_user {
+  my $t = shift;
+  my $login_data = shift;
+  my $message = shift // '';
+  subtest "LOGIN $message" => sub {
+    my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
+    ok ($auth_sign_in_url, 'Has auth sign in url');
+    $t->post_ok($auth_sign_in_url => json => $login_data)
+      ->status_is(200);
+  }
+}
+
 END {
   if ($print_server_pid && $print_server_pid != 0) {
     kill TERM => $print_server_pid;
