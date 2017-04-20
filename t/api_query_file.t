@@ -16,10 +16,6 @@ my $tu = test_user();
 
 $t->reset_session();
 
-ok $t->app->routes->find('auth_sign_in'), 'Auth sign in route exists';
-my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
-ok ($auth_sign_in_url, 'Has auth sign in url');
-
 ok $t->app->routes->find('create_query_file'), 'Route exists';
 my $create_query_file_url = $t->app->url_for('create_query_file');
 ok ($create_query_file_url, 'Create query file url exists');
@@ -31,12 +27,12 @@ my $query_file = {
 $t->post_ok($create_query_file_url => json => $query_file)
   ->status_is(401);
 
-$t->post_ok($auth_sign_in_url => json => {
+login_user($t, {
   auth => {
     username => 'tester',
     password => 'tester'
   }
-})->status_is(200);
+});
 
 $t->post_ok($create_query_file_url => json => $query_file)
   ->status_is(200);
@@ -177,9 +173,9 @@ ok(test_db()->resultset('QueryRecord')->count() == 0, 'No queries');
 
 my $tu2_data = {username => 'tu2', password => 'tu2'};
 my $tu2 = test_user($tu2_data);
-$t->post_ok($auth_sign_in_url => json => {
+login_user($t, {
   auth => $tu2_data
-})->status_is(200);
+});
 
 my $query_file2 = {
   name => 'test_file_2'
@@ -197,12 +193,12 @@ is (scalar @{$t->tx->res->json} , 1, 'One query file is in the list');
 $t->delete_ok($auth_sign_out_url)
   ->status_is(200);
 
-$t->post_ok($auth_sign_in_url => json => {
+login_user($t, {
   auth => {
     username => 'tester',
     password => 'tester'
   }
-})->status_is(200);
+});
 
 $t->get_ok($list_query_files_url)
   ->status_is(200);

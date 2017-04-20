@@ -15,15 +15,12 @@ my $t = test_app();
 my $tb = test_treebank();
 my $tu = test_user();
 
-my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
-ok ($auth_sign_in_url, 'Has auth sign in url');
-
-$t->post_ok($auth_sign_in_url => json => {
+login_user($t,{
   auth => {
     username => 'tester',
     password => 'tester'
   }
-})->status_is(200);
+});
 
 my $history_url = $t->app->url_for('history');
 ok ($history_url, 'Has history url');

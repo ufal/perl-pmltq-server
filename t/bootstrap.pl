@@ -305,6 +305,7 @@ sub login_user {
   my $login_data = shift;
   my $message = shift // '';
   subtest "LOGIN $message" => sub {
+    ok $t->app->routes->find('auth_sign_in'), 'Auth sign in route exists';
     my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
     ok ($auth_sign_in_url, 'Has auth sign in url');
     $t->post_ok($auth_sign_in_url => json => $login_data)
