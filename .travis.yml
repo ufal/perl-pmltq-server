@@ -18,6 +18,7 @@ branches:
     - multiple_ids
     - fix_suggest
     - recentQueries
+    - query_publication
 
 before_install:
   - cpanm -n Devel::Cover::Report::Coveralls
