@@ -52,13 +52,9 @@ sub get_public_file {
 
 sub tree {
   my $c = shift;
-use Data::Dumper;  
   my @public_lists = $c->db->resultset('QueryFile')->search_rs({is_public => 1})->all;
-print STDERR "public_lists",Dumper(@public_lists),"<<<<<<<<<";
-#print STDERR "queries",Dumper([$c->db->resultset('QueryRecord')->search_rs({is_public => 1})->all]);
   my %public_queries_users = map {$_->user_id => {}} $c->db->resultset('QueryRecord')->search_rs({is_public => 1})->all;
   my %tree = (%public_queries_users, map {$_->user_id => {}} @public_lists);
-print STDERR "tree",Dumper(\%tree);
   for my $user_id (keys %tree) {
     $tree{$user_id}->{name} = $c->db->resultset('User')->single({id => $user_id})->name;
     $tree{$user_id}->{files} = [
@@ -71,8 +67,6 @@ print STDERR "tree",Dumper(\%tree);
           }) 
         : ()];
   }
-
-  use Data::Dumper;print STDERR Dumper \%tree;
   $c->render(json => \%tree);
 }
 
