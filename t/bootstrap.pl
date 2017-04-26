@@ -358,7 +358,6 @@ sub create_query_in_queryfile {
     $t->post_ok($create_query_file_queries_url => json => $data)
       ->status_is(200);
     $t->json_has("/id", "Query has id");
-    use Data::Dumper; print STDERR Dumper($t->tx->res->json);
 
     $id = $t->tx->res->json->{id};
   };

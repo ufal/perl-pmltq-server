@@ -67,7 +67,7 @@ ok ($public_query_file_url_1, 'Public query file url exists (user 1)');
 
 $t->get_ok($public_query_file_url_0)
   ->status_is(200);
-use Data::Dumper;print STDERR Dumper($t->tx->res->json);
+
 is(scalar @{$t->tx->res->json->{queries}},1,"User 0 has 1 public query");
 
 $t->get_ok($public_query_file_url_1)
