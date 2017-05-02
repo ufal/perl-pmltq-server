@@ -73,7 +73,7 @@ sub startup {
   $query_file->resource('query', controller => 'User::QueryFile::QueryRecord');
   $user->get('history')->to(controller => 'History', action => 'list')->name('history');
 
-  $api->get('public-query')->to(controller => 'PublicQuery', action => 'tree')->name('public_query_tree');
+  $api->get('public-query')->to(controller => 'PublicQuery', action => 'list')->name('public_query_tree');
 
   my $public_file = $api->under('/users/:user_id/query-files/:query_file_id', ['user_id' => qr/[a-z0-9_-]+/, 'query_file_id' => qr/[0-9]+|public/])->
     name('public_query_file')->to(controller => 'PublicQuery', action => 'initialize_single');

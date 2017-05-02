@@ -40,7 +40,7 @@ ok ($list_public_query_url, 'List public query url exists');
 
 $t->get_ok($list_public_query_url)
   ->status_is(200);
-is(scalar keys %{$t->tx->res->json},0,"Neither public query nor public list");
+is(scalar @{$t->tx->res->json},0,"Neither public query nor public list");
 
 # create public and private query in private list
 login_user($t, $tu[0]->{login}, $tu[0]->{save}->{name}); ## LOGIN 0 ###################
@@ -61,11 +61,11 @@ logout_user($t, $tu[0]->{save}->{name});  ## LOGOUT 0 ###################
 # check public query and fake querylist "PUBLIC" 
 $t->get_ok($list_public_query_url)
   ->status_is(200);
-is(scalar keys %{$t->tx->res->json},1,"One user has a public query or list");
-$t->json_is("/".$tu[0]->{user}->id."/name", $tu[0]->{save}->{name});
-is(scalar @{$t->tx->res->json->{$tu[0]->{user}->id}->{files}},1,"One public query list");
-$t->json_has("/".$tu[0]->{user}->id."/files/0/$_") for (qw/id user_id name/);
-$t->json_hasnt("/".$tu[0]->{user}->id."/files/0/queries");
+is(scalar @{$t->tx->res->json},1,"One user has a public query or list");
+$t->json_is("/0/$_", $tu[0]->{user}->$_) for qw/name id/;
+is(scalar @{$t->tx->res->json->[0]->{files}},1,"One public query list");
+$t->json_has("/0/files/0/$_") for (qw/id user_id name/);
+$t->json_hasnt("/0/files/0/queries");
 
 ok $t->app->routes->find('public_query_file'), 'Route exists';
 my $queryfile_usr0pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[0]->{user}->id, 'query_file_id' => 'public'); # url for file with all public labeled queries
@@ -108,7 +108,9 @@ $t->get_ok($queryfile_0priv_url) # USER 0 PRIVATE FILE
 $t->get_ok($queryfile_1pub_url) # USER 1 PUBLIC FILE
   ->status_is(200);
 
-
+$t->get_ok($list_public_query_url)
+  ->status_is(200);
+is(scalar @{$t->tx->res->json},2,"Two users has a public query or list");
 
 
 
