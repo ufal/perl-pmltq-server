@@ -50,7 +50,7 @@ my $queryfile_0priv_id = create_queryfile($t, {name => "QF1"},"create private qu
 my $query_00pub_id = create_query_in_queryfile($t, {query => 'a-node []', name => "0 public query", is_public => 1}, $queryfile_0priv_id, "create public query in private query file");
 my $query_01priv_id = create_query_in_queryfile($t, {query => 'a-root []', name => "0 private query"}, $queryfile_0priv_id, "create private query in private query file");
 
-my $queryfile_0priv_url = $t->app->url_for('public_query_file', 'user_id' => $tu[0]->{user}->id, 'query_file_id' => $queryfile_0priv_id);
+my $queryfile_0priv_url = $t->app->url_for('public_query_file', 'user_id' => $tu[0]->{user}->id)->query(file => $queryfile_0priv_id);
 ok ($queryfile_0priv_url, 'Private query file url exists (user 0)');
 
 $t->get_ok($queryfile_0priv_url)
@@ -68,9 +68,9 @@ $t->json_has("/0/files/0/$_") for (qw/id user_id name/);
 $t->json_hasnt("/0/files/0/queries");
 
 ok $t->app->routes->find('public_query_file'), 'Route exists';
-my $queryfile_usr0pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[0]->{user}->id, 'query_file_id' => 'public'); # url for file with all public labeled queries
+my $queryfile_usr0pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[0]->{user}->id)->query(file => 'public'); # url for file with all public labeled queries
 ok ($queryfile_usr0pub_url, 'Public query file url exists (user 0)');
-my $queryfile_usr1pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[1]->{user}->id, 'query_file_id' => 'public'); # url for file with all public labeled queries
+my $queryfile_usr1pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[1]->{user}->id)->query(file => 'public'); # url for file with all public labeled queries
 ok ($queryfile_usr1pub_url, 'Public query file url exists (user 1)');
 
 $t->get_ok($queryfile_usr0pub_url)
@@ -90,7 +90,7 @@ $t->get_ok($queryfile_0priv_url)
 # create public querylist for second user
 my $queryfile_1pub_id = create_queryfile($t, {name => "QF2", is_public => 1},"create public query file");
 
-my $queryfile_1pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[1]->{user}->id, 'query_file_id' => $queryfile_1pub_id);
+my $queryfile_1pub_url = $t->app->url_for('public_query_file', 'user_id' => $tu[1]->{user}->id)->query(file => $queryfile_1pub_id);
 ok ($queryfile_1pub_url, "Public query file (id=$queryfile_1pub_id) url exists (user 1)");
 $t->get_ok($queryfile_1pub_url)
   ->status_is(200);

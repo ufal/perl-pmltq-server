@@ -75,7 +75,7 @@ sub startup {
 
   $api->get('public-query')->to(controller => 'PublicQuery', action => 'list')->name('public_query_tree');
 
-  my $public_file = $api->under('/users/:user_id/query-files/:query_file_id', ['user_id' => qr/[a-z0-9_-]+/, 'query_file_id' => qr/[0-9]+|public/])->
+  my $public_file = $api->under('/public-query-list/:user_id', ['user_id' => qr/[a-z0-9_-]+/])->
     name('public_query_file')->to(controller => 'PublicQuery', action => 'initialize_single');
   $public_file->get->to('#get');
 

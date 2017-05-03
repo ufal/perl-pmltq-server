@@ -8,7 +8,7 @@ use PMLTQ::Server::Validation;
 
 sub initialize_single {
   my $c = shift;
-  my $query_file_id = $c->param('query_file_id');
+  my $query_file_id = $c->param('file');
   my $user_id = $c->param('user_id');
   my $query_file;
 
@@ -27,8 +27,6 @@ sub initialize_single {
   }
 
   $c->stash(queryfile => $query_file);
-
-
 }
 
 sub get {
