@@ -44,6 +44,7 @@ sub get_public_file {
     name => 'PUBLIC',
     id => 'public',
     user_id => $user_id,
+    userId => $user_id, # hack
     queries => \@queries
   }
 }
@@ -62,7 +63,8 @@ sub list {
         ? ({
             name => 'PUBLIC',
             id => 'public',
-            user_id => $user_id
+            user_id => $user_id,
+            userId => $user_id, # hack
           }) 
         : ()];
   }
