@@ -71,6 +71,7 @@ sub startup {
   my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
   my $query_file = $user->resource('query-file', controller => 'User::QueryFile', permission => 'is_owner');
   $query_file->resource('query', controller => 'User::QueryFile::QueryRecord', permission => 'is_owner');
+
   $user->get('history')->to(controller => 'History', action => 'list')->name('history');
 
   $api->get('public-query')->to(controller => 'PublicQuery', action => 'list')->name('public_query_tree');
@@ -126,6 +127,8 @@ sub add_resource_shortcut {
 
       # GET requests - lists the collection of this resource
       $resource->get->to(action => 'list')->name("list_$plural_name");
+
+      $resource->put->to(action => 'update_list')->name("update_list_$plural_name");
 
       # POST requests - creates a new resource
       $resource->post->to(action => 'create')->name("create_$name");
