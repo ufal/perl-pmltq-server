@@ -160,4 +160,6 @@ sub _validate_params {
 
 sub _validate { }
 
+sub true {return 1}
+
 1;

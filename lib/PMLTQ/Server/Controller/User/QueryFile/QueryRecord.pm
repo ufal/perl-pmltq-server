@@ -40,4 +40,19 @@ sub _validate {
   return $data;
 }
 
+sub is_owner {
+  my $c = shift;
+
+  unless ($c->entity->user_id == $c->current_user->id) {
+    $c->status_error({
+      code => 403,
+      message => 'Permission denied'
+    });
+
+    return;
+  }
+
+  return 1;
+}
+
 1;

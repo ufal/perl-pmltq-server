@@ -69,8 +69,8 @@ sub startup {
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
 
   my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
-  my $query_file = $user->resource('query-file', controller => 'User::QueryFile');
-  $query_file->resource('query', controller => 'User::QueryFile::QueryRecord');
+  my $query_file = $user->resource('query-file', controller => 'User::QueryFile', permission => 'is_owner');
+  $query_file->resource('query', controller => 'User::QueryFile::QueryRecord', permission => 'is_owner');
   $user->get('history')->to(controller => 'History', action => 'list')->name('history');
 
   $api->get('public-query')->to(controller => 'PublicQuery', action => 'list')->name('public_query_tree');
@@ -107,6 +107,7 @@ sub add_resource_shortcut {
 
       my $url = PL($name, 10);
       my $controller = $params->{controller} || "$name#";
+      my $permission = $params->{permission} || 'true';
       my $plural_name = $url;
 
       $name =~ s/-/_/;
@@ -135,6 +136,8 @@ sub add_resource_shortcut {
       # individual id and pass its name to the controller (idname)
       $resource = $r->under("/$url/:${entity_id}" => ["${entity_id}" => qr/[0-9]+/])
         ->to(controller => $controller, action => 'find', entity_name => $name, entity_id_name => $entity_id, parent_entity => $parent)
+        ->under("/")
+        ->to(controller => $controller, action => $permission)
         ->name("${name}_resource");
 
       # GET requests - lists a single resource
