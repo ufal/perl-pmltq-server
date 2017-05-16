@@ -135,7 +135,7 @@ $t->put_ok($set_query_order_url => json => {queries => $all_queries_order})
   ->status_is(200);
 $t->get_ok($get_query_file_url)
   ->status_is(200);
-$all_queries = [ sort {$a->{ord} > $b->{ord}} @{$t->tx->res->json->{queries}}];
+$all_queries = [ sort {$a->{ord} <=> $b->{ord}} @{$t->tx->res->json->{queries}}];
 ok(cmp_deeply([map { {%$_{qw/ord id/}} } @$all_queries], $all_queries_order), 'Query order is ok');
 $i=0;
 $all_queries_order = [ map {{id => $_->{id}, ord => $i++}} reverse @{$all_queries}]; # REVERSE ORDER
@@ -143,7 +143,7 @@ $t->put_ok($set_query_order_url => json => {queries => $all_queries_order})
   ->status_is(200);
 $t->get_ok($get_query_file_url)
   ->status_is(200);
-$all_queries = [ sort {$a->{ord} > $b->{ord}} @{$t->tx->res->json->{queries}}];
+$all_queries = [ sort {$a->{ord} <=> $b->{ord}} @{$t->tx->res->json->{queries}}];
 ok(cmp_deeply([map { {%$_{qw/ord id/}} } @$all_queries], $all_queries_order), 'Query reverse order is ok');
 
 ok $t->app->routes->find('update_query_file_query'), 'Route exists';
