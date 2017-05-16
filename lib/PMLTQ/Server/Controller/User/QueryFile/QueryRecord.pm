@@ -93,6 +93,6 @@ sub update_list {
 #      });
 #    }
   }
-  $c->render(json => {result => {queries => [map { {%$_{qw/ord id user_id query_file_id/}} } @result]}});
+  $c->render(json => {result => {queries => [map { my $q = $_; +{(map { ($q->to_json_key($_) => $q->$_) } qw/ord id user_id query_file_id/)} } @result]}});
 }
 1;
