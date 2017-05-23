@@ -35,8 +35,14 @@ sub _validate {
   $data = $c->do_validation($rules, $data);
   $data->{hash} = collapse_query()->($data->{query});
   $data->{user_id} = $c->current_user->id;
-  $data->{query_file_id} = $c->stash->{query_file}->id;
 
+  $data->{query_file_id} ||= $c->stash->{query_file}->id;
+  unless($c->db->resultset('QueryFile')->count({id => $data->{query_file_id}, user_id => $data->{user_id}})) {
+    $c->status_error({
+      code => 403,
+      message => 'Permission denied'
+    }); 
+  }
   return $data;
 }
 
