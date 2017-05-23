@@ -192,6 +192,80 @@ ok(test_db()->resultset('QueryFile')->count() == 0, 'No query files');
 ok(test_db()->resultset('QueryRecord')->count() == 0, 'No queries');
 
 
+subtest 'CHANGE QUERY LIST' => sub { # move query to other list
+  my ($test_user) = map {
+  {
+    login => {
+      auth => {
+        username => $_->[0],
+        password => $_->[1]
+      }
+    },
+    save => {
+        username => $_->[0],
+        password => $_->[1],
+        name => $_->[2]
+    },
+  }
+  } ([qw/user1 pass1 name1/]);
+
+  $test_user->{user} = test_user($test_user->{save});
+  login_user($t, $test_user->{login}, $test_user->{save}->{name});
+
+  my @query_files = map { {name => $_} } qw/CHQ_file1 CHQ_file2/;
+  $t->post_ok($create_query_file_url => json => $_)
+    ->status_is(200)
+    for (@query_files);
+  $t->get_ok($list_query_files_url)
+    ->status_is(200);
+  ok (@{$t->tx->res->json} == 2, 'Two query files is in the list');
+  my %fetched_query_files = map {$_->{name} => $_} @{$t->tx->res->json};
+  for $fetched_file (values %fetched_query_files) {
+    my $create_query_file_queries_url = $t->app->url_for('create_query_file_query', query_file_id => $fetched_file->{id});
+    my $ord=0;
+    for (qw/query1 query2 query3/) {
+      $t->post_ok($create_query_file_queries_url => json => {
+        name => "$fetched_file->{name} $_",
+        query => "a-node [ attr = '$fetched_file->{name} $_' ]",
+        ord => $ord++
+      })->status_is(200);
+    }
+  }
+  $t->get_ok($list_query_files_url)
+    ->status_is(200);
+  %fetched_query_files = map {$_->{name} => $_} @{$t->tx->res->json};
+  $_->{queries} = [ sort {$a->{ord} <=> $b->{ord}} @{$_->{queries}}] for (values %fetched_query_files); # sort queries
+
+  # move query 'CHQ_file1 query2'
+  # 'CHQ_file1' = [CHQ_file1 query1' 'CHQ_file1 query3'] # no change
+  # 'CHQ_file2' = [CHQ_file2 query1' 'CHQ_file2 query2' 'CHQ_file1 query1' 'CHQ_file2 query3'] # changing order
+  my $file1query2 = $fetched_query_files{'CHQ_file1'}->{queries}->[1];
+  splice @{$fetched_query_files{'CHQ_file1'}->{queries}}, 1, 1;
+  splice @{$fetched_query_files{'CHQ_file2'}->{queries}}, 2, 0, $file1query2;
+  
+  # change query record's list:
+  my $update_query_file_query_url = $t->app->url_for('update_query_file_query', query_file_id => $fetched_query_files{'CHQ_file1'}->{id}, query_id => $file1query2->{id});
+  $file1query2->{queryFileId} = $fetched_query_files{'CHQ_file2'}->{id};
+  $t->put_ok($update_query_file_query_url => json => $file1query2)
+    ->status_is(200);
+  
+  # update target query list order:
+  my $i=0;
+  my $order_file2 = [ map {{id => $_->{id}, ord => $i++}} @{$fetched_query_files{'CHQ_file2'}->{queries}}];
+  my $set_query_order_url = $t->app->url_for('update_list_query_file_queries', query_file_id => $fetched_query_files{'CHQ_file2'}->{id});
+  $t->put_ok($set_query_order_url => json => {queries => $order_file2})
+    ->status_is(200);
+  
+  $t->get_ok($list_query_files_url)
+    ->status_is(200);
+  %fetched_query_files = map {$_->{name} => $_} @{$t->tx->res->json};
+  $_->{queries} = [ sort {$a->{ord} <=> $b->{ord}} @{$_->{queries}}] for (values %fetched_query_files); # sort queries
+
+  ok(cmp_deeply([map { {%$_{qw/ord id/}} } @{$fetched_query_files{'CHQ_file2'}->{queries}}], $order_file2), 'Query order file2 is ok');
+
+  logout_user($t, $test_user->{save}->{name});
+};
+
 
 # test that queryFiles are not shared among users
 
