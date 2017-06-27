@@ -4,6 +4,7 @@ package PMLTQ::Server::Controller::Query;
 
 use Mojo::Base 'Mojolicious::Controller';
 use PMLTQ::Server::Validation;
+use Encode qw(encode_utf8);
 
 =head1 METHODS
 
@@ -152,7 +153,7 @@ sub query {
       query_file_id => $history->id,
       #first_used_treebank => $tb->id,
       ord => $time,
-      hash => $collapsed,
+      hash => encode_utf8($collapsed),
     });
     $self->db->resultset('QueryRecordTreebank')->create({
       query_record_id => $query_record->id,
