@@ -46,8 +46,16 @@ sub list_data {
   my $self = shift;
 
   return json {
-    (map { ( $_ => $self->$_ ) } qw/id name user_id created_at last_use/),
+    (map { ( $_ => $self->$_ ) } qw/id name user_id created_at last_use is_public description/),
     $self->to_json_key('queries') => [$self->queries()->all]
+  }
+}
+
+sub metadata {
+   my $self = shift;
+
+  return json {
+    (map { ( $_ => $self->$_ ) } qw/id name user_id created_at last_use/),
   }
 }
 1;

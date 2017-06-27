@@ -125,6 +125,14 @@ sub update {
   }
 }
 
+sub update_list {
+  my $c = shift;
+  $c->status_error({
+    code => 403,
+    message => 'Updating list is not allowed'
+  });
+}
+
 sub remove {
   my $c = shift;
   my $entity = $c->entity;
@@ -159,5 +167,7 @@ sub _validate_params {
 }
 
 sub _validate { }
+
+sub true {return 1}
 
 1;

@@ -300,6 +300,70 @@ sub extract_session {
     return $session;
 }
 
+sub login_user {
+  my $t = shift;
+  my $login_data = shift;
+  my $message = shift // '';
+  subtest "LOGIN $message" => sub {
+    ok $t->app->routes->find('auth_sign_in'), 'Auth sign in route exists';
+    my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
+    ok ($auth_sign_in_url, 'Has auth sign in url');
+    $t->post_ok($auth_sign_in_url => json => $login_data)
+      ->status_is(200);
+  }
+}
+
+
+sub logout_user {
+  my $t = shift;
+  my $message = shift // '';
+  subtest "LOGOUT $message" => sub {
+    ok $t->app->routes->find('auth_sign_out'), 'Auth sign out route exists';
+    my $auth_sign_out_url = $t->app->url_for('auth_sign_out');
+    $t->delete_ok($auth_sign_out_url)
+      ->status_is(200);
+  }
+}
+
+sub create_queryfile {
+  my $t = shift;
+  my $data = shift;
+  my $message = shift // '';
+  my $id;
+  subtest "CREATE QUERYFILE $message" => sub {
+    ok $t->app->routes->find('create_query_file'), 'Route exists';
+    my $create_query_file_url = $t->app->url_for('create_query_file');
+    ok ($create_query_file_url, 'Create query file url exists');
+
+    $t->post_ok($create_query_file_url => json => $data)
+      ->status_is(200);
+    $t->json_has("/id", "Queryfile has id");
+
+    $id = $t->tx->res->json->{id};
+  };
+  return $id;
+}
+
+sub create_query_in_queryfile {
+  my $t = shift;
+  my $data = shift;
+  my $queryfile_id = shift;
+  my $message = shift // '';
+  my $id;
+  subtest "CREATE QUERY $message" => sub {
+    ok $t->app->routes->find('create_query_file_query'), 'Route exists';
+    my $create_query_file_queries_url = $t->app->url_for('create_query_file_query', query_file_id => $queryfile_id);
+    ok ($create_query_file_queries_url, 'Create query file query record file url exists');
+
+    $t->post_ok($create_query_file_queries_url => json => $data)
+      ->status_is(200);
+    $t->json_has("/id", "Query has id");
+
+    $id = $t->tx->res->json->{id};
+  };
+  return $id;
+}
+
 END {
   if ($print_server_pid && $print_server_pid != 0) {
     kill TERM => $print_server_pid;

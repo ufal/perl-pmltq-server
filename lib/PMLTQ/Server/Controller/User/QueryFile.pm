@@ -26,6 +26,21 @@ sub _validate {
 }
 
 
+sub is_owner {
+  my $c = shift;
+
+  unless ($c->entity->user_id == $c->current_user->id) {
+    $c->status_error({
+      code => 403,
+      message => 'Permission denied'
+    });
+
+    return;
+  }
+
+  return 1;
+}
+
 =head1 METHODS
 
 =head2 list query file for current user

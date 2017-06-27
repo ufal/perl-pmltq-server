@@ -18,10 +18,6 @@ my $tu = test_user();
 
 $t->reset_session();
 
-ok $t->app->routes->find('auth_sign_in'), 'Auth sign in route exists';
-my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
-ok ($auth_sign_in_url, 'Has auth sign in url');
-
 ok $t->app->routes->find('create_query_file'), 'Route exists';
 my $create_query_file_url = $t->app->url_for('create_query_file');
 ok ($create_query_file_url, 'Create query file url exists');
@@ -30,12 +26,12 @@ my $query_file = {
   name => 'test_file'
 };
 
-$t->post_ok($auth_sign_in_url => json => {
+login_user($t, {
   auth => {
     username => 'tester',
     password => 'tester'
   }
-})->status_is(200);
+});
 
 $t->post_ok($create_query_file_url => json => $query_file)
   ->status_is(200);
