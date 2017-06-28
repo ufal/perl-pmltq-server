@@ -137,7 +137,7 @@ subtest 'QUERY ORDER' => sub { # query order
   $t->get_ok($get_query_file_url)
     ->status_is(200);
   $all_queries = [ sort {$a->{ord} <=> $b->{ord}} @{$t->tx->res->json->{queries}}];
-  ok(cmp_deeply([map { {%$_{qw/ord id/}} } @$all_queries], $all_queries_order), 'Query order is ok');
+  ok(cmp_deeply([map { get_subhash($_,qw/ord id/) } @$all_queries], $all_queries_order), 'Query order is ok');
 
   $i=0;
   $all_queries_order = [ map {{id => $_->{id}, ord => $i++}} reverse @{$all_queries}]; # REVERSE ORDER
@@ -146,7 +146,7 @@ subtest 'QUERY ORDER' => sub { # query order
   $t->get_ok($get_query_file_url)
     ->status_is(200);
   $all_queries = [ sort {$a->{ord} <=> $b->{ord}} @{$t->tx->res->json->{queries}}];
-  ok(cmp_deeply([map { {%$_{qw/ord id/}} } @$all_queries], $all_queries_order), 'Query reverse order is ok');
+  ok(cmp_deeply([map { get_subhash($_,qw/ord id/) } @$all_queries], $all_queries_order), 'Query reverse order is ok');
 };
 
 ok $t->app->routes->find('update_query_file_query'), 'Route exists';
@@ -261,7 +261,7 @@ subtest 'CHANGE QUERY LIST' => sub { # move query to other list
   %fetched_query_files = map {$_->{name} => $_} @{$t->tx->res->json};
   $_->{queries} = [ sort {$a->{ord} <=> $b->{ord}} @{$_->{queries}}] for (values %fetched_query_files); # sort queries
 
-  ok(cmp_deeply([map { {%$_{qw/ord id/}} } @{$fetched_query_files{'CHQ_file2'}->{queries}}], $order_file2), 'Query order file2 is ok');
+  ok(cmp_deeply([map { get_subhash($_,qw/ord id/) } @{$fetched_query_files{'CHQ_file2'}->{queries}}], $order_file2), 'Query order file2 is ok');
 
   logout_user($t, $test_user->{save}->{name});
 };
@@ -318,3 +318,10 @@ $t->delete_ok($auth_sign_out_url)
   ->status_is(200);
 
 done_testing();
+
+
+sub get_subhash {
+  my %hash = %{shift,};
+  my %ret = map {$_ => $hash{$_}} @_;
+  return \%ret;
+}
