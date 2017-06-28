@@ -23,6 +23,10 @@ branches:
     - recentQueries
     - query_publication
 
+matrix:
+  allow_failures:
+    - perl: "5.26"
+
 before_install:
   - cpanm -n Devel::Cover::Report::Coveralls
   - cpanm -n Carton
