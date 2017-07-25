@@ -245,6 +245,20 @@ sub get_evaluator {
   return $evaluators->{$key};
 }
 
+=head2 close_evaluator
+
+=cut
+
+sub close_evaluator {
+  my $self = shift;
+  my $key = $self->id;
+
+  if ($evaluators->{$key}) {
+    $evaluators->{$key}->DESTROY();
+    delete $evaluators->{$key};
+  }
+}
+
 =head2 record_history
 
 Saves a query to the history for the current user.

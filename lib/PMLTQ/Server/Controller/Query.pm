@@ -189,6 +189,8 @@ sub query {
       push @results, $row;
     }
 
+    $tb->close_evaluator();
+
     return $self->status_error({
       code => 500,
       message => "Database error while saving history: $err"
@@ -207,6 +209,7 @@ sub query {
       message => "INTERNAL SERVER ERROR: $err"
     })
   }
+  $tb->close_evaluator();
 }
 
 1;

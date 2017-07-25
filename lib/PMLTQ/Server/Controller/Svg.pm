@@ -88,6 +88,7 @@ sub query_svg {
     });
     Treex::PML::Document->determine_node_type($_) for ($tree->descendants);
     PMLTQ::Common::CompleteMissingNodeTypes($evaluator,$tree);
+    $tb->close_evaluator();
   };
 
   my $err = $@;
@@ -214,6 +215,7 @@ sub result_svg {
       $input->{tree}=$1 if ($f=~s{##(\d+)(?:\.\d+)?}{} and !$input->{tree});
       $path = $tb->resolve_data_path($f, $self->config->{data_dir});
       $self->app->log->debug("File path: $path");
+      $tb->close_evaluator();
     }
   };
   my $err = $@;
