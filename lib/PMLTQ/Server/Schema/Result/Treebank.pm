@@ -152,14 +152,18 @@ sub metadata {
   } @$node_types;
 
   my $list_data = $self->list_data();
+  my $schemas = $ev->get_schema_names();
+  my $doc = $self->generate_doc;
+  my $docum = $self->get_documentation;
+  $self->close_evaluator();
 
   return json {
-    schemas => $ev->get_schema_names(),
+    schemas => $schemas,
     node_types => \%node_types,
     relations => $relations,
     attributes => \%attributes,
-    doc => $self->generate_doc,
-    documentation => $self->get_documentation,
+    doc => $doc,
+    documentation => $docum,
     %{$list_data}
   }
 }
@@ -254,6 +258,7 @@ sub close_evaluator {
   my $key = $self->id;
 
   if ($evaluators->{$key}) {
+    print "[CLOSING PSQL CONNECTION] ",$self->name ,"\n";
     $evaluators->{$key}->DESTROY();
     delete $evaluators->{$key};
   }
@@ -444,6 +449,7 @@ sub generate_doc {
           my $row = $sth->fetch;
           $doc{value} = $row->[0];
         }
+        $sth->finish();
         last SCHEMA;
       }
     }

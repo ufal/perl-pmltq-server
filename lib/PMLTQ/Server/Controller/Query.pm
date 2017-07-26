@@ -124,6 +124,7 @@ sub query {
 
   my $err = $@;
   if ($err) {
+    $tb->close_evaluator();
     if ($err =~ /\tTIMEOUT\t/) {
       $self->status_error({
         code => 408,
@@ -139,7 +140,10 @@ sub query {
     return;
   }
 
-  return unless $sth;
+  unless($sth){
+    $tb->close_evaluator();
+    return;
+  }
 
   my $user = $self->current_user;
   if($user) {

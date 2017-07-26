@@ -297,6 +297,7 @@ sub node_types {
     my $evaluator = $tb->get_evaluator;
     $evaluator->get_node_types($layer || ());
   };
+#  $tb->close_evaluator();
 
   $c->render(json => {
     types => $types||[]
@@ -324,7 +325,7 @@ sub relations {
   } else {
     $relations = $evaluator->get_specific_relations($type);
   }
-
+#  $tb->close_evaluator();
   $c->render(json => {
     relations => $relations
   });
@@ -383,7 +384,7 @@ sub relation_target_types {
       }
     }
   }
-
+#  $tb->close_evaluator();
   $c->render(json => {
     map => \@map
   });
