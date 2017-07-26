@@ -146,7 +146,7 @@ sub query {
   }
 
   my $user = $self->current_user;
-  if($user) {
+  if($user && ! $input->{nohistory}) {
     my $history = $user->history();
     my $time = time();
     my $collapsed = collapse_query()->($input->{query});

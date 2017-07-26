@@ -56,6 +56,13 @@ $t->get_ok($history_url)
   ->status_is(200);
 is(scalar @{$t->tx->res->json->[0]->{queries}}, 1, "Not saving invalid query");
 
+$t->post_ok($query_url => json => {
+  query => $query,
+  nohistory => 1
+})->status_is(200);
+$t->get_ok($history_url)
+  ->status_is(200);
+is(scalar @{$t->tx->res->json->[0]->{queries}}, 1, "Not saving to history option");
 
 my $list_query_files_url = $t->app->url_for('list_query_files');
 ok ($list_query_files_url, 'List query files url exists');
