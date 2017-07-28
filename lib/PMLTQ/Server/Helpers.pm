@@ -8,6 +8,7 @@ sub register {
   my ($self, $app, $conf) = @_;
   $app->helper(db => sub { shift->app->db });
 
+  $app->helper(history_limit => sub { shift->config->{history_limit} // 50 });
   # Resultsets
   $app->helper(public_treebanks => sub { shift->db->resultset('Treebank')->search_rs({ is_public => 1 }) });
 

@@ -5,7 +5,7 @@ use Test::Mojo;
 use Mojo::URL;
 use File::Basename 'dirname';
 use File::Spec;
-
+use List::Util qw(all);
 use lib dirname(__FILE__);
 
 require 'bootstrap.pl';
@@ -63,6 +63,14 @@ $t->post_ok($query_url => json => {
 $t->get_ok($history_url)
   ->status_is(200);
 is(scalar @{$t->tx->res->json->[0]->{queries}}, 1, "Not saving to history option");
+
+$t->post_ok($query_url => json => {
+  query => "$query #HISTORY TEST"
+})->status_is(200) for (1..$t->app->history_limit);
+$t->get_ok($history_url)
+  ->status_is(200);
+is(scalar @{$t->tx->res->json->[0]->{queries}}, $t->app->history_limit, "History limit");
+ok((all { $_->{query} =~ m/HISTORY TEST/ } @{$t->tx->res->json->[0]->{queries}}), "history queries");
 
 my $list_query_files_url = $t->app->url_for('list_query_files');
 ok ($list_query_files_url, 'List query files url exists');

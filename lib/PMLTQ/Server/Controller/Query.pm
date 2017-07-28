@@ -144,10 +144,15 @@ sub query {
     $tb->close_evaluator();
     return;
   }
-
   my $user = $self->current_user;
   if($user && ! $input->{nohistory}) {
     my $history = $user->history();
+    my $todelete_records_cnt = $self->db->resultset('QueryRecord')->count({query_file_id => $history->id}) - $self->history_limit;
+    if($todelete_records_cnt >= 0) {
+      my $rec = $self->db->resultset('QueryRecord')->search_rs({query_file_id => $history->id},{order_by => 'created_at'})->first;
+      $self->app->log->debug('[HISTORY LIMIT REACHED]: DELETING '.$rec->id);
+      $self->db->resultset('QueryRecord')->find($rec->id)->delete;
+    }
     my $time = time();
     my $collapsed = collapse_query()->($input->{query});
     my $query_record = $self->db->resultset('QueryRecord')->create({
