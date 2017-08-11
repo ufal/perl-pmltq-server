@@ -142,8 +142,8 @@ sub TO_JSON {
 
 sub touch {
   my $self = shift;
-  my $c = shift;
-  $c->db->resultset('User')->update({id => $self->id, last_login => DateTime->now()});
+  $self->last_login(DateTime->now());
+  $self->update();
 }
 
 sub history {

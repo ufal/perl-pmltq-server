@@ -145,7 +145,7 @@ sub query {
     return;
   }
   my $user = $self->current_user;
-  $user->touch($self) if $user;
+  $user->touch() if $user;
 
   if($user && ! $input->{nohistory}) {
     my $history = $user->history();
