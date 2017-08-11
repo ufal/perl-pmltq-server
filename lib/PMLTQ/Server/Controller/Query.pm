@@ -145,6 +145,8 @@ sub query {
     return;
   }
   my $user = $self->current_user;
+  $user->touch($self) if $user;
+
   if($user && ! $input->{nohistory}) {
     my $history = $user->history();
     my $todelete_records_cnt = $self->db->resultset('QueryRecord')->count({query_file_id => $history->id}) - $self->history_limit;
