@@ -19,6 +19,7 @@ sub load_user {
   my ($self, $c, $user_id) = @_;
   my $user = $c->db->resultset('User')->find($user_id);
   $c->app->log->debug('Failed to load user.') unless $user;
+  $user->touch($c);
   return $user;
 }
 
