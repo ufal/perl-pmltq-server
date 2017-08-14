@@ -96,7 +96,8 @@ sub startup {
   $treebank->get ('relation-target-types')->to('#relation_target_types');
   $treebank->post('query')->to(controller => 'Query', action => 'query');
   $treebank->post('query/svg')->to(controller => 'Svg', action => 'query_svg')->name('query_svg');
-  $treebank->post('svg')->to(controller => 'Svg', action => 'result_svg')->name('result_svg');
+  # $treebank->post('svg')->to(controller => 'Svg', action => 'result_svg')->name('result_svg');
+  $treebank->get('svg')->to(controller => 'Svg', action => 'result_svg')->name('result_svg');
 }
 
 sub add_resource_shortcut {

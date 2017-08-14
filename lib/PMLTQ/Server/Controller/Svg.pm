@@ -201,7 +201,10 @@ sub result_svg {
     return
   }
 
-  my $input = $self->req->json;
+  my $input = {};
+  $input->{nodes} = [split(/,/,$self->req->param('nodes'))];
+  $input->{tree} = $self->req->param('tree');
+
   # TODO: input validation
   # return unless $self->validate_input($result_svg_payload, $input);
   my $tb = $self->stash('tb');
