@@ -163,7 +163,7 @@ sub metadata {
     relations => $relations,
     attributes => \%attributes,
     doc => $doc,
-    documentation => $docum,
+    documentation => (!!$docum ? Mojo::JSON->true : Mojo::JSON->false),
     %{$list_data}
   }
 }
