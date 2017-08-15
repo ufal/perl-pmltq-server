@@ -391,4 +391,13 @@ sub relation_target_types {
 }
 
 
+sub documentation {
+  my $c = shift;
+  my $tb = $c->stash('tb');
+
+  $c->render(json => {
+    documentation => $tb->get_documentation
+  });
+}
+
 1;
