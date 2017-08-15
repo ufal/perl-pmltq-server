@@ -9,6 +9,7 @@ use File::Spec;
 use Treex::PML::Schema;
 use PMLTQ::Common;
 use URI;
+use Mojo::JSON qw/encode_json decode_json/;
 
 __PACKAGE__->table('treebanks');
 
@@ -30,6 +31,7 @@ __PACKAGE__->add_columns(
   created_at    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_modified => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
   documentation   => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
+  metadata      => { data_type => 'text', is_nullable => 1, is_serializable => 1 }
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -105,66 +107,75 @@ sub TO_JSON {
 
 =head1 METHODS
 
-=head2 metadata
+=head2 get_metadata
 
 =cut
 
-sub metadata {
+sub get_metadata {
   my $self = shift;
+  my $metadata;
+  if ($self->metadata) {
+    $metadata = decode_json $self->metadata;
+  } else {
+    my $ev = $self->get_evaluator();
 
-  my $ev = $self->get_evaluator();
+    my $schema_names = $ev->get_schema_names();
+    my $node_types = $ev->get_node_types();
+    my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
 
-  my $schema_names = $ev->get_schema_names();
-  my $node_types = $ev->get_node_types();
-  my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
+    my $relations = {
+      standard => \@{PMLTQ::Common::standard_relations()},
+      pml => { },
+      user => { },
+    };
 
-  my $relations = {
-    standard => \@{PMLTQ::Common::standard_relations()},
-    pml => { },
-    user => { },
-  };
-
-  foreach my $type (@$node_types) {
-    my $types = $ev->get_pmlrf_relations($type);
-    if (@$types) {
-      $relations->{pml}->{$type} = $types;
-    }
-  }
-
-  foreach my $type (@$node_types) {
-    my $types = $ev->get_user_defined_relations($type);
-    if (@$types) {
-      $relations->{user}->{$type} = $types;
-    }
-  }
-
-  my %attributes = map {
-    my @res;
-    my $type = $_;
-    my $decl = $ev->get_decl_for($_);
-    if ($decl) {
-      @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
-      if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
-        unshift @res, 'name()';
+    foreach my $type (@$node_types) {
+      my $types = $ev->get_pmlrf_relations($type);
+      if (@$types) {
+        $relations->{pml}->{$type} = $types;
       }
     }
-    @res ? ($type => \@res) : ()
-  } @$node_types;
 
-  my $list_data = $self->list_data();
-  my $schemas = $ev->get_schema_names();
-  my $doc = $self->generate_doc;
+    foreach my $type (@$node_types) {
+      my $types = $ev->get_user_defined_relations($type);
+      if (@$types) {
+        $relations->{user}->{$type} = $types;
+      }
+    }
+
+    my %attributes = map {
+      my @res;
+      my $type = $_;
+      my $decl = $ev->get_decl_for($_);
+      if ($decl) {
+        @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
+        if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
+          unshift @res, 'name()';
+        }
+      }
+      @res ? ($type => \@res) : ()
+    } @$node_types;
+
+    my $list_data = $self->list_data();
+    my $schemas = $ev->get_schema_names();
+    my $doc = $self->generate_doc;
+    $self->close_evaluator();
+    $metadata = {
+      schemas => $schemas,
+      node_types => \%node_types,
+      relations => $relations,
+      attributes => \%attributes,
+      doc => $doc,
+      %{$list_data}
+    };
+    $self->metadata(encode_json $metadata);
+    $self->update();
+  }
+
   my $docum = $self->get_documentation;
-  $self->close_evaluator();
-
   return json {
-    schemas => $schemas,
-    node_types => \%node_types,
-    relations => $relations,
-    attributes => \%attributes,
-    doc => $doc,
+    %$metadata,
     documentation => (!!$docum ? Mojo::JSON->true : Mojo::JSON->false),
-    %{$list_data}
   }
 }
 

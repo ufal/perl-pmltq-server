@@ -23,7 +23,7 @@ my $tg2nodoc = test_tag('TAG2NODOC');
 # Test model
 
 ## Metadata
-my $m = $tb->metadata;
+my $m = $tb->get_metadata;
 my @all_metadata = qw/id name title description documentation homepage tags languages is_public is_all_logged is_free is_featured handle attributes doc node_types relations schemas/;
 ok(cmp_bag(
   [keys %$m],
@@ -173,6 +173,7 @@ $t->json_has("/documentation", "Treebank has documentation field");
 
 # testing documentation and tag documentation
 $tb->add_to_tags($tg1);
+$tb->metadata(undef);
 $tb->update();
 
 $t->get_ok($treebank_url)
@@ -190,6 +191,7 @@ is($t->tx->res->json->{documentation}, $tg1->documentation, 'Treebank uses TAG1 
 
 # testing concatenation of tags documentation
 $tb->add_to_tags($tg2);
+$tb->metadata('HACK');$tb->metadata(undef); # you must set some different value and then undef to remove metadata
 $tb->update();
 
 $t->get_ok($treebank_url)

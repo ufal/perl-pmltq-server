@@ -33,7 +33,8 @@ sub _validate {
       tags => is_array("invalid documentation format")
     ],
     postprocess => [
-      treebank_provider_ids => to_array_of_hash_key_value('provider','provider_id')
+      treebank_provider_ids => to_array_of_hash_key_value('provider','provider_id'),
+      metadata => set_null()
     ]
   };
   return $c->do_validation($rules, $treebank_data);

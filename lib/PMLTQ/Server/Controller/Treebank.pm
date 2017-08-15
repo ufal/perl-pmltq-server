@@ -79,7 +79,7 @@ sub metadata {
   my $c = shift;
 
   my $tb = $c->stash('tb');
-  $c->render(json => $tb->metadata);
+  $c->render(json => $tb->get_metadata);
 }
 
 sub suggest {

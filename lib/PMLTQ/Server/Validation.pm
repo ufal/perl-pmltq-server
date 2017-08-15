@@ -53,6 +53,7 @@ my @VALIDATE_EXPORT = qw/
   to_dbref
   to_hash
   to_array_of_hash_key_value
+  set_null
   /;
 
 our @EXPORT_OK = ( @VALIDATE_EXPORT, @VALIDATE_TINY_EXPORT );
@@ -148,6 +149,15 @@ sub to_array_of_hash_key_value {
     return [map {{$key => $_, $value => $h->{$_}}} keys %$h ];
   };
 }
+
+sub set_null {
+  sub {
+    my $h = shift;
+    return undef;
+  };
+}
+
+
 
 sub _bcrypt {
   my ($plain_text, $settings) = @_;
