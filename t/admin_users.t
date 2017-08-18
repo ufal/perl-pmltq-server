@@ -108,43 +108,40 @@ $t->delete_ok($t->app->url_for('auth_sign_out'))
 
 
 
-TODO: {
-  local $TODO = 'leave password blank when editing user';
+# admin login, changing user data (leaving password blank)
+$t->post_ok($t->app->url_for('auth_sign_in') => json => {
+  auth => {
+    username => 'admin',
+    password => 'admin'
+  }
+})->status_is(200);
 
-  # admin login, changing user data (leaving password blank)
-  $t->post_ok($t->app->url_for('auth_sign_in') => json => {
-    auth => {
-      username => 'admin',
-      password => 'admin'
-    }
-  })->status_is(200);
+$t->get_ok($list_users_url)
+  ->status_is(200);
 
-  $t->get_ok($list_users_url)
-    ->status_is(200);
+my $user_data_blank_pass = {%{$user_resp_data}};
+$user_data_blank_pass->{password} = ''; # Do not fill password while editing user
+$user_data_blank_pass->{email} = 'joe.tester@example.com';
 
-  my $user_data_blank_pass = {%{$user_resp_data}};
-  $user_data_blank_pass->{password} = ''; # Do not fill password while editing user
-  $user_data_blank_pass->{email} = 'joe.tester@example.com';
+$t->put_ok($update_user_url => json => $user_data_blank_pass)
+  ->status_is(200)->or(sub { diag p($t->tx->res->json) })
+  ->json_has('/id');
 
-  $t->put_ok($update_user_url => json => $user_data_blank_pass)
-    ->status_is(200)->or(sub { diag p($t->tx->res->json) })
-    ->json_has('/id');
+$t->delete_ok($t->app->url_for('auth_sign_out'))
+  ->status_is(200,"$user_data->{name} sign out");
 
-  $t->delete_ok($t->app->url_for('auth_sign_out'))
-    ->status_is(200,"$user_data->{name} sign out");
+# try to user login without change password
 
-  # try to user login without change password
+$t->post_ok($t->app->url_for('auth_sign_in') => json => {
+  auth => {
+    map {$_ => $user_resp_data->{$_}} qw/username password/
+  }
+})->status_is(200)
+  ->json_is("/user/email",$user_data_blank_pass->{email});
 
-  $t->post_ok($t->app->url_for('auth_sign_in') => json => {
-    auth => {
-      map {$_ => $user_resp_data->{$_}} qw/username password/
-    }
-  })->status_is(200)
-    ->json_is("/user/email",$user_data_blank_pass->{email});
+$t->delete_ok($t->app->url_for('auth_sign_out'))
+  ->status_is(200,"$user_resp_data->{name} sign out");
 
-  $t->delete_ok($t->app->url_for('auth_sign_out'))
-    ->status_is(200,"$user_resp_data->{name} sign out");
-}
 # my $new_user_url = $t->app->url_for('new_user');
 # ok ($new_user_url, 'New user url exists');
 

@@ -11,7 +11,6 @@ has search_fields => sub { [qw/name username email/] };
 
 sub _validate {
   my ($c, $user_data) = @_;
-
   my $rules = {
     fields => [qw/name username password email is_active is_admin access_all available_treebanks available_tags/],
     filters => [
@@ -27,6 +26,8 @@ sub _validate {
       available_tags => is_array("invalid tag list format")
     ]
   };
+
+  $user_data->{password} = undef if $c->stash('action') eq 'update' && ! $user_data->{password};
 
   return $c->do_validation($rules, $user_data);
 }
