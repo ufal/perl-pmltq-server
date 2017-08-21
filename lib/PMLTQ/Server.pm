@@ -91,9 +91,9 @@ sub startup {
   $treebank->get ('node')->to('#node');
   $treebank->get ('type')->to('#type');
   $treebank->get ('schema')->to('#schema');
-  $treebank->get ('node-types')->to('#node_types');
+  $treebank->get ('node-types')->name('node_types')->to('#node_types');
   $treebank->get ('relations')->to('#relations');
-  $treebank->get ('relation-target-types')->to('#relation_target_types');
+  $treebank->get ('relation-target-types')->name('relation_target_types')->to('#relation_target_types');
   $treebank->get ('documentation')->to('#documentation');
   $treebank->post('query')->to(controller => 'Query', action => 'query');
   $treebank->post('query/svg')->to(controller => 'Svg', action => 'query_svg')->name('query_svg');
