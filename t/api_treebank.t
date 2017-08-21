@@ -234,15 +234,24 @@ is($t->tx->res->json->{documentation}, '', 'Treebank does not have documentation
 
 # test /treebanks/:treebank_id/node-types route
 my $treebank_url_nodetype = $t->app->url_for('node_types', treebank_id => $tb->name);
-print STDERR $tb->name,"  ",$treebank_url_nodetype,"  $treebank_url_documentation\n";
+
 $t->get_ok($treebank_url_nodetype)
   ->status_is(200);
+$t->json_has("/types", "node-types response has types field");
+ok(cmp_bag($t->tx->res->json->{types}, [qw/a-node a-root t-node t-root/]),"types ok");
 
+$t->get_ok($treebank_url_nodetype => form => {layer => 'adata'})
+  ->status_is(200);
+$t->json_has("/types", "node-types response has types field");
+ok(cmp_bag($t->tx->res->json->{types}, [qw/a-node a-root/]),"types ok");
 
+# test /treebanks/:treebank_id/relations route
+my $treebank_url_relations = $t->app->url_for('relations', treebank_id => $tb->name);
+# ...TODO...
 
-# test /treebanks/:treebank_id/relation route
 # test /treebanks/:treebank_id/schema route
-
+# ...TODO...
+my $treebank_url_schema = $t->app->url_for('schema', treebank_id => $tb->name);
 
 
 done_testing();
