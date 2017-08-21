@@ -149,11 +149,11 @@ sub query {
 
   if($user && ! $input->{nohistory}) {
     my $history = $user->history();
-    my $todelete_records_cnt = $self->db->resultset('QueryRecord')->count({query_file_id => $history->id}) - $self->history_limit;
-    if($todelete_records_cnt >= 0) {
-      my $rec = $self->db->resultset('QueryRecord')->search_rs({query_file_id => $history->id},{order_by => 'created_at'})->first;
-      $self->app->log->debug('[HISTORY LIMIT REACHED]: DELETING '.$rec->id);
-      $self->db->resultset('QueryRecord')->find($rec->id)->delete;
+    my $todelete_records_cnt = $self->db->resultset('QueryRecord')->count({query_file_id => $history->id}) - $self->history_limit + 1;
+    if($todelete_records_cnt > 0) {
+      my $rec = $self->db->resultset('QueryRecord')->search_rs({query_file_id => $history->id},{order_by => 'created_at', rows => $todelete_records_cnt });
+      $self->app->log->debug('[HISTORY LIMIT REACHED]: DELETING '.$todelete_records_cnt.' RECORDS');
+      $rec->delete_all();
     }
     my $time = time();
     my $collapsed = collapse_query()->($input->{query});
