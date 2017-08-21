@@ -297,7 +297,8 @@ sub node_types {
     my $evaluator = $tb->get_evaluator;
     $evaluator->get_node_types($layer || ());
   };
-#  $tb->close_evaluator();
+
+  $tb->close_evaluator() if $c->stash('action') eq 'node_types';
 
   $c->render(json => {
     types => $types||[]
@@ -325,7 +326,9 @@ sub relations {
   } else {
     $relations = $evaluator->get_specific_relations($type);
   }
-#  $tb->close_evaluator();
+
+  $tb->close_evaluator() if $c->stash('action') eq 'relations';
+
   $c->render(json => {
     relations => $relations
   });
@@ -384,7 +387,9 @@ sub relation_target_types {
       }
     }
   }
-#  $tb->close_evaluator();
+
+  $tb->close_evaluator() if $c->stash('action') eq 'relation_target_types';
+
   $c->render(json => {
     map => \@map
   });
