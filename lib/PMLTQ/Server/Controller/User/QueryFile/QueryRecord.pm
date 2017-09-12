@@ -4,6 +4,7 @@ package PMLTQ::Server::Controller::User::QueryFile::QueryRecord;
 
 use Mojo::Base 'PMLTQ::Server::Controller::CRUD';
 use PMLTQ::Server::Validation;
+use Encode qw(encode_utf8);
 
 has resultset_name => 'QueryRecord';
 
@@ -33,7 +34,7 @@ sub _validate {
   }
 
   $data = $c->do_validation($rules, $data);
-  $data->{hash} = collapse_query()->($data->{query});
+  $data->{hash} = encode_utf8(collapse_query()->($data->{query}));
   $data->{user_id} = $c->current_user->id;
 
   $data->{query_file_id} ||= $c->stash->{query_file}->id;
