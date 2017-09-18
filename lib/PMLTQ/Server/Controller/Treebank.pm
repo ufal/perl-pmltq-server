@@ -113,7 +113,7 @@ sub suggest {
     return $c->status_error({
       code => 404,
       message => "File $f not found"
-    }) unless defined $path && -e $path;
+    }) unless defined $path && (-e $path || $c->config->{development}->{suggest_tunnel});
     push @paths, $path.$goto;
   }
 
