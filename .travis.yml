@@ -22,6 +22,7 @@ branches:
     - fix_suggest
     - recentQueries
     - query_publication
+    - svg_caching
 
 matrix:
   allow_failures:
