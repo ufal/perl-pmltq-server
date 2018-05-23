@@ -38,7 +38,7 @@ my $treebank_data = {
   title => 'TB',
   database => 'test',
   dataSources => [
-    { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data') },
+    { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data'), svg => 'svg_directory' },
     { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
   ],
   serverId => $test_server->id,
@@ -63,7 +63,7 @@ $t->json_is("/0/$_", $treebank_data->{$_}) for
   grep { $_ !~ /languages/ } keys %{$treebank_data};
 
 
-# test update: 
+# test update:
 my $update_treebank_url = $t->app->url_for('update_treebank', treebank_id => $treebank_resp_data->{id});
 ok ($update_treebank_url, 'Update treebank url exists');
 
