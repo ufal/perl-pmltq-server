@@ -2,7 +2,7 @@ package PMLTQ::Server::Schema;
 
 use Mojo::Base qw/DBIx::Class::Schema/;
 
-our $VERSION = 9;
+our $VERSION = 10;
 
 __PACKAGE__->load_components(qw/
   Helper::Row::NumifyGet
