@@ -214,7 +214,7 @@ sub result_svg {
   eval {
     my ($f) = $tb->get_evaluator
       ->idx_to_pos([$input->{nodes}->[0]]); # uses internal database idx
-    #print STDERR "$f\n";
+    print STDERR "$f\n";
     if ($f) {
       $input->{tree}=$1 if ($f=~s{##(\d+)(?:\.\d+)?}{} and !$input->{tree});
       $path = $tb->resolve_data_path($f, $self->config->{data_dir});
@@ -224,7 +224,13 @@ sub result_svg {
     }
   };
   my $err = $@;
-  if ($err) {
+  if($err =~ m/ARRAY/){
+    $self->status_error({
+      code => 404,
+      message => "Node not found"
+    });
+    return
+  } elsif ($err) {
     $err =~ s{\bat \S+ line \d+.*}{}s;
     $self->status_error({
       code => 500,

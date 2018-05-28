@@ -83,7 +83,15 @@ $t->get_ok($svg_url => form => {
 # ask for cached svg that is not in svg directory
 $t->get_ok($svg_url => form => {
   nodes => '1000/t-node@t-ln94207-33-p2s2w2'
-})->status_is(404)->or(sub { diag p($t->tx->res->json) });
+})->status_is(404)->or(sub { diag p($t->tx->res->json) })
+  ->content_like('/File not found/', 'File not found');
+
+
+$t->get_ok($svg_url => form => {
+  nodes => '9000/t-node@t-ln94207-33-p2s2w2'
+})->status_is(404)->or(sub { diag p($t->tx->res->json) })
+  ->content_like('/Node not found/', 'Node not found');
+
 
 # switch to failing print server
 $t->app->config->{tree_print_service} = $print_server_url->path('/svg_error')->to_string;
