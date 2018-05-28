@@ -429,6 +429,36 @@ sub resolve_data_path {
   return $path;
 }
 
+=head2 resolve_svg_path
+
+Get absolute path to svg
+
+=cut
+
+sub resolve_svg_path {
+  my ($self, $f, $base_data_dir, $treeno) = @_;
+  my ($schema_name,$data_dir,$new_filename) = $self->locate_file($f);
+  my $path;
+  if (defined($schema_name) and defined($data_dir)) {
+    $f = $new_filename if defined $new_filename;
+    my $data_source = $self->data_sources->single({layer => $schema_name});
+    if ($data_source) {
+      return undef unless $data_source->svg;
+      $data_source = File::Spec->catdir($base_data_dir, $data_source->svg)
+        unless $data_source eq File::Spec->rel2abs($data_source); # data_source dir is relative, prefix it with configured data dir
+      $path = File::Spec->rel2abs($f, $data_source);
+      $path =~ s/\.[^\.]*$//; #remove suffix
+      return File::Spec->catfile($path,sprintf('page_%03d.svg',$treeno));
+      # print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
+    } else {
+      return undef;
+    }
+  }
+  return undef;
+}
+
+
+
 sub generate_doc {
   my $self = shift;
 
