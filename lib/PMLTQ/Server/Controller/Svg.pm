@@ -244,6 +244,13 @@ sub result_svg {
 
   if($svg_path){
     $self->app->log->debug("Svg path: $svg_path");
+    unless (-f $svg_path) {
+      $self->status_error({
+        code => 404,
+        message => "File not found"
+      });
+      return
+    }
     $self->res->headers->content_type('image/svg+xml');
     $self->reply->asset(Mojo::Asset::File->new(path => $svg_path));
   } else {
