@@ -210,19 +210,26 @@ sub result_svg {
   my $tb = $self->stash('tb');
 
   my $path;
+  my $svg_path;
   eval {
     my ($f) = $tb->get_evaluator
-      ->idx_to_pos([$input->{nodes}->[0]]);
-    #print STDERR "$f\n";
+      ->idx_to_pos([$input->{nodes}->[0]]); # uses internal database idx
     if ($f) {
       $input->{tree}=$1 if ($f=~s{##(\d+)(?:\.\d+)?}{} and !$input->{tree});
       $path = $tb->resolve_data_path($f, $self->config->{data_dir});
+      $svg_path = $tb->resolve_svg_path($f, $self->config->{data_dir},$input->{tree});
       $self->app->log->debug("File path: $path");
       $tb->close_evaluator();
     }
   };
   my $err = $@;
-  if ($err) {
+  if($err =~ m/ARRAY/){
+    $self->status_error({
+      code => 404,
+      message => "Node not found"
+    });
+    return
+  } elsif ($err) {
     $err =~ s{\bat \S+ line \d+.*}{}s;
     $self->status_error({
       code => 500,
@@ -240,30 +247,43 @@ sub result_svg {
     return
   }
 
-  $self->app->ua->post(
-    $self->config->{tree_print_service} => form => {
-      file => $path,
-      tree_no => $input->{tree},
-      sentence => 1,
-      fileinfo => 1,
-      dt => 1
-    } => sub {
-      my ($ua, $tx) = @_;
-      if (my $res = $tx->success) {
-        $res->headers->content_type('image/svg+xml');
-        $self->tx->res($res);
-        $self->rendered($res->code);
-      } else {
-        my ($err, $code) = $tx->error;
-        $self->app->log->debug($err->{message});
-        $self->status_error({
-          code => $code||500,
-          message => $err->{message}
-        })
-      }
-    });
+  if($svg_path){
+    $self->app->log->debug("Svg path: $svg_path");
+    unless (-f $svg_path) {
+      $self->status_error({
+        code => 404,
+        message => "File not found"
+      });
+      return
+    }
+    $self->res->headers->content_type('image/svg+xml');
+    $self->reply->asset(Mojo::Asset::File->new(path => $svg_path));
+  } else {
+    $self->app->ua->post(
+      $self->config->{tree_print_service} => form => {
+        file => $path,
+        tree_no => $input->{tree},
+        sentence => 1,
+        fileinfo => 1,
+        dt => 1
+      } => sub {
+        my ($ua, $tx) = @_;
+        if (my $res = $tx->success) {
+          $res->headers->content_type('image/svg+xml');
+          $self->tx->res($res);
+          $self->rendered($res->code);
+        } else {
+          my ($err, $code) = $tx->error;
+          $self->app->log->debug($err->{message});
+          $self->status_error({
+            code => $code||500,
+            message => $err->{message}
+          })
+        }
+      });
 
-  $self->render_later;
+    $self->render_later;
+  }
 }
 
 1;
