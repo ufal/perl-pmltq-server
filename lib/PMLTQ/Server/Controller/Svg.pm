@@ -214,7 +214,6 @@ sub result_svg {
   eval {
     my ($f) = $tb->get_evaluator
       ->idx_to_pos([$input->{nodes}->[0]]); # uses internal database idx
-    print STDERR "$f\n";
     if ($f) {
       $input->{tree}=$1 if ($f=~s{##(\d+)(?:\.\d+)?}{} and !$input->{tree});
       $path = $tb->resolve_data_path($f, $self->config->{data_dir});
