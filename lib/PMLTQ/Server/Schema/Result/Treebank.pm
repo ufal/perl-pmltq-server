@@ -448,7 +448,7 @@ sub resolve_svg_path {
         unless $data_source eq File::Spec->rel2abs($data_source); # data_source dir is relative, prefix it with configured data dir
       $path = File::Spec->rel2abs($f, $data_source);
       $path =~ s/\.[^\.]*$//; #remove suffix
-      return File::Spec->catfile($path,sprintf('page_%03d.svg',$treeno));
+      return File::Spec->catfile($path,sprintf('page_%03d.svg',$treeno-1));
       # print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
     } else {
       return undef;
