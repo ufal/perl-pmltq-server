@@ -39,7 +39,7 @@ before_script:
   - psql -c 'create database test;' -U postgres
   - pg_restore -d test -U postgres --no-acl --no-owner -w t/test_files/pdt20_mini/pdt20_mini.dump
 
-script: "HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local,^t/' carton exec ./script/pmltq-server test"
+script: "HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local,^t/' carton exec prove -v"
 
 after_success:
   - cover -report coveralls

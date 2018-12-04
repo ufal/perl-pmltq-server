@@ -1,4 +1,4 @@
-requires 'Mojolicious', '6.11';
+requires 'Mojolicious', '8.0';
 requires 'DBIx::Class', '0.082820';
 requires 'PMLTQ', '0.8.3';
 
