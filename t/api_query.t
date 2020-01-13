@@ -57,8 +57,9 @@ $t->app->config->{tree_print_service} = $print_server_url->path('/svg')->to_stri
 ok $t->app->routes->find('result_svg'), 'Route exists';
 my $svg_url = $t->app->url_for('result_svg', treebank_id => $tb->id);
 ok ($svg_url, 'Constructing url for printing svg');
-$t->post_ok($svg_url => json => {
-  nodes => ['109/a-node@a-ln94210-39-p2s1Bw5']
+
+$t->get_ok($svg_url => form => {
+  nodes => '109/a-node@a-ln94210-39-p2s1Bw5'
 })->status_is(200)->or(sub { diag p($t->tx->res->json) })
   ->header_is('Content-Type' => 'image/svg+xml');
 
@@ -71,11 +72,32 @@ $t->post_ok($query_svg_url => json => {
 })->status_is(200)->or(sub { diag p($t->tx->res->json) })
   ->content_type_is('image/svg+xml');
 
+# ask for cached svg on t-layer
+$t->get_ok($svg_url => form => {
+  nodes => '1281/t-node@t-ln95048-055-p2s3w16'
+})->status_is(200)->or(sub { diag p($t->tx->res->json) })
+  ->header_is('Content-Type' => 'image/svg+xml')
+  ->content_like('/<title>test cached svg</title>/');
+
+
+# ask for cached svg that is not in svg directory
+$t->get_ok($svg_url => form => {
+  nodes => '1000/t-node@t-ln94207-33-p2s2w2'
+})->status_is(404)->or(sub { diag p($t->tx->res->json) })
+  ->content_like('/File not found/', 'File not found');
+
+
+$t->get_ok($svg_url => form => {
+  nodes => '9000/t-node@t-ln94207-33-p2s2w2'
+})->status_is(404)->or(sub { diag p($t->tx->res->json) })
+  ->content_like('/Node not found/', 'Node not found');
+
+
 # switch to failing print server
 $t->app->config->{tree_print_service} = $print_server_url->path('/svg_error')->to_string;
 
-$t->post_ok($svg_url => json => {
-  nodes => ['109/a-node@a-ln94210-39-p2s1Bw5']
+$t->get_ok($svg_url => form => {
+  nodes => '109/a-node@a-ln94210-39-p2s1Bw5'
 })->status_is(500);
 
 $t->post_ok($query_svg_url => json => {

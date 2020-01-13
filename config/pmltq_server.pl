@@ -19,7 +19,7 @@
   },
   tree_print_service => 'http://localhost:8070/svg',
   nodes_to_query_service => 'http://localhost:8070/pmltq',
-  data_dir => '/opt/pmltq/data',
+  data_dir => '/opt/pmltq-data',
   tmp_dir => '/tmp/',
 
   mail_templates =>

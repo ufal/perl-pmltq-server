@@ -23,7 +23,7 @@ my $tg2nodoc = test_tag('TAG2NODOC');
 # Test model
 
 ## Metadata
-my $m = $tb->metadata;
+my $m = $tb->get_metadata;
 my @all_metadata = qw/id name title description documentation homepage tags languages is_public is_all_logged is_free is_featured handle attributes doc node_types relations schemas/;
 ok(cmp_bag(
   [keys %$m],
@@ -163,6 +163,7 @@ $t->json_has("/documentation", "Treebank has documentation field");
 
 # URL with name
 $treebank_url = $t->app->url_for('treebank', treebank_id => $tb->name);
+my $treebank_url_documentation = $t->app->url_for('documentation', treebank_id => $tb->name);
 
 $t->get_ok($treebank_url)
   ->status_is(200);
@@ -172,6 +173,7 @@ $t->json_has("/documentation", "Treebank has documentation field");
 
 # testing documentation and tag documentation
 $tb->add_to_tags($tg1);
+$tb->metadata(undef);
 $tb->update();
 
 $t->get_ok($treebank_url)
@@ -180,11 +182,16 @@ $t->get_ok($treebank_url)
 $t->json_has("/tags", "treebank has tag field");
 is(scalar(@{$t->tx->res->json->{tags}}), 1, 'Treebank has one tag');
 $t->json_hasnt("/tags/0/documentation", "Tag documentation is not sended in tag");
+ok($t->tx->res->json->{documentation}, 'Treebank has documentation');
+
+$t->get_ok($treebank_url_documentation)
+  ->status_is(200);
 is($t->tx->res->json->{documentation}, $tg1->documentation, 'Treebank uses TAG1 documentation');
 
 
 # testing concatenation of tags documentation
 $tb->add_to_tags($tg2);
+$tb->metadata('HACK');$tb->metadata(undef); # you must set some different value and then undef to remove metadata
 $tb->update();
 
 $t->get_ok($treebank_url)
@@ -192,6 +199,10 @@ $t->get_ok($treebank_url)
 
 is(scalar(@{$t->tx->res->json->{tags}}), 2, 'Treebank has two tags');
 my ($tg1doc,$tg2doc) = map {$_->documentation} ($tg1,$tg2);
+ok($t->tx->res->json->{documentation}, 'Treebank has documentation');
+
+$t->get_ok($treebank_url_documentation)
+  ->status_is(200);
 ok($t->tx->res->json->{documentation} =~ /^\s*(\Q$tg1doc\E\s*\Q$tg2doc\E|\Q$tg2doc\E\s*\Q$tg1doc\E)\s*$/, 'Treebank uses concatenation of TAG1 and TAG2 documentation (dont care about order) and nothing more');
 
 # use treebank documentation when is set
@@ -201,6 +212,10 @@ $tb->update();
 $t->get_ok($treebank_url)
   ->status_is(200);
 
+ok($t->tx->res->json->{documentation}, 'Treebank has documentation');
+
+$t->get_ok($treebank_url_documentation)
+  ->status_is(200);
 is($t->tx->res->json->{documentation}, $tb->documentation, 'Treebank uses treebank documentation');
 
 # test two tags without doc and treebank without doc
@@ -211,7 +226,32 @@ $tb->update();
 $t->get_ok($treebank_url)
   ->status_is(200);
 
+is($t->tx->res->json->{documentation}, 0, 'Treebank does not have documentation');
+$t->get_ok($treebank_url_documentation)
+  ->status_is(200);
 is($t->tx->res->json->{documentation}, '', 'Treebank does not have documentation');
+
+
+# test /treebanks/:treebank_id/node-types route
+my $treebank_url_nodetype = $t->app->url_for('node_types', treebank_id => $tb->name);
+
+$t->get_ok($treebank_url_nodetype)
+  ->status_is(200);
+$t->json_has("/types", "node-types response has types field");
+ok(cmp_bag($t->tx->res->json->{types}, [qw/a-node a-root t-node t-root/]),"types ok");
+
+$t->get_ok($treebank_url_nodetype => form => {layer => 'adata'})
+  ->status_is(200);
+$t->json_has("/types", "node-types response has types field");
+ok(cmp_bag($t->tx->res->json->{types}, [qw/a-node a-root/]),"types ok");
+
+# test /treebanks/:treebank_id/relations route
+my $treebank_url_relations = $t->app->url_for('relations', treebank_id => $tb->name);
+# ...TODO...
+
+# test /treebanks/:treebank_id/schema route
+# ...TODO...
+my $treebank_url_schema = $t->app->url_for('schema', treebank_id => $tb->name);
 
 
 done_testing();

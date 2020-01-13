@@ -9,6 +9,7 @@ use File::Spec;
 use Treex::PML::Schema;
 use PMLTQ::Common;
 use URI;
+use Mojo::JSON qw/encode_json decode_json/;
 
 __PACKAGE__->table('treebanks');
 
@@ -30,6 +31,7 @@ __PACKAGE__->add_columns(
   created_at    => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_modified => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 1 },
   documentation   => { data_type => 'text', is_nullable => 1, is_serializable => 1 },
+  metadata      => { data_type => 'text', is_nullable => 1, is_serializable => 1 }
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -74,6 +76,20 @@ __PACKAGE__->has_many(
 
 __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
+__PACKAGE__->has_many(
+  treebank_provider_ids => 'PMLTQ::Server::Schema::Result::TreebankProvID',
+  'treebank_id',
+  { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
+);
+
+
+__PACKAGE__->has_many(
+  query_record_treebanks => 'PMLTQ::Server::Schema::Result::QueryRecordTreebank',
+  'treebank_id',
+  { cascade_copy => 1, cascade_delete => 1, cascade_update => 1 },
+);
+
+__PACKAGE__->many_to_many( query_records => 'query_record_treebanks', 'query_record' );
 
 # __PACKAGE__->has_many( user_treebanks => 'PMLTQ::Server::Schema::Result::UserTreebank',  'user_id',  { cascade_copy => 0, cascade_delete => 1 });
 
@@ -82,71 +98,84 @@ __PACKAGE__->many_to_many( tags => 'treebank_tags', 'tag' );
 
 sub TO_JSON {
    my $self = shift;
-
    return {
       (map { ($self->to_json_key($_) => [$self->$_]) } qw/data_sources languages manuals tags/),
+      $self->to_json_key('treebank_provider_ids') => { map {$self->to_json_key($_->provider) => $_->provider_id } $self->treebank_provider_ids()->all},
       %{ $self->next::method },
    }
 }
 
 =head1 METHODS
 
-=head2 metadata
+=head2 get_metadata
 
 =cut
 
-sub metadata {
+sub get_metadata {
   my $self = shift;
+  my $metadata;
+  if ($self->metadata) {
+    $metadata = decode_json $self->metadata;
+  } else {
+    my $ev = $self->get_evaluator();
 
-  my $ev = $self->get_evaluator();
+    my $schema_names = $ev->get_schema_names();
+    my $node_types = $ev->get_node_types();
+    my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
 
-  my $schema_names = $ev->get_schema_names();
-  my $node_types = $ev->get_node_types();
-  my %node_types = map { $_ => $ev->get_node_types($_) } @$schema_names;
+    my $relations = {
+      standard => \@{PMLTQ::Common::standard_relations()},
+      pml => { },
+      user => { },
+    };
 
-  my $relations = {
-    standard => \@{PMLTQ::Common::standard_relations()},
-    pml => { },
-    user => { },
-  };
-
-  foreach my $type (@$node_types) {
-    my $types = $ev->get_pmlrf_relations($type);
-    if (@$types) {
-      $relations->{pml}->{$type} = $types;
-    }
-  }
-
-  foreach my $type (@$node_types) {
-    my $types = $ev->get_user_defined_relations($type);
-    if (@$types) {
-      $relations->{user}->{$type} = $types;
-    }
-  }
-
-  my %attributes = map {
-    my @res;
-    my $type = $_;
-    my $decl = $ev->get_decl_for($_);
-    if ($decl) {
-      @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
-      if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
-        unshift @res, 'name()';
+    foreach my $type (@$node_types) {
+      my $types = $ev->get_pmlrf_relations($type);
+      if (@$types) {
+        $relations->{pml}->{$type} = $types;
       }
     }
-    @res ? ($type => \@res) : ()
-  } @$node_types;
 
-  my $list_data = $self->list_data();
+    foreach my $type (@$node_types) {
+      my $types = $ev->get_user_defined_relations($type);
+      if (@$types) {
+        $relations->{user}->{$type} = $types;
+      }
+    }
 
+    my %attributes = map {
+      my @res;
+      my $type = $_;
+      my $decl = $ev->get_decl_for($_);
+      if ($decl) {
+        @res = map { my $t = $_; $t=~s{#content}{content()}g; $t } $decl->get_paths_to_atoms({ no_childnodes => 1});
+        if (@{PMLTQ::Common::GetElementNamesForDecl($decl)}) {
+          unshift @res, 'name()';
+        }
+      }
+      @res ? ($type => \@res) : ()
+    } @$node_types;
+
+    my $list_data = $self->list_data();
+    my $schemas = $ev->get_schema_names();
+    my $doc = $self->generate_doc;
+    $self->close_evaluator();
+    $metadata = {
+      schemas => $schemas,
+      node_types => \%node_types,
+      relations => $relations,
+      attributes => \%attributes,
+      doc => $doc,
+      %{$list_data}
+    };
+    $self->metadata(encode_json $metadata);
+    $self->update();
+  }
+
+  my $docum = $self->get_documentation;
   return json {
-    schemas => $ev->get_schema_names(),
-    node_types => \%node_types,
-    relations => $relations,
-    attributes => \%attributes,
-    doc => $self->generate_doc,
-    documentation => $self->get_documentation,
-    %{$list_data}
+    %$metadata,
+    documentation => (!!$docum ? Mojo::JSON->true : Mojo::JSON->false),
   }
 }
 
@@ -229,6 +258,21 @@ sub get_evaluator {
   }
 
   return $evaluators->{$key};
+}
+
+=head2 close_evaluator
+
+=cut
+
+sub close_evaluator {
+  my $self = shift;
+  my $key = $self->id;
+
+  if ($evaluators->{$key}) {
+    print "[CLOSING PSQL CONNECTION] ",$self->name ,"\n";
+    $evaluators->{$key}->DESTROY();
+    delete $evaluators->{$key};
+  }
 }
 
 =head2 record_history
@@ -385,6 +429,36 @@ sub resolve_data_path {
   return $path;
 }
 
+=head2 resolve_svg_path
+
+Get absolute path to svg
+
+=cut
+
+sub resolve_svg_path {
+  my ($self, $f, $base_data_dir, $treeno) = @_;
+  my ($schema_name,$data_dir,$new_filename) = $self->locate_file($f);
+  my $path;
+  if (defined($schema_name) and defined($data_dir)) {
+    $f = $new_filename if defined $new_filename;
+    my $data_source = $self->data_sources->single({layer => $schema_name});
+    if ($data_source) {
+      return undef unless $data_source->svg;
+      $data_source = File::Spec->catdir($base_data_dir, $data_source->svg)
+        unless $data_source eq File::Spec->rel2abs($data_source); # data_source dir is relative, prefix it with configured data dir
+      $path = File::Spec->rel2abs($f, $data_source);
+      $path =~ s/\.[^\.]*$//; #remove suffix
+      return File::Spec->catfile($path,sprintf('page_%03d.svg',$treeno-1));
+      # print STDERR "F: schema '$schema_name', file: $f, located: $path in configured sources\n";
+    } else {
+      return undef;
+    }
+  }
+  return undef;
+}
+
+
+
 sub generate_doc {
   my $self = shift;
 
@@ -416,6 +490,7 @@ sub generate_doc {
           my $row = $sth->fetch;
           $doc{value} = $row->[0];
         }
+        $sth->finish();
         last SCHEMA;
       }
     }

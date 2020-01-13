@@ -6,10 +6,6 @@ use warnings;
 use FindBin;
 BEGIN {
   unshift @INC, "$FindBin::Bin/../lib";
-
-  if (scalar @ARGV and grep { $_ eq 'test' } @ARGV) {
-    $ENV{MOJO_MODE} = 'test';
-  }
 }
 
 $ENV{PMLTQ_SERVER_MIGRATE} = 1 if caller(); # if running in morbo

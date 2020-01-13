@@ -79,7 +79,7 @@ sub metadata {
   my $c = shift;
 
   my $tb = $c->stash('tb');
-  $c->render(json => $tb->metadata);
+  $c->render(json => $tb->get_metadata);
 }
 
 sub suggest {
@@ -113,7 +113,7 @@ sub suggest {
     return $c->status_error({
       code => 404,
       message => "File $f not found"
-    }) unless defined $path && -e $path;
+    }) unless defined $path && (-e $path || $c->config->{development}->{suggest_tunnel});
     push @paths, $path.$goto;
   }
 
@@ -298,6 +298,8 @@ sub node_types {
     $evaluator->get_node_types($layer || ());
   };
 
+  $tb->close_evaluator() if $c->stash('action') eq 'node_types';
+
   $c->render(json => {
     types => $types||[]
   });
@@ -324,6 +326,8 @@ sub relations {
   } else {
     $relations = $evaluator->get_specific_relations($type);
   }
+
+  $tb->close_evaluator() if $c->stash('action') eq 'relations';
 
   $c->render(json => {
     relations => $relations
@@ -384,10 +388,21 @@ sub relation_target_types {
     }
   }
 
+  $tb->close_evaluator() if $c->stash('action') eq 'relation_target_types';
+
   $c->render(json => {
     map => \@map
   });
 }
 
+
+sub documentation {
+  my $c = shift;
+  my $tb = $c->stash('tb');
+
+  $c->render(json => {
+    documentation => $tb->get_documentation
+  });
+}
 
 1;

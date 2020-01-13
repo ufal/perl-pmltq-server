@@ -3,6 +3,8 @@ package PMLTQ::Server::Controller::Query;
 # ABSTRACT: Handling everything related to query execution
 
 use Mojo::Base 'Mojolicious::Controller';
+use PMLTQ::Server::Validation;
+use Encode qw(encode_utf8);
 
 =head1 METHODS
 
@@ -122,6 +124,7 @@ sub query {
 
   my $err = $@;
   if ($err) {
+    $tb->close_evaluator();
     if ($err =~ /\tTIMEOUT\t/) {
       $self->status_error({
         code => 408,
@@ -137,7 +140,52 @@ sub query {
     return;
   }
 
-  return unless $sth;
+  unless($sth){
+    $tb->close_evaluator();
+    return;
+  }
+  my $user = $self->current_user;
+  $user->touch() if $user;
+
+  if($user && ! $input->{nohistory}) {
+    my $history = $user->history();
+    my $todelete_records_cnt = $self->db->resultset('QueryRecord')->count({query_file_id => $history->id}) - $self->history_limit + 1;
+    if($todelete_records_cnt > 0) {
+      my $rec = $self->db->resultset('QueryRecord')->search_rs({query_file_id => $history->id},{order_by => 'created_at', rows => $todelete_records_cnt });
+      $self->app->log->debug('[HISTORY LIMIT REACHED]: DELETING '.$todelete_records_cnt.' RECORDS');
+      $rec->delete_all();
+    }
+    my $time = time();
+    my $collapsed = collapse_query()->($input->{query});
+    my $query_record = $self->db->resultset('QueryRecord')->create({
+      name => $time,
+      user_id => $user->id,
+      query => $input->{query},
+      query_file_id => $history->id,
+      #first_used_treebank => $tb->id,
+      ord => $time,
+      hash => encode_utf8($collapsed),
+    });
+    $self->db->resultset('QueryRecordTreebank')->create({
+      query_record_id => $query_record->id,
+      treebank_id => => $tb->id
+    });
+    if($input->{query_record_id} && $self->db->resultset('QueryRecord')->find($input->{query_record_id}) ){
+      $self->app->log->debug('[QUERY RECORD]: '.$input->{query_record_id});
+      $self->app->log->debug($self->db->resultset('QueryRecord')->find($input->{query_record_id}));
+      $self->db->resultset('QueryRecordTreebank')->find_or_create({
+        query_record_id => $input->{query_record_id},
+        treebank_id => => $tb->id
+      });
+    }
+    $self->app->log->debug('[USER]: '.$user->id.'  '.$user->name);
+    $self->app->log->debug('[COLLAPSED]: '.$collapsed);
+
+  }
+
+  $self->app->log->debug('[BEGIN_PMLTQ]');
+  $self->app->log->debug($input->{query});
+  $self->app->log->debug('[END_PMLTQ]');
 
   $self->app->log->debug('[BEGIN_SQL]');
   $self->app->log->debug($evaluator->get_sql);
@@ -151,6 +199,8 @@ sub query {
     while (my $row = $evaluator->cursor_next()) {
       push @results, $row;
     }
+
+    $tb->close_evaluator();
 
     return $self->status_error({
       code => 500,
@@ -170,6 +220,7 @@ sub query {
       message => "INTERNAL SERVER ERROR: $err"
     })
   }
+  $tb->close_evaluator();
 }
 
 1;

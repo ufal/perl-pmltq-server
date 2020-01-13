@@ -113,7 +113,14 @@ sub update {
   return $c->render_validation_errors unless $input;
 
   # Get defaults back in as validation could remove them
-  $input = { $entity->get_columns, %{$input} };
+  my $columns_info = $entity->result_source->columns_info([$entity->result_source->columns]);
+  my %columns = $entity->get_columns;
+
+  # remove encoded fields
+  delete $columns{$_} for grep {$columns_info->{$_}->{encode_column}} keys %$columns_info;
+
+  $input = { %columns, %{$input} };
+
   try {
     my $entity = $c->resultset->recursive_update($input);
     $c->render(json => $entity);
@@ -123,6 +130,14 @@ sub update {
       message => $_
     });
   }
+}
+
+sub update_list {
+  my $c = shift;
+  $c->status_error({
+    code => 403,
+    message => 'Updating list is not allowed'
+  });
 }
 
 sub remove {
@@ -159,5 +174,7 @@ sub _validate_params {
 }
 
 sub _validate { }
+
+sub true {return 1}
 
 1;

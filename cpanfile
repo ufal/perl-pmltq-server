@@ -1,4 +1,4 @@
-requires 'Mojolicious', '6.11';
+requires 'Mojolicious', '8.0';
 requires 'DBIx::Class', '0.082820';
 requires 'PMLTQ', '0.8.3';
 
@@ -18,6 +18,7 @@ requires 'DBIx::Class::ResultSet::RecursiveUpdate', '0.34';
 requires 'DBIx::Class::Helpers';
 requires 'DBIx::Class::EncodedColumn';
 requires 'DBIx::Class::FilterColumn::ByType';
+requires 'Digest::MD4';
 
 # requires 'Mojolicious::Plugin::ValidateTiny', '0.14'; # Using an internal version for now
 # requires 'Mojolicious::Plugin::ParamExpand', '0.02';

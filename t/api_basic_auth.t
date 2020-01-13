@@ -63,7 +63,7 @@ ok ($treebank_url, 'Treebank has url');
 $t->get_ok($treebank_url)
   ->status_is(200);
 
-my $m = decode_json(encode_json($tt->metadata));
+my $m = decode_json(encode_json($tt->get_metadata));
 ok(cmp_deeply($m, $t->tx->res->json));
 
 $tt->is_free(0); # Disable anonymouse flag

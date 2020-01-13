@@ -107,7 +107,7 @@ sub get_log {
   return \@lines;
 }
 
-my ($app, $test_tb, $test_user, $admin_user, $encrypt);
+my ($app, %test_tb, %test_user, $admin_user, $encrypt);
 
 sub test_app {
   return $app if $app;
@@ -132,13 +132,17 @@ sub test_server {
 }
 
 sub test_treebank {
-  return $test_tb if $test_tb;
-
-  my $treebanks = test_db->resultset('Treebank');
-  my $server = test_server();
-  $test_tb = $treebanks->create({
+  my $tbpar = shift // {
     name => 'pdt20_mini',
     title => 'PDT 2.0 Sample',
+  };
+  die "WRONG PARAMS: At least name and title must be set in the hash"  unless ref($tbpar) && exists($tbpar->{name}) && exists($tbpar->{title});
+  my $svg_path = shift // File::Spec->catdir('pdt20_mini', 'svg');
+  my $tbname = $tbpar->{name};
+  return $test_tb{$tbname} if exists $test_tb{$tbname};
+  my $treebanks = test_db->resultset('Treebank');
+  my $server = test_server();
+  $test_tb{$tbname} = $treebanks->create({
     server_id => $server->id,
     database => 'test',
     is_public => 1,
@@ -146,24 +150,27 @@ sub test_treebank {
     is_all_logged => 1,
     data_sources => [
       { layer => 'adata', path => File::Spec->catdir('pdt20_mini', 'data') },
-      { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data') },
-    ]
+      { layer => 'tdata', path => File::Spec->catdir('pdt20_mini', 'data'), svg => $svg_path },
+    ],
+    %$tbpar
   })->discard_changes;
 
-  return $test_tb
+  return $test_tb{$tbname}
 }
 
 sub test_user {
-  return $test_user if $test_user;
-
-  $test_user = test_db->resultset('User')->create({
+  my $userpar = shift // {
     name => 'Joe Tester',
     username => 'tester',
     password => 'tester',
-    email => 'joe@happytesting.com',
-  })->discard_changes;
+    email => 'joe@happytesting.com'};
+  die "WRONG PARAMS: At least username and password must be set in the hash"  unless ref($userpar) && exists($userpar->{username}) && exists($userpar->{password});
+  my $username = $userpar->{username};
+  return $test_user{$username} if exists $test_user{$username};
 
-  return $test_user
+  $test_user{$username} = test_db->resultset('User')->create($userpar)->discard_changes;
+
+  return $test_user{$username}
 }
 
 sub test_admin {
@@ -179,7 +186,7 @@ sub test_admin {
 sub test_tag {
   my $name = shift // 'DefaultTestTag';
   my $documentation = shift;
-  
+
   my $tag = test_db->resultset('Tag')->create({
     name => $name,
     documentation => $documentation
@@ -291,6 +298,70 @@ sub extract_session {
 
     my $session = Mojo::JSON::decode_json(b64_decode $value);
     return $session;
+}
+
+sub login_user {
+  my $t = shift;
+  my $login_data = shift;
+  my $message = shift // '';
+  subtest "LOGIN $message" => sub {
+    ok $t->app->routes->find('auth_sign_in'), 'Auth sign in route exists';
+    my $auth_sign_in_url = $t->app->url_for('auth_sign_in');
+    ok ($auth_sign_in_url, 'Has auth sign in url');
+    $t->post_ok($auth_sign_in_url => json => $login_data)
+      ->status_is(200);
+  }
+}
+
+
+sub logout_user {
+  my $t = shift;
+  my $message = shift // '';
+  subtest "LOGOUT $message" => sub {
+    ok $t->app->routes->find('auth_sign_out'), 'Auth sign out route exists';
+    my $auth_sign_out_url = $t->app->url_for('auth_sign_out');
+    $t->delete_ok($auth_sign_out_url)
+      ->status_is(200);
+  }
+}
+
+sub create_queryfile {
+  my $t = shift;
+  my $data = shift;
+  my $message = shift // '';
+  my $id;
+  subtest "CREATE QUERYFILE $message" => sub {
+    ok $t->app->routes->find('create_query_file'), 'Route exists';
+    my $create_query_file_url = $t->app->url_for('create_query_file');
+    ok ($create_query_file_url, 'Create query file url exists');
+
+    $t->post_ok($create_query_file_url => json => $data)
+      ->status_is(200);
+    $t->json_has("/id", "Queryfile has id");
+
+    $id = $t->tx->res->json->{id};
+  };
+  return $id;
+}
+
+sub create_query_in_queryfile {
+  my $t = shift;
+  my $data = shift;
+  my $queryfile_id = shift;
+  my $message = shift // '';
+  my $id;
+  subtest "CREATE QUERY $message" => sub {
+    ok $t->app->routes->find('create_query_file_query'), 'Route exists';
+    my $create_query_file_queries_url = $t->app->url_for('create_query_file_query', query_file_id => $queryfile_id);
+    ok ($create_query_file_queries_url, 'Create query file query record file url exists');
+
+    $t->post_ok($create_query_file_queries_url => json => $data)
+      ->status_is(200);
+    $t->json_has("/id", "Query has id");
+
+    $id = $t->tx->res->json->{id};
+  };
+  return $id;
 }
 
 END {

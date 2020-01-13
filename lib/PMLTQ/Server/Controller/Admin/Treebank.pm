@@ -14,7 +14,7 @@ sub _validate {
 
   my $rules = {
     fields => [qw/id server_id database name title homepage handle is_public is_free is_all_logged is_featured
-                  description data_sources manuals languages tags
+                  description data_sources manuals languages tags treebank_provider_ids
                   documentation/],
     filters => [
       # Remove spaces from all
@@ -25,11 +25,16 @@ sub _validate {
       [qw/name database/] => is_long_at_most(120),
       [qw/title homepage handle/] => is_long_at_most(120),
       [qw/name title database data_sources server_id/] => is_required(),
-      name => is_unique($c->resultset, 'id', 'treebank name already exists'),
+      name => [is_unique($c->resultset, 'id', 'treebank name already exists'),is_regex_matching(qr/^[a-z0-9_-]+$/, 'name must match /^[a-z0-9_-]+$/')],
       data_sources => is_array_of_hash("invalid data_sources format"),
       manuals => is_array_of_hash("invalid documentation format"),
+      treebank_provider_ids => [is_hash("invalid provider IDs format"),is_provider_ids($c->config->{login_with})],
       languages => is_array("invalid documentation format"),
       tags => is_array("invalid documentation format")
+    ],
+    postprocess => [
+      treebank_provider_ids => to_array_of_hash_key_value('provider','provider_id'),
+      metadata => set_null()
     ]
   };
   return $c->do_validation($rules, $treebank_data);

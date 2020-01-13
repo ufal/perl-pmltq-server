@@ -19,4 +19,9 @@ sub is_authenticated {
   return 1;
 }
 
+sub history {
+  my $c = shift;
+  return unless $c->user_authenticated;
+  return $c->stash('history') // PMLTQ::Server::Controller::History->initialize();
+}
 1;
