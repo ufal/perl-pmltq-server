@@ -6,6 +6,10 @@ use List::Util qw(first);
 use Mojo::JSON;
 use Encode qw(decode_utf8);
 
+use Crypt::Digest::SHA512;
+use Crypt::JWT;
+use HTTP::Request;
+
 sub render_user {
   my $c = shift;
 
@@ -81,9 +85,69 @@ sub sign_in_ldc {
     $c->rendered(404);
     return;
   }
+  my $state_code = sprintf "%06x", rand(0xffffff);
 
-  ## TODO
+  $c->signed_cookie(state => $state_code);
+
+  my $url = $c->url_for($c->config->{oauth}->{ldc}->{login_url});
+  my $redir_url = $c->app->url_for('auth_ldc_code')->to_abs;
+  $redir_url =~ s{^/v\d+/}{/api/};
+  $c->redirect_to(
+    $url->query(
+      client_id => $c->config->{oauth}->{ldc}->{client_id},
+      response_type => 'code',
+      state => $state_code,
+      redirect_uri =>  $c->req->url->base->scheme . '://' .$c->req->url->to_abs->host_port . $redir_url
+    )
+    );
 }
+
+sub ldc_code {
+  my $c = shift;
+
+  unless ($c->config->{login_with}->{ldc}) {
+    $c->rendered(404);
+    return;
+  }
+  my $code = $c->req->param('code');
+  my $state_code = $c->req->param('state');
+
+  return $c->status_error({
+      code => 400,
+      message => 'Redirect location parameter is missing'
+    }) unless ($code and $state_code);
+
+  ## check state code
+  return $c->status_error({
+      code => 401,
+      message => 'State is not valid'
+    }) unless ($state_code eq $c->signed_cookie('state'));
+
+  ## calculate client_secret
+  my $sha = Crypt::Digest::SHA512->new;
+  $sha->add($code);
+  $sha->addfile($c->config->{oauth}->{ldc}->{app_secret_path});
+  my $client_secret = $sha->hexdigest();
+  ## get token from .../token
+
+  $c->signed_cookie(secret => $client_secret); ## ?? encrypt?
+  my %params = (
+    client_id => $c->config->{oauth}->{ldc}->{client_id},
+    grant_type => 'authorization_code',
+    code => $code,
+    client_secret => $client_secret
+  );
+  my $token_url = $c->config->{oauth}->{ldc}->{token_url} .'?'.join('&', map {"$_=$params{$_}"} keys %params);
+  my $req = HTTP::Request->new('POST' => $token_url);
+  my $ua = LWP::UserAgent->new();
+  my $res = $ua->request($req);
+  open my $fh, "<", $c->config->{oauth}->{ldc}->{app_secret_path}  or die "could not open file: $!";
+  my $key=<$fh>;
+  close($fh);
+  $c->render(json => {REQUEST => $token_url, RESPONSE =>   Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key)});
+}
+
+
 
 # TODO: check Shibboleth attributes to actually create user accounts
 sub sign_in_shibboleth {
