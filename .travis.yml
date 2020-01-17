@@ -18,6 +18,7 @@ branches:
     - recentQueries
     - query_publication
     - svg_caching
+    - ldc_login
 
 matrix:
   allow_failures:
