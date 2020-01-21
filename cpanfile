@@ -21,6 +21,7 @@ requires 'DBIx::Class::Helpers';
 requires 'DBIx::Class::EncodedColumn';
 requires 'DBIx::Class::FilterColumn::ByType';
 requires 'Digest::MD4';
+requires 'URL::Encode';
 
 # requires 'Mojolicious::Plugin::ValidateTiny', '0.14'; # Using an internal version for now
 # requires 'Mojolicious::Plugin::ParamExpand', '0.02';

@@ -87,11 +87,11 @@ sub sign_in_ldc {
   }
   my $state_code = sprintf "%06x", rand(0xffffff);
 
-  $c->signed_cookie(state => $state_code);
+  $c->signed_cookie("state_$state_code" => $c->req->param('loc'));
 
   my $url = $c->url_for($c->config->{oauth}->{ldc}->{login_url});
   my $redir_url = $c->app->url_for('auth_ldc_code')->to_abs;
-  $redir_url =~ s{^/v\d+/}{/api/};
+  # $redir_url =~ s{^/v\d+/}{/api/};
   $c->redirect_to(
     $url->query(
       client_id => $c->config->{oauth}->{ldc}->{client_id},
@@ -105,6 +105,7 @@ sub sign_in_ldc {
 sub ldc_code {
   my $c = shift;
 
+
   unless ($c->config->{login_with}->{ldc}) {
     $c->rendered(404);
     return;
@@ -114,14 +115,15 @@ sub ldc_code {
 
   return $c->status_error({
       code => 400,
-      message => 'Redirect location parameter is missing'
+      message => 'Parameter is missing'
     }) unless ($code and $state_code);
 
   ## check state code
+  my $redirect = $c->signed_cookie("state_$state_code");
   return $c->status_error({
       code => 401,
       message => 'State is not valid'
-    }) unless ($state_code eq $c->signed_cookie('state'));
+    }) unless ($redirect);
 
   ## calculate client_secret
   my $sha = Crypt::Digest::SHA512->new;
@@ -130,7 +132,6 @@ sub ldc_code {
   my $client_secret = $sha->hexdigest();
   ## get token from .../token
 
-  $c->signed_cookie(secret => $client_secret); ## ?? encrypt?
   my %params = (
     client_id => $c->config->{oauth}->{ldc}->{client_id},
     grant_type => 'authorization_code',
@@ -141,10 +142,40 @@ sub ldc_code {
   my $req = HTTP::Request->new('POST' => $token_url);
   my $ua = LWP::UserAgent->new();
   my $res = $ua->request($req);
+
+  unless($res->is_success) {
+    return $c->status_error({
+      code => 500,
+      message => 'Unexpected OAuth server error: '. $res->decoded_content
+    })
+  }
+
   open my $fh, "<", $c->config->{oauth}->{ldc}->{app_secret_path}  or die "could not open file: $!";
   my $key=<$fh>;
   close($fh);
-  $c->render(json => {REQUEST => $token_url, RESPONSE =>   Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key)});
+
+  my $jwt = Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key);
+  my $persistent_token = $jwt->{refresh_token};
+  my %treebank_names = map {$_ => 1} @{$jwt->{corpora}};
+  my @available_treebanks = grep {exists $treebank_names{$_->name}} $c->all_treebanks()->all;
+
+  if ($c->authenticate('', '', {
+      email => '',
+      name => substr(Crypt::Digest::SHA512::sha512_b64u(rand().$$.time),-16) ,
+      provider => 'LDC',
+      organization => '',
+      persistent_token => $persistent_token,
+      access_all => 0,
+    })) {
+
+    $c->current_user->set_available_treebanks([@available_treebanks]);
+    $c->signed_cookie(ldc => $persistent_token);
+    return $c->redirect_to($redirect . '#success');
+  } else {
+    # TODO: We should never get here unless server error
+    return $c->redirect_to($redirect . '#failed');
+  }
+ $c->renderer(403);
 }
 
 

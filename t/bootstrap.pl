@@ -377,4 +377,54 @@ END {
   }
 }
 
+
+
+
+my $oauth_server_pid;
+
+sub start_oauth_server {
+  my $code = shift;
+  my $sf = shift;
+  my $clid = shift;
+  my $oauth_server = File::Spec->catfile(dirname(__FILE__), 'script', 'oauth_server.pl');
+
+  my $port = Mojo::IOLoop::Server->generate_port;
+  my $listen = "http://localhost:$port";
+  chmod 0755, $oauth_server;
+
+  say 'Starting oauth server';
+
+  my ($fh, $filename) = tempfile(UNLINK => 1);
+  say "OAuth server log: $filename";
+
+  $oauth_server_pid = fork;
+  die "fork(2) failed:$!" unless defined $oauth_server_pid;
+  if ($oauth_server_pid == 0) {
+    close $fh; open $fh, '>', $filename or die "failed to open log file: $!";
+    open STDOUT, '>>&', $fh
+      or die "dup(2) failed:$!";
+    open STDERR, '>>&', $fh
+      or die "dup(2) failed:$!";
+    exec("$oauth_server $port $code $sf $clid");
+    die 'Starting oauth server failed';
+  }
+
+  close $fh;
+  # wait until server becomes ready (or dies)
+  for (my $i = 0; $i < 100; $i++) {
+      open $fh, '<', $filename or die "failed to open log file: $!";
+      my $lines = do { join '', <$fh> };
+      close $fh;
+      last if $lines =~ m{Server is running};
+      if (waitpid($oauth_server_pid, WNOHANG) > 0) {
+          # failed
+          die $lines;
+      }
+      sleep 1;
+  }
+
+  say "Started listening at: $listen with PID: $oauth_server_pid";
+
+  return $listen;
+}
 1;

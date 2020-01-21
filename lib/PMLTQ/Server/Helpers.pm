@@ -11,6 +11,7 @@ sub register {
   $app->helper(history_limit => sub { shift->config->{history_limit} // 50 });
   # Resultsets
   $app->helper(public_treebanks => sub { shift->db->resultset('Treebank')->search_rs({ is_public => 1 }) });
+  $app->helper(all_treebanks => sub { shift->db->resultset('Treebank')->search_rs() });
 
   # Error helpers
   $app->helper(status_error => \&_status_error);
