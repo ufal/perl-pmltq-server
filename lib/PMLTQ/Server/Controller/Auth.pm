@@ -19,7 +19,6 @@ sub render_user {
 
 sub check {
   my $c = shift;
-
   $c->basic_auth({
     invalid => sub {
       any => sub {
@@ -156,7 +155,9 @@ sub ldc_code {
 
   my $jwt = Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key);
   my $persistent_token = $jwt->{refresh_token};
-  my %treebank_names = map {$_ => 1} @{$jwt->{corpora}};
+  my $expiration = $jwt->{'exp'};
+  $expiration = DateTime->from_epoch( epoch => $expiration );
+  my %treebank_names = map {lc($_) => 1} @{$jwt->{corpora}};
   my @available_treebanks = grep {exists $treebank_names{$_->name}} $c->all_treebanks()->all;
 
   if ($c->authenticate('', '', {
@@ -166,6 +167,7 @@ sub ldc_code {
       organization => '',
       persistent_token => $persistent_token,
       access_all => 0,
+      valid_until => $expiration
     })) {
 
     $c->current_user->set_available_treebanks([@available_treebanks]);
@@ -238,7 +240,10 @@ sub sign_in_shibboleth {
 
 sub sign_out {
   my $c = shift;
-  $c->logout();
+  my $user_id = $c->logout();
+  if(my $user = $c->db->resultset('User')->search_rs({id => $user_id, provider => 'LDC'})->single) {
+    $user->delete();
+  }
   $c->rendered;
 }
 

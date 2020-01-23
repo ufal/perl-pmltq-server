@@ -19,6 +19,12 @@ sub load_user {
   my ($self, $c, $user_id) = @_;
   my $user = $c->db->resultset('User')->find($user_id);
   $c->app->log->debug('Failed to load user.') unless $user;
+  # TODO test if not expired
+  if($user and $user->provider//'' eq 'LDC'){
+    if(defined($user->valid_until) && $user->valid_until < DateTime->now()) {
+      $self->refresh_session($c,$user);
+    }
+  }
   $user->touch();
   return $user;
 }
@@ -51,6 +57,55 @@ sub register_or_load {
   }
 
   return $user->id;
+}
+
+sub refresh_session {
+  my ($self, $c, $user) = @_;
+
+  ## calculate client_secret
+  my $sha = Crypt::Digest::SHA512->new;
+  $sha->add($user->persistent_token);
+  $sha->addfile($c->config->{oauth}->{ldc}->{app_secret_path});
+  my $client_secret = $sha->hexdigest();
+  ## get token from .../token
+
+  my %params = (
+    client_id => $c->config->{oauth}->{ldc}->{client_id},
+    grant_type => 'refresh_token',
+    refresh_token => $user->persistent_token,
+    client_secret => $client_secret
+  );
+  my $token_url = $c->config->{oauth}->{ldc}->{token_url} .'?'.join('&', map {"$_=$params{$_}"} keys %params);
+  my $req = HTTP::Request->new('POST' => $token_url);
+  my $ua = LWP::UserAgent->new();
+  my $res = $ua->request($req);
+
+  unless($res->is_success) {
+    return $c->status_error({
+      code => 500,
+      message => 'Unexpected OAuth server error: '. $res->decoded_content
+    })
+  }
+
+  open my $fh, "<", $c->config->{oauth}->{ldc}->{app_secret_path}  or die "could not open file: $!";
+  my $key=<$fh>;
+  close($fh);
+
+  my $jwt = Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key);
+  my $persistent_token = $jwt->{refresh_token};
+  my $expiration = $jwt->{'exp'};
+  $expiration = DateTime->from_epoch( epoch => $expiration );
+  my %treebank_names = map {$_ => 1} @{$jwt->{corpora}};
+  my @available_treebanks = grep {exists $treebank_names{$_->name}} $c->all_treebanks()->all;
+
+  $user->persistent_token($persistent_token);
+  $user->valid_until($expiration);
+
+  my $users_rs = $c->db->resultset('User');
+  $users_rs->recursive_update({id => $user->id, persistent_token => $persistent_token, valid_until => $expiration});
+
+  $user->set_available_treebanks([@available_treebanks]);
+  $c->signed_cookie(ldc => $persistent_token);
 }
 
 1;

@@ -16,7 +16,7 @@ start_postgres();
 my $t = test_app();
 my %test_treebanks = map {$_ => test_treebank({name => $_, title => $_, is_public => 1, is_free => 0, is_all_logged => 0}) } qw/a b c d/;
 $test_treebanks{free} = test_treebank({name => 'free', title => 'free', is_public => 1, is_free => 1, is_all_logged => 1});
-my %available_treebanks = {};
+my %available_treebanks = ();
 my $code = '0123456789abcdef';
 my $config_client_id = 'test_client_id';
 my $state_url = 'CURRENT_STATE_URL';
@@ -47,7 +47,6 @@ sub logout {
   $t->get_ok($auth_check_url)
     ->status_is(200)
     ->json_is('/user', Mojo::JSON->false);
-  print STDERR "test whether is user removed from database !!!\n";
 }
 
 sub set_treebanks_for_user {
@@ -56,6 +55,30 @@ sub set_treebanks_for_user {
   my $req = HTTP::Request->new('POST' => "$oauth_server_url/config_server", undef, Mojo::JSON::encode_json({treebanks => $tb_list}));
   my $ua = LWP::UserAgent->new();
   my $res = $ua->request($req);
+}
+
+sub force_current_user_token_expiration {
+  my $user_id = shift;
+  test_db()->resultset('User')->recursive_update({id => $user_id, valid_until => DateTime->now()->add(minutes => -1)});
+}
+
+sub test_treebank_accessibility {
+  my $message = shift // '';
+  subtest "Treebank accessibility: $message" => sub {
+    for my $tbname (sort keys %test_treebanks) {
+      my $treebank_url = $t->app->url_for('treebank', treebank_id => $test_treebanks{$tbname}->id);
+      if($test_treebanks{$tbname}->is_free) {
+        $t->get_ok($treebank_url)
+          ->status_is(200, "Free treebank is available");
+      } elsif (exists $available_treebanks{$tbname}) {
+        $t->get_ok($treebank_url)
+          ->status_is(200, "Allowed treebank is available");
+      } else {
+          $t->get_ok($treebank_url)
+          ->status_is(403, "Non-free and non-listed is permited");
+      }
+    }
+  }
 }
 
 ok $t->app->routes->find('auth_check'), 'Auth check route exists';
@@ -86,7 +109,6 @@ my $config_login_url = $t->app->config->{oauth}->{ldc}->{login_url};
 my $redirect_url = $ldc_url_code;
 #$redirect_url =~ s{/v[0-9]+}{/api};
 $redirect_url = URL::Encode::url_encode($redirect_url);;
-print STDERR $redirect_url,"\n";
 
 
 set_treebanks_for_user([qw/a b d/]);
@@ -114,22 +136,24 @@ $t->get_ok("$responsed_redirect_url?code=$code&state=$state")
   ->header_like("location"=> qr/success$/, "successfully logged");
 
 
-for my $tbname (sort keys %test_treebanks) {
-  my $treebank_url = $t->app->url_for('treebank', treebank_id => $test_treebanks{$tbname}->id);
-  if($test_treebanks{$tbname}->is_free) {
-    $t->get_ok($treebank_url)
-      ->status_is(200, "Free treebank is available");
-  } elsif (exists $available_treebanks{$tbname}) {
-    $t->get_ok($treebank_url)
-      ->status_is(200, "Allowed treebank is available");
-  } else {
-      $t->get_ok($treebank_url)
-      ->status_is(403, "Non-free and non-listed is permited");
-  }
-}
+test_treebank_accessibility('first login');
 
+$t->get_ok($auth_check_url)
+  ->status_is(200);
 
+my $last_user_id = $t->tx->res->json->{user}->{id};
 
+set_treebanks_for_user([qw/a c/]); # allow different treebanks before expiration
+
+force_current_user_token_expiration($last_user_id);
+
+test_treebank_accessibility('treebank list changed, token expired');
+
+logout();
+
+subtest "user and all dependencies are removed after logout" => sub {
+  is test_db()->resultset('User')->find($last_user_id), undef, "user is not in database";
+};
 
 
 
