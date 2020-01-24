@@ -50,17 +50,23 @@ post '/token' => sub {
     my $code2 = $c->req->param('code');
     $c->render(status => 400, text => 'code parameter is missing') unless $code2;
     $c->render(status => 400, text => 'invalid code value') unless $code2 eq $code;
-    render_jwt($c, $code);
+    render_jwt($c, get_jwt($c,$code));
   } elsif ($grant_type eq 'refresh_token'){
       my $refresh_token = $c->req->param('refresh_token');
       $c->render(status => 400, text => 'code parameter is missing') unless $refresh_token;
       $c->render(status => 400, text => 'invalid refresh_token value') unless $refresh_token eq $expected_refresh_token;
-      render_jwt($c, $refresh_token);
+      render_jwt($c, get_jwt($c,$refresh_token));
 
   } else {
     $c->render(status => 500, text => 'unexpected test server error');
   }
 
+};
+
+
+post '/broken_token' => sub {
+  my $c = shift;
+  render_jwt($c, 'ERROR'.get_jwt($c,$code));
 };
 
 my $stop;
@@ -79,7 +85,7 @@ say STDERR "Server is running";
 Mojo::IOLoop->start;
 
 
-sub render_jwt {
+sub get_jwt {
   my $c = shift;
   my $new_client_secret = calculate_secret(shift);
   $c->render(status => 400, text => 'invalid refresh_token value') unless $new_client_secret eq $expected_client_secret;
@@ -89,17 +95,25 @@ sub render_jwt {
   my $key=<$fh>;
   close($fh);
   $expected_refresh_token = join('', map{('a'..'z','A'..'Z',0..9)[rand 62]} 0..32);
-  $c->render(status=>200,
-             content_type => 'application/jwt',
-             data => Crypt::JWT::encode_jwt(payload=>{
+  return Crypt::JWT::encode_jwt(payload=>{
                                               corpora => $treebank_list,
                                               refresh_token => $expected_refresh_token,
                                               scope => 'read'
                                               },
-                                            alg=>'HS256',
-                                            key=>$key,
-                                            auto_iat => 1,
-                                            relative_exp => 30,
-                                            relative_nbf => 0
-                                            ));
+                                alg=>'HS256',
+                                key=>$key,
+                                auto_iat => 1,
+                                relative_exp => 30,
+                                relative_nbf => 0
+                                );
 }
+
+
+sub render_jwt {
+  my $c = shift;
+  my $jwt_data = shift;
+  $c->render(status=>200,
+             content_type => 'application/jwt',
+             data => $jwt_data);
+}
+

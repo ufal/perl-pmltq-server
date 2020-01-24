@@ -156,6 +156,21 @@ subtest "user and all dependencies are removed after logout" => sub {
 };
 
 
+subtest "oauth server token error" => sub {
+  $t->app->config->{oauth} = {ldc => {%$oauth, token_url => "$oauth_server_url/broken_token"}};
+
+  $t->get_ok("$ldc_url?loc=$state_url")
+    ->status_is(302);
+  ($state) =  $t->tx->res->headers->location =~ m/state=([0-9a-f]+)/;
+
+  $t->get_ok("$responsed_redirect_url?code=$code&state=$state")
+    ->status_is(302)
+    ->header_like("location"=> qr/$state_url/, "redirected to previeous state")
+    ->header_like("location"=> qr/failed$/, "not logged");
+  $t->get_ok($auth_check_url)
+    ->status_is(200)
+    ->json_is('/user', Mojo::JSON->false, 'user is not logged');
+};
 
 
 done_testing();

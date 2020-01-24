@@ -153,7 +153,13 @@ sub ldc_code {
   my $key=<$fh>;
   close($fh);
 
-  my $jwt = Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key);
+  my $jwt;
+  eval {
+   $jwt = Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key);
+   1;
+  } or do {
+    return $c->redirect_to($redirect . '#failed');
+  };
   my $persistent_token = $jwt->{refresh_token};
   my $expiration = $jwt->{'exp'};
   $expiration = DateTime->from_epoch( epoch => $expiration );
