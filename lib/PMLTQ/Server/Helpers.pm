@@ -9,6 +9,7 @@ sub register {
   $app->helper(db => sub { shift->app->db });
 
   $app->helper(history_limit => sub { shift->config->{history_limit} // 50 });
+  $app->helper(default_user_settings => \&_default_user_settings);
   # Resultsets
   $app->helper(public_treebanks => sub { shift->db->resultset('Treebank')->search_rs({ is_public => 1 }) });
   $app->helper(all_treebanks => sub { shift->db->resultset('Treebank')->search_rs() });
@@ -36,6 +37,11 @@ sub register {
       _snake_hashref($req_json);
     }
   });
+}
+
+sub _default_user_settings {
+  my ($self, $provider) = @_;
+  return ($self->config->{default_user_permitions} // {})->{$provider} // {};
 }
 
 sub _snake_hashref {

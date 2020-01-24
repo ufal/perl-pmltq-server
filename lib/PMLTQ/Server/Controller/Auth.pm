@@ -161,12 +161,13 @@ sub ldc_code {
   my @available_treebanks = grep {exists $treebank_names{$_->name}} $c->all_treebanks()->all;
 
   if ($c->authenticate('', '', {
+      access_all => 0,
+      %{$c->default_user_settings('ldc')},
       email => '',
       name => substr(Crypt::Digest::SHA512::sha512_b64u(rand().$$.time),-16) ,
       provider => 'LDC',
       organization => '',
       persistent_token => $persistent_token,
-      access_all => 0,
       valid_until => $expiration
     })) {
 
@@ -221,12 +222,13 @@ sub sign_in_shibboleth {
     $name = decode_utf8($headers->header('cn') || '') unless $name;
 
     if ($c->authenticate('', '', {
+        access_all => 1,
+        %{$c->default_user_settings('shibboleth')},
         email => $email,
         name => $name,
         provider => 'Shibboleth',
         organization => $organization,
-        persistent_token => $persistent_token,
-        access_all => 1
+        persistent_token => $persistent_token
       })) {
       return $c->redirect_to($redirect . '#success');
     } else {
