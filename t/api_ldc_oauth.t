@@ -14,7 +14,7 @@ require 'bootstrap.pl';
 
 start_postgres();
 my $t = test_app();
-my %test_treebanks = map {$_ => test_treebank({name => $_, title => $_, is_public => 1, is_free => 0, is_all_logged => 0}) } qw/a b c d/;
+my %test_treebanks = map {$_ => test_treebank({name => $_, title => $_, is_public => 1, is_free => 0, is_all_logged => 0}, {treebank_provider_ids => {ldc => "ldc_$_"}}) } qw/a b c d/;
 $test_treebanks{free} = test_treebank({name => 'free', title => 'free', is_public => 1, is_free => 1, is_all_logged => 1});
 my %available_treebanks = ();
 my $code = '0123456789abcdef';
@@ -51,8 +51,8 @@ sub logout {
 
 sub set_treebanks_for_user {
   my $tb_list = shift // [];
-  %available_treebanks = map {$_ => 1} @$tb_list;
-  my $req = HTTP::Request->new('POST' => "$oauth_server_url/config_server", undef, Mojo::JSON::encode_json({treebanks => $tb_list}));
+  %available_treebanks = map {($_ => 1)} @$tb_list;
+  my $req = HTTP::Request->new('POST' => "$oauth_server_url/config_server", undef, Mojo::JSON::encode_json({treebanks => [map {"ldc_$_"} @$tb_list]}));
   my $ua = LWP::UserAgent->new();
   my $res = $ua->request($req);
 }

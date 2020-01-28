@@ -136,6 +136,7 @@ sub test_treebank {
     name => 'pdt20_mini',
     title => 'PDT 2.0 Sample',
   };
+  my $tbrel = shift // {};
   die "WRONG PARAMS: At least name and title must be set in the hash"  unless ref($tbpar) && exists($tbpar->{name}) && exists($tbpar->{title});
   my $svg_path = shift // File::Spec->catdir('pdt20_mini', 'svg');
   my $tbname = $tbpar->{name};
@@ -154,7 +155,17 @@ sub test_treebank {
     ],
     %$tbpar
   })->discard_changes;
-
+  if(exists $tbrel->{treebank_provider_ids}){
+    my $tbid = $treebanks->search({name=>$tbname})->single->id;
+    my $treebank_prov = test_db->resultset('TreebankProvID');
+    for my $prov (keys %{$tbrel->{treebank_provider_ids}}) {
+      $treebank_prov->create({
+        treebank_id => $tbid,
+        provider => $prov,
+        provider_id => $tbrel->{treebank_provider_ids}->{$prov}
+      })->discard_changes;
+    }
+  }
   return $test_tb{$tbname}
 }
 

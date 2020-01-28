@@ -163,8 +163,11 @@ sub ldc_code {
   my $persistent_token = $jwt->{refresh_token};
   my $expiration = $jwt->{'exp'};
   $expiration = DateTime->from_epoch( epoch => $expiration );
-  my %treebank_names = map {lc($_) => 1} @{$jwt->{corpora}};
-  my @available_treebanks = grep {exists $treebank_names{$_->name}} $c->all_treebanks()->all;
+  my %treebank_names = map {$_ => 1} @{$jwt->{corpora}};
+  my @available_treebanks = grep {
+                                    my $providerid=$_->treebank_provider_ids->search({provider=>'ldc'})->single;
+                                    $providerid && exists $treebank_names{ $providerid->provider_id }
+                                  } $c->all_treebanks()->all;
 
   if ($c->authenticate('', '', {
       access_all => 0,
