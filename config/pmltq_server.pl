@@ -21,13 +21,13 @@
     ldc => {
       # is_admin => 0, this option is for security reason hardcoded in PMLTQ::Server::Authentication and can't be overwritten in config
       access_all => 0,
+      allow_history     => 0,
+      allow_query_lists      => 0,
+      # allow_publish_query_lists => 0 # allow_query_lists = 0 implicates allow_publish_query_lists = 0
     },
     shibboleth => {
       # is_admin => 0, this option is for security reason hardcoded in PMLTQ::Server::Authentication and can't be overwritten in config
       access_all => 1,
-      allow_history     => 0,
-      allow_query_lists      => 0,
-      # allow_publish_query_lists => 0 # allow_query_lists = 0 implicates allow_publish_query_lists = 0
     }
   },
   tree_print_service => 'http://localhost:8070/svg',
