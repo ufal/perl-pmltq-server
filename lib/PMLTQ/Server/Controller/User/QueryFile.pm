@@ -10,18 +10,18 @@ has resultset_name => 'QueryFile';
 sub _validate {
   my ($c, $data) = @_;
   my $rules = {
-    fields => [qw/name/],
+    fields => [qw/name is_public/],
     filters => [
       [qw/name/] => filter(qw/trim strip/),
+      is_public => force_bool(),
     ],
     checks => [
       name => [is_required(), is_long_at_most(120), is_unique($c->resultset, 'id', 'filename already exists', ['user_id'])],
+      is_public => is_less_or_equal($c->current_user->allow_publish_query_lists,'publishing Query Lists is permited')
     ]
   };
-
   $data->{user_id} = $c->current_user->id;
   $data = $c->do_validation($rules, $data);
-
   return $data;
 }
 

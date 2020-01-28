@@ -87,4 +87,28 @@ $t->get_ok($list_query_files_url => form => {history_list => 0})
 
 is(scalar @{$t->tx->res->json}, 0, "HISTORY is not in query files (listing without history)");
 
+### test limited user
+my $limited_user_history = test_user({username=>'luh', password=>'luh', name=>'luh', allow_history=>0});
+login_user($t, {auth => {username => 'luh', password => 'luh'}}, 'luh');
+subtest "user without history permissions" => sub {
+    $t->get_ok($history_url)
+      ->status_is(401);
+    $t->post_ok($query_url => json => { query => $query })->status_is(200);
+    $t->get_ok($history_url)
+      ->status_is(401);
+  };
+
+my $limited_user_ql = test_user({username=>'luql', password=>'luql', name=>'luql', allow_query_lists=>0});
+login_user($t, {auth => {username => 'luql', password => 'luql'}}, 'luql');
+subtest "user without query list permissions" => sub {
+    $t->get_ok($history_url)
+      ->status_is(200);
+    $query .= '#';
+    $t->post_ok($query_url => json => { query => $query })->status_is(200);
+    $t->get_ok($history_url)
+      ->status_is(200);
+    is(scalar @{$t->tx->res->json->[0]->{queries}}, 1, "One query is in history");
+    is($t->tx->res->json->[0]->{queries}->[0]->{query}, $query, "Query is equal");
+  };
+
 done_testing();

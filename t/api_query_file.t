@@ -242,20 +242,20 @@ subtest 'CHANGE QUERY LIST' => sub { # move query to other list
   my $file1query2 = $fetched_query_files{'CHQ_file1'}->{queries}->[1];
   splice @{$fetched_query_files{'CHQ_file1'}->{queries}}, 1, 1;
   splice @{$fetched_query_files{'CHQ_file2'}->{queries}}, 2, 0, $file1query2;
-  
+
   # change query record's list:
   my $update_query_file_query_url = $t->app->url_for('update_query_file_query', query_file_id => $fetched_query_files{'CHQ_file1'}->{id}, query_id => $file1query2->{id});
   $file1query2->{queryFileId} = $fetched_query_files{'CHQ_file2'}->{id};
   $t->put_ok($update_query_file_query_url => json => $file1query2)
     ->status_is(200);
-  
+
   # update target query list order:
   my $i=0;
   my $order_file2 = [ map {{id => $_->{id}, ord => $i++}} @{$fetched_query_files{'CHQ_file2'}->{queries}}];
   my $set_query_order_url = $t->app->url_for('update_list_query_file_queries', query_file_id => $fetched_query_files{'CHQ_file2'}->{id});
   $t->put_ok($set_query_order_url => json => {queries => $order_file2})
     ->status_is(200);
-  
+
   $t->get_ok($list_query_files_url)
     ->status_is(200);
   %fetched_query_files = map {$_->{name} => $_} @{$t->tx->res->json};
@@ -316,6 +316,13 @@ ok (!(grep {$_->{userId} != $tu->id} @{$t->tx->res->json}), 'all query files bel
 
 $t->delete_ok($auth_sign_out_url)
   ->status_is(200);
+
+
+my $limited_user_ql = test_user({username=>'luql', password=>'luql', name=>'luql', allow_query_lists=>0});
+login_user($t, {auth => {username => 'luql', password => 'luql'}}, 'luql');
+$t->post_ok($create_query_file_url => json => {name => 'test_file_ql'})
+  ->status_is(401,"401: user without query list permissions" );
+
 
 done_testing();
 

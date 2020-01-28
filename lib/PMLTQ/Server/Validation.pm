@@ -40,6 +40,7 @@ my @VALIDATE_EXPORT = qw/
   is_provider_ids
   is_hash
   is_in_str
+  is_less_or_equal
   is_not_in
   is_password_equal
   is_unique
@@ -264,7 +265,7 @@ sub is_unique {
       $rs = $rs->search({$id_name => {'!=' => $param->{$id_name}}});
     }
     for my $f (@{$filter//[]}) {
-      $rs = $rs->search({$f => $param->{$f}}); 
+      $rs = $rs->search({$f => $param->{$f}});
     }
     $rs->search({$key => $value})->count ? $error : undef;
   }
@@ -307,6 +308,16 @@ sub is_array_of_hash {
     ( ref($a) eq 'ARRAY' and all { $_ and ref($_) eq 'HASH' } @$a ) ? undef : $error;
   };
 }
+
+sub is_less_or_equal {
+  my ($num, $error) = @_;
+  sub {
+    my $a = shift;
+    return unless defined($a);
+    $a <= $num ? undef : $error;
+  };
+}
+
 
 
 1;

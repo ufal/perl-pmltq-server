@@ -70,10 +70,12 @@ sub startup {
   $api->get('/treebanks')->to(controller => 'Treebank', action => 'list')->name('treebanks');
 
   my $user = $api->under('/user')->to(controller => 'User', action => 'is_authenticated');
-  my $query_file = $user->resource('query-file', controller => 'User::QueryFile', permission => 'is_owner');
+  my $query_file = $user->under("/")->to(controller => 'User', action => 'is_query_file_allowed')
+                        ->resource('query-file', controller => 'User::QueryFile', permission => 'is_owner');
   $query_file->resource('query', controller => 'User::QueryFile::QueryRecord', permission => 'is_owner');
 
-  $user->get('history')->to(controller => 'History', action => 'list')->name('history');
+  $user->under("/")->to(controller => 'User', action => 'is_history_allowed')
+      ->get('history')->to(controller => 'History', action => 'list')->name('history');
 
   $api->get('public-query')->to(controller => 'PublicQuery', action => 'list')->name('public_query_tree');
 
