@@ -89,8 +89,13 @@ sub sign_in_ldc {
   $c->signed_cookie("state_$state_code" => $c->req->param('loc'));
 
   my $url = $c->url_for($c->config->{oauth}->{ldc}->{login_url});
-  my $redir_url = $c->app->url_for('auth_ldc_code')->to_abs;
-  # $redir_url =~ s{^/v\d+/}{/api/};
+  my $redir_url = $c->app->url_for('auth_ldc_code');
+  my $api_path = $c->config->{api_path};
+  if($api_path) {
+    $redir_url =~ s{/v\d+/}{}; # replace api version
+    $redir_url = "$api_path/$redir_url";
+  }
+  $c->app->log->debug("redirect url: $redir_url");
   $c->redirect_to(
     $url->query(
       client_id => $c->config->{oauth}->{ldc}->{client_id},

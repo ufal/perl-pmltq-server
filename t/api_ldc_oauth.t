@@ -156,6 +156,26 @@ subtest "user and all dependencies are removed after logout" => sub {
 };
 
 
+subtest "api path is different from site path" => sub {
+  $t->app->config->{api_path} = '/api_path/pmltq/api';
+
+  $redirect_url = $ldc_url_code;
+  $redirect_url =~ s/^\/v\d+//;
+  $redirect_url = URL::Encode::url_encode($t->app->config->{api_path} . $redirect_url);
+
+  $t->get_ok("$ldc_url?loc=$state_url")
+    ->status_is(302)
+    ->header_like("location"=> qr/$config_login_url/, "location is set")
+    ->header_like("location"=> qr/client_id=$config_client_id/, "client id")
+    ->header_like("location"=> qr/redirect_uri=.*$redirect_url/, "redirect url")
+    ->header_like("location"=> qr/state=[0-9a-f]+/, "state is in path")
+    ->header_like("location"=> qr/response_type=code/, "response_type");
+  ($state) =  $t->tx->res->headers->location =~ m/state=([0-9a-f]+)/;
+  logout();
+  undef $t->app->config->{api_path};
+};
+
+
 subtest "oauth server token error" => sub {
   $t->app->config->{oauth} = {ldc => {%$oauth, token_url => "$oauth_server_url/broken_token"}};
 
@@ -171,6 +191,7 @@ subtest "oauth server token error" => sub {
     ->status_is(200)
     ->json_is('/user', Mojo::JSON->false, 'user is not logged');
 };
+
 
 
 done_testing();
