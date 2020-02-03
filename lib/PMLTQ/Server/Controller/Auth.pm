@@ -145,7 +145,10 @@ sub ldc_code {
   my $token_url = $c->config->{oauth}->{ldc}->{token_url} .'?'.join('&', map {"$_=$params{$_}"} keys %params);
   my $req = HTTP::Request->new('POST' => $token_url);
   my $ua = LWP::UserAgent->new();
+  $c->app->log->debug("Requesting " . $c->config->{oauth}->{ldc}->{token_url} . " for token");
+
   my $res = $ua->request($req);
+  $c->app->log->debug("Requested");
 
   unless($res->is_success) {
     return $c->status_error({
@@ -154,10 +157,12 @@ sub ldc_code {
     })
   }
 
+  $c->app->log->debug("Reading application secret");
   open my $fh, "<", $c->config->{oauth}->{ldc}->{app_secret_path}  or die "could not open file: $!";
   my $key=<$fh>;
   close($fh);
 
+  $c->app->log->debug("Application secret loaded");
   my $jwt;
   eval {
    $jwt = Crypt::JWT::decode_jwt(token=>$res->decoded_content, alg=>'HS256', key=>$key);
@@ -165,6 +170,7 @@ sub ldc_code {
   } or do {
     return $c->redirect_to($redirect . '#failed');
   };
+  $c->app->log->debug("JWT decoded");
   my $persistent_token = $jwt->{refresh_token};
   my $expiration = $jwt->{'exp'};
   $expiration = DateTime->from_epoch( epoch => $expiration );
@@ -184,8 +190,9 @@ sub ldc_code {
       persistent_token => $persistent_token,
       valid_until => $expiration
     })) {
-
+    $c->app->log->debug("New user created");
     $c->current_user->set_available_treebanks([@available_treebanks]);
+    $c->app->log->debug("Treebank assigned");
     $c->signed_cookie(ldc => $persistent_token);
     return $c->redirect_to($redirect . '#success');
   } else {

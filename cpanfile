@@ -23,6 +23,9 @@ requires 'DBIx::Class::FilterColumn::ByType';
 requires 'Digest::MD4';
 requires 'URL::Encode';
 
+requires 'HTTP::Request';
+requires 'LWP::UserAgent';
+
 # requires 'Mojolicious::Plugin::ValidateTiny', '0.14'; # Using an internal version for now
 # requires 'Mojolicious::Plugin::ParamExpand', '0.02';
 requires 'Mojolicious::Plugin::Authentication', '1.26';
