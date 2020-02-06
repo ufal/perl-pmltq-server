@@ -25,6 +25,7 @@ requires 'URL::Encode';
 
 requires 'HTTP::Request';
 requires 'LWP::UserAgent';
+requires 'Mojolicious::Plugin::Cron';
 
 # requires 'Mojolicious::Plugin::ValidateTiny', '0.14'; # Using an internal version for now
 # requires 'Mojolicious::Plugin::ParamExpand', '0.02';

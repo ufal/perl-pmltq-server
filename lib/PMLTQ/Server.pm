@@ -38,6 +38,26 @@ sub startup {
     },
     realm => 'PMLTQ'
   });
+
+  if(exists $self->config->{crontasks}) {
+    $self->plugin(Cron => {map {
+        $_ => {
+          crontab => $self->config->{crontasks}->{crontab} // '0 0 * * *',
+          code => sub {
+            my $action = $self->config->{crontasks}->{action} // '';
+            my $action_opts = $self->config->{crontasks}->{opts} // {};
+
+            if($action eq 'remove_expired_users') {
+              $self->remove_expired_users(%$action_opts);
+            } elsif($action eq 'user_stats') {
+              $self->print_user_stats();
+            } else {
+                $self->app->log->warn("unknown cron action '$action'")
+            }
+          }
+        }
+      } keys %{$self->config->{crontasks}}});
+  }
   $self->plugin('PMLTQ::Server::Authentication');
   $self->plugin('PMLTQ::Server::Helpers');
   $self->add_resource_shortcut();
@@ -162,4 +182,24 @@ sub add_resource_shortcut {
     }
   );
 }
+
+sub remove_expired_users {
+  my $self = shift;
+  my %opts = @_;
+  my $dtf = $self->app->db->storage->datetime_parser;
+  my $expiration = $opts{expiration} // 72; # expiration limit in hours
+  $self->app->log->debug('Searching for expired users');
+  my $to_delete = $self->app->db->resultset('User')->search_rs({ valid_until => {'<=' => $dtf->format_datetime(DateTime->now()->add(hours => -$expiration))}});
+  $self->app->log->debug('Removing '. $to_delete->count(). ' expired users');
+  $to_delete->delete_all();
+}
+
+sub print_user_stats {
+  my $self = shift;
+  my $dtf = $self->app->db->storage->datetime_parser;
+  my $expired_user_cnt = $self->app->db->resultset('User')->search_rs({ valid_until => {'<=' => $dtf->format_datetime(DateTime->now())}})->count();
+  my $total_user_cnt = $self->app->db->resultset('User')->count();
+  $self->app->log->debug("total users: $total_user_cnt, expired users: $expired_user_cnt");
+}
+
 1;

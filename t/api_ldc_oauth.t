@@ -58,8 +58,13 @@ sub set_treebanks_for_user {
 }
 
 sub force_current_user_token_expiration {
+  set_user_expiration(shift,-1);
+}
+
+sub set_user_expiration {
   my $user_id = shift;
-  test_db()->resultset('User')->recursive_update({id => $user_id, valid_until => DateTime->now()->add(minutes => -1)});
+  my $minutes = shift;
+  test_db()->resultset('User')->recursive_update({id => $user_id, valid_until => DateTime->now()->add(minutes => $minutes)});
 }
 
 sub test_treebank_accessibility {
@@ -156,6 +161,43 @@ subtest "user and all dependencies are removed after logout" => sub {
 };
 
 
+my %new_users;
+for my $usrno (-2..2) {
+  subtest "loging user [$usrno]" => sub {
+    $t->get_ok("$ldc_url?loc=$state_url")
+      ->status_is(302);
+    ($state) =  $t->tx->res->headers->location =~ m/state=([0-9a-f]+)/;
+    ($responsed_redirect_url) = $t->tx->res->headers->location =~ m/redirect_uri=([^&]+)/;
+    $responsed_redirect_url = URL::Encode::url_decode($responsed_redirect_url);
+    $t->get_ok("$responsed_redirect_url?code=$code&state=$state")
+      ->status_is(302)
+      ->header_like("location"=> qr/success$/, "successfully logged");
+
+    $t->get_ok($auth_check_url)
+      ->status_is(200);
+    $last_user_id = $t->tx->res->json->{user}->{id};
+    $new_users{"[$usrno]"} = $last_user_id;
+    set_user_expiration($last_user_id, $usrno*60 + 5); # add 5 minutes to be sure that correct number of user will be removed
+    # do not logout user !!!
+  };
+}
+
+subtest "test removing user after expiration (validUntil + tolerance)" => sub {
+  $t->app->print_user_stats();
+  $t->app->remove_expired_users(expiration => 1); # this should remove user [-2]
+  ok(! test_db()->resultset('User')->find($new_users{'[-2]'}), "user [-2] removed");
+  delete $new_users{'[-2]'};
+  ok(test_db()->resultset('User')->find($new_users{$_}), "user $_ exists  ") for sort keys %new_users;
+
+  $t->app->print_user_stats();
+  $t->app->remove_expired_users(expiration => -1); # this removes all users that will expires within an hour
+  ok(! test_db()->resultset('User')->find($new_users{'[-1]'}), "user [-1] removed");
+  ok(! test_db()->resultset('User')->find($new_users{'[0]'}), "user [0] removed");
+  delete $new_users{'[-1]'};
+  delete $new_users{'[0]'};
+  ok(test_db()->resultset('User')->find($new_users{$_}), "user $_ exists  ") for sort keys %new_users;
+};
+
 subtest "api path is different from site path" => sub {
   $t->app->config->{api_path} = '/api_path/pmltq/api';
 
@@ -174,6 +216,7 @@ subtest "api path is different from site path" => sub {
   logout();
   undef $t->app->config->{api_path};
 };
+
 
 
 subtest "oauth server token error" => sub {

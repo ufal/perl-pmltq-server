@@ -30,6 +30,13 @@
       access_all => 1,
     }
   },
+  crontasks => {
+    crontab => '0 0 * * *',
+    action => 'remove_expired_users',
+    opts => {
+      expiration => 48 # remove user after 48 hours after inactivity
+    }
+  },
   tree_print_service => 'http://localhost:8070/svg',
   nodes_to_query_service => 'http://localhost:8070/pmltq',
   data_dir => '/opt/pmltq-data',
