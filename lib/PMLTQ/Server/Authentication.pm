@@ -109,6 +109,7 @@ sub refresh_session {
 
   $user->set_available_treebanks([@available_treebanks]);
   $c->signed_cookie(ldc => $persistent_token);
+  $c->session(expiration=>259200); # session expires after three days
 }
 
 1;

@@ -58,6 +58,9 @@ sub startup {
         }
       } keys %{$self->config->{crontasks}}});
   }
+
+  $self->app->sessions->default_expiration(10800); # default value 3 hours
+
   $self->plugin('PMLTQ::Server::Authentication');
   $self->plugin('PMLTQ::Server::Helpers');
   $self->add_resource_shortcut();
