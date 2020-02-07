@@ -18,7 +18,10 @@ sub register {
 sub load_user {
   my ($self, $c, $user_id) = @_;
   my $user = $c->db->resultset('User')->find($user_id);
-  $c->app->log->debug('Failed to load user.') unless $user;
+  unless($user) {
+    $c->app->log->debug('Failed to load user.');
+    return undef;
+  }
   # TODO test if not expired
   if($user and $user->provider//'' eq 'LDC'){
     if(defined($user->valid_until) && $user->valid_until < DateTime->now()) {

@@ -198,6 +198,29 @@ subtest "test removing user after expiration (validUntil + tolerance)" => sub {
   ok(test_db()->resultset('User')->find($new_users{$_}), "user $_ exists  ") for sort keys %new_users;
 };
 
+subtest "try to load removed user" => sub {
+  $t->get_ok("$ldc_url?loc=$state_url")
+    ->status_is(302);
+  ($state) =  $t->tx->res->headers->location =~ m/state=([0-9a-f]+)/;
+  ($responsed_redirect_url) = $t->tx->res->headers->location =~ m/redirect_uri=([^&]+)/;
+  $responsed_redirect_url = URL::Encode::url_decode($responsed_redirect_url);
+  $t->get_ok("$responsed_redirect_url?code=$code&state=$state")
+    ->status_is(302)
+    ->header_like("location"=> qr/success$/, "successfully logged");
+  $t->get_ok($auth_check_url)
+    ->status_is(200);
+  $last_user_id = $t->tx->res->json->{user}->{id};
+  set_user_expiration($last_user_id, -5*60); # add 5 minutes to be sure that correct number of user will be removed
+  $t->app->remove_expired_users(expiration => 4); # this should remove currently logged user
+  ok(! test_db()->resultset('User')->find($last_user_id), "current user removed from database (expiration)");
+  $t->get_ok($auth_check_url)
+    ->status_is(200)
+    ->json_is('/user', Mojo::JSON->false);
+};
+
+
+
+
 subtest "api path is different from site path" => sub {
   $t->app->config->{api_path} = '/api_path/pmltq/api';
 
