@@ -275,12 +275,19 @@ sub start_print_server {
 sub init_database {
   return if $pg_expect_running;
 
-  my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
+  for my $dump (qw/pdt20_mini_pg09.1.dump pdt20_mini_pg12.4.dump/) {
+    my $filename = File::Spec->catdir($test_files, 'pdt20_mini', $dump);
 
-  # run with clean environment
-  my @cmd = ('/usr/bin/env', '-i', $pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '-w', $filename);
-  # say STDERR join(' ', @cmd);
-  system(@cmd) == 0 or die "Restoring test database failed: $?";
+    # run with clean environment
+    my @cmd = ('/usr/bin/env', '-i', $pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '--clean', '-w', $filename);
+    say STDERR join(' ', @cmd);
+    unless(system(@cmd) == 0) {
+      warn "Restoring test database $dump failed: $?";
+    } else {
+      return;
+    }
+  }
+  die "RESTORING DATABASE FAILED";
 }
 
 sub run_database {
