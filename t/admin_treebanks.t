@@ -80,6 +80,9 @@ $t->put_ok($update_treebank_url => json => { %$treebank_resp_data, name=>$_})
      for (qw/id:id/);
 
 
+
+$t->app->config->{login_with}->{ldc} = 1; # overwrite default settings
+
 # test multiple IDs
 $treebank_resp_data->{treebankProviderIds} = {ldc => 'ldc01', shibboleth => 'sh01'};
 

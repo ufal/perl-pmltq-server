@@ -24,4 +24,33 @@ sub history {
   return unless $c->user_authenticated;
   return $c->stash('history') // PMLTQ::Server::Controller::History->initialize();
 }
+
+sub is_query_file_allowed {
+  my $c = shift;
+  unless ($c->current_user && $c->current_user->allow_query_lists) {
+    $c->status_error({
+      code => 401,
+      message => 'Unauthorized'
+    });
+
+    return;
+  }
+
+  return 1;
+}
+
+sub is_history_allowed {
+  my $c = shift;
+  unless ($c->current_user && $c->current_user->allow_history) {
+    $c->status_error({
+      code => 401,
+      message => 'Unauthorized'
+    });
+
+    return;
+  }
+
+  return 1;
+}
+
 1;

@@ -27,6 +27,10 @@ __PACKAGE__->add_columns(
   access_all       => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
   is_admin         => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
   is_active        => { data_type => 'boolean', default_value => 0, is_nullable => 0, is_boolean => 1 },
+  allow_history    => { data_type => 'boolean', default_value => 1, is_nullable => 0, is_boolean => 1 },
+  allow_query_lists          => { data_type => 'boolean', default_value => 1, is_nullable => 0, is_boolean => 1 },
+  allow_publish_query_lists  => { data_type => 'boolean', default_value => 1, is_nullable => 0, is_boolean => 1 },
+  valid_until      => { data_type => 'datetime', is_nullable => 1, set_on_create => 0, set_on_update => 0 },
   created_at       => { data_type => 'datetime', is_nullable => 0, set_on_create => 1, set_on_update => 0 },
   last_login       => { data_type => 'datetime', is_nullable => 1, set_on_create => 1, set_on_update => 1 },
 );

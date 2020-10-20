@@ -136,6 +136,7 @@ sub test_treebank {
     name => 'pdt20_mini',
     title => 'PDT 2.0 Sample',
   };
+  my $tbrel = shift // {};
   die "WRONG PARAMS: At least name and title must be set in the hash"  unless ref($tbpar) && exists($tbpar->{name}) && exists($tbpar->{title});
   my $svg_path = shift // File::Spec->catdir('pdt20_mini', 'svg');
   my $tbname = $tbpar->{name};
@@ -154,7 +155,17 @@ sub test_treebank {
     ],
     %$tbpar
   })->discard_changes;
-
+  if(exists $tbrel->{treebank_provider_ids}){
+    my $tbid = $treebanks->search({name=>$tbname})->single->id;
+    my $treebank_prov = test_db->resultset('TreebankProvID');
+    for my $prov (keys %{$tbrel->{treebank_provider_ids}}) {
+      $treebank_prov->create({
+        treebank_id => $tbid,
+        provider => $prov,
+        provider_id => $tbrel->{treebank_provider_ids}->{$prov}
+      })->discard_changes;
+    }
+  }
   return $test_tb{$tbname}
 }
 
@@ -264,12 +275,19 @@ sub start_print_server {
 sub init_database {
   return if $pg_expect_running;
 
-  my $filename = File::Spec->catdir($test_files, 'pdt20_mini', 'pdt20_mini.dump');
+  for my $dump (qw/pdt20_mini_pg09.1.dump pdt20_mini_pg12.4.dump/) {
+    my $filename = File::Spec->catdir($test_files, 'pdt20_mini', $dump);
 
-  # run with clean environment
-  my @cmd = ('/usr/bin/env', '-i', $pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '-w', $filename);
-  # say STDERR join(' ', @cmd);
-  system(@cmd) == 0 or die "Restoring test database failed: $?";
+    # run with clean environment
+    my @cmd = ('/usr/bin/env', '-i', $pg_restore, '-d', 'test', '-h', 'localhost', '-p', $pg_port, '-U', 'postgres', '--no-acl', '--no-owner', '--clean', '-w', $filename);
+    say STDERR join(' ', @cmd);
+    unless(system(@cmd) == 0) {
+      warn "Restoring test database $dump failed: $?";
+    } else {
+      return;
+    }
+  }
+  die "RESTORING DATABASE FAILED";
 }
 
 sub run_database {
@@ -377,4 +395,54 @@ END {
   }
 }
 
+
+
+
+my $oauth_server_pid;
+
+sub start_oauth_server {
+  my $code = shift;
+  my $sf = shift;
+  my $clid = shift;
+  my $oauth_server = File::Spec->catfile(dirname(__FILE__), 'script', 'oauth_server.pl');
+
+  my $port = Mojo::IOLoop::Server->generate_port;
+  my $listen = "http://localhost:$port";
+  chmod 0755, $oauth_server;
+
+  say 'Starting oauth server';
+
+  my ($fh, $filename) = tempfile(UNLINK => 1);
+  say "OAuth server log: $filename";
+
+  $oauth_server_pid = fork;
+  die "fork(2) failed:$!" unless defined $oauth_server_pid;
+  if ($oauth_server_pid == 0) {
+    close $fh; open $fh, '>', $filename or die "failed to open log file: $!";
+    open STDOUT, '>>&', $fh
+      or die "dup(2) failed:$!";
+    open STDERR, '>>&', $fh
+      or die "dup(2) failed:$!";
+    exec("$oauth_server $port $code $sf $clid");
+    die 'Starting oauth server failed';
+  }
+
+  close $fh;
+  # wait until server becomes ready (or dies)
+  for (my $i = 0; $i < 100; $i++) {
+      open $fh, '<', $filename or die "failed to open log file: $!";
+      my $lines = do { join '', <$fh> };
+      close $fh;
+      last if $lines =~ m{Server is running};
+      if (waitpid($oauth_server_pid, WNOHANG) > 0) {
+          # failed
+          die $lines;
+      }
+      sleep 1;
+  }
+
+  say "Started listening at: $listen with PID: $oauth_server_pid";
+
+  return $listen;
+}
 1;

@@ -58,7 +58,7 @@ $t->get_ok($queryfile_0priv_url)
 
 logout_user($t, $tu[0]->{save}->{name});  ## LOGOUT 0 ###################
 
-# check public query and fake querylist "PUBLIC" 
+# check public query and fake querylist "PUBLIC"
 $t->get_ok($list_public_query_url)
   ->status_is(200);
 is(scalar @{$t->tx->res->json},1,"One user has a public query or list");
@@ -114,11 +114,31 @@ is(scalar @{$t->tx->res->json},2,"Two users has a public query or list");
 
 
 
+#### test adding query list with user without permissions
 
+my $limited_user = test_user({username=>'lu', password=>'lu', name=>'lu', allow_publish_query_lists=>0});
+login_user($t, {auth => {username => 'lu', password => 'lu'}}, 'lu');
+subtest "Create query and publish query file without permissions" => sub {
+    ok $t->app->routes->find('create_query_file'), 'Route exists';
+    my $create_query_file_url = $t->app->url_for('create_query_file');
+    ok ($create_query_file_url, 'Create query file url exists');
 
+    $t->post_ok($create_query_file_url => json => {name => "PERMITED", is_public => 1})
+      ->status_is(400);
+    $t->json_has("/error", "Create public query file without permissions returns error");
 
+    $t->post_ok($create_query_file_url => json => {name => "CREATE", is_public => 0})
+      ->status_is(200);
+    $t->json_has("/id", "Query has id");
 
+    my $fetched_file = $t->tx->res->json;
 
-
+    ok $t->app->routes->find('update_query_file'), 'Route exists';
+    my $update_query_file_url = $t->app->url_for('update_query_file', query_file_id => $fetched_file->{id});
+    ok ($update_query_file_url, 'Update query file url exists');
+    $t->put_ok($update_query_file_url => json => {name => "update with permited operation", is_public => 1})
+      ->status_is(400)
+      ->json_has('/error', "Publishing existing query file without permissions returns error");
+  };
 
 done_testing();
