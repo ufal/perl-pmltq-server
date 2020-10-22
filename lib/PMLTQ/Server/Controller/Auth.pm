@@ -172,8 +172,8 @@ sub ldc_code {
   };
   $c->app->log->debug("JWT decoded");
   my $persistent_token = $jwt->{refresh_token};
-  my $expiration = $jwt->{'exp'};
-  $expiration = DateTime->from_epoch( epoch => $expiration );
+  my $exp = $jwt->{'exp'};
+  my $expiration = DateTime->from_epoch( epoch => $exp );
   my %treebank_names = map {$_ => 1} @{$jwt->{corpora}};
   my @available_treebanks = grep {
                                     my $providerid=$_->treebank_provider_ids->search({provider=>'ldc'})->single;
@@ -194,7 +194,7 @@ sub ldc_code {
     $c->current_user->set_available_treebanks([@available_treebanks]);
     $c->app->log->debug("Treebank assigned");
     $c->signed_cookie(ldc => $persistent_token);
-    $c->session(expiration=>259200); # session expires after three days
+    $c->session(expiration => $exp - time); # set session expiration date
     return $c->redirect_to($redirect . '#success');
   } else {
     # TODO: We should never get here unless server error
