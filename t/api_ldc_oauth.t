@@ -147,12 +147,17 @@ $t->get_ok($auth_check_url)
   ->status_is(200);
 
 my $last_user_id = $t->tx->res->json->{user}->{id};
+my $persistentToken =  $t->tx->res->json->{user}->{persistentToken};
 
 set_treebanks_for_user([qw/a c/]); # allow different treebanks before expiration
 
 force_current_user_token_expiration($last_user_id);
 
 test_treebank_accessibility('treebank list changed, token expired');
+$t->get_ok($auth_check_url)
+  ->status_is(200);
+
+ok not($persistentToken eq $t->tx->res->json->{user}->{persistentToken}), "expiration persistentToken";
 
 logout();
 
@@ -218,8 +223,29 @@ subtest "try to load removed user" => sub {
     ->json_is('/user', Mojo::JSON->false);
 };
 
-
-
+subtest "try to load expired user but not removed" => sub {
+  # Login
+  $t->get_ok("$ldc_url?loc=$state_url")
+    ->status_is(302);
+  ($state) =  $t->tx->res->headers->location =~ m/state=([0-9a-f]+)/;
+  ($responsed_redirect_url) = $t->tx->res->headers->location =~ m/redirect_uri=([^&]+)/;
+  $responsed_redirect_url = URL::Encode::url_decode($responsed_redirect_url);
+  $t->get_ok("$responsed_redirect_url?code=$code&state=$state")
+    ->status_is(302)
+    ->header_like("location"=> qr/success$/, "successfully logged");
+  $t->get_ok($auth_check_url)
+    ->status_is(200);
+  $last_user_id = $t->tx->res->json->{user}->{id};
+  # expire user and session
+  force_current_user_token_expiration($last_user_id);
+  ok(test_db()->resultset('User')->find($last_user_id)->valid_until < DateTime->now(), "user is expired");
+  ok(test_db()->resultset('User')->find($last_user_id), "user is still in database");
+  $t->reset_session();
+  # load expired user
+  $t->get_ok($auth_check_url)
+    ->status_is(200)
+    ->json_is('/user', Mojo::JSON->false);
+};
 
 subtest "api path is different from site path" => sub {
   $t->app->config->{api_path} = '/api_path/pmltq/api';
