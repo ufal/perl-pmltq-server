@@ -223,7 +223,7 @@ subtest "try to load removed user" => sub {
     ->json_is('/user', Mojo::JSON->false);
 };
 
-subtest "try to load expired user but not removed" => sub {
+subtest "try to load expired user but not removed (refresh token)" => sub {
   # Login
   $t->get_ok("$ldc_url?loc=$state_url")
     ->status_is(302);
@@ -236,10 +236,20 @@ subtest "try to load expired user but not removed" => sub {
   $t->get_ok($auth_check_url)
     ->status_is(200);
   $last_user_id = $t->tx->res->json->{user}->{id};
+  my $last_user_token = $t->tx->res->json->{user}->{persistentToken};
+  $t->get_ok($auth_check_url)
+    ->status_is(200)
+    ->json_is('/user/persistentToken',$last_user_token, 'no token change');
   # expire user and session
   force_current_user_token_expiration($last_user_id);
   ok(test_db()->resultset('User')->find($last_user_id)->valid_until < DateTime->now(), "user is expired");
   ok(test_db()->resultset('User')->find($last_user_id), "user is still in database");
+  # Session is alive, token refresh is expected.
+  # load refreshed user
+  $t->get_ok($auth_check_url)
+    ->status_is(200)
+    ->json_is('/user/id', $last_user_id)
+    ->json_unlike('/user/persistentToken',qr/^$last_user_token$/, 'token changed');
   $t->reset_session();
   # load expired user
   $t->get_ok($auth_check_url)

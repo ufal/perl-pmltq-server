@@ -194,7 +194,7 @@ sub ldc_code {
     $c->current_user->set_available_treebanks([@available_treebanks]);
     $c->app->log->debug("Treebank assigned");
     $c->signed_cookie(ldc => $persistent_token);
-    $c->session(expiration => $exp - time); # set session expiration date
+    $c->session(expiration=>259200); # session expires after three days
     return $c->redirect_to($redirect . '#success');
   } else {
     # TODO: We should never get here unless server error
