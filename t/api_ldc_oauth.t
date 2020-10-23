@@ -74,13 +74,13 @@ sub test_treebank_accessibility {
       my $treebank_url = $t->app->url_for('treebank', treebank_id => $test_treebanks{$tbname}->id);
       if($test_treebanks{$tbname}->is_free) {
         $t->get_ok($treebank_url)
-          ->status_is(200, "Free treebank is available");
+          ->status_is(200, "Free treebank ($tbname) is available");
       } elsif (exists $available_treebanks{$tbname}) {
         $t->get_ok($treebank_url)
-          ->status_is(200, "Allowed treebank is available");
+          ->status_is(200, "Allowed treebank ($tbname) is available");
       } else {
           $t->get_ok($treebank_url)
-          ->status_is(403, "Non-free and non-listed is permited");
+          ->status_is(403, "Non-free and non-listed treebank ($tbname) is permited");
       }
     }
   }
@@ -144,7 +144,8 @@ $t->get_ok("$responsed_redirect_url?code=$code&state=$state")
 test_treebank_accessibility('first login');
 
 $t->get_ok($auth_check_url)
-  ->status_is(200);
+  ->status_is(200)
+  ->json_has('/user/id');
 
 my $last_user_id = $t->tx->res->json->{user}->{id};
 my $persistentToken =  $t->tx->res->json->{user}->{persistentToken};
@@ -155,7 +156,8 @@ force_current_user_token_expiration($last_user_id);
 
 test_treebank_accessibility('treebank list changed, token expired');
 $t->get_ok($auth_check_url)
-  ->status_is(200);
+  ->status_is(200)
+  ->json_has('/user/id');
 
 ok not($persistentToken eq $t->tx->res->json->{user}->{persistentToken}), "expiration persistentToken";
 
@@ -179,7 +181,8 @@ for my $usrno (-2..2) {
       ->header_like("location"=> qr/success$/, "successfully logged");
 
     $t->get_ok($auth_check_url)
-      ->status_is(200);
+      ->status_is(200)
+      ->json_has('/user/id');
     $last_user_id = $t->tx->res->json->{user}->{id};
     $new_users{"[$usrno]"} = $last_user_id;
     set_user_expiration($last_user_id, $usrno*60 + 5); # add 5 minutes to be sure that correct number of user will be removed
@@ -213,7 +216,8 @@ subtest "try to load removed user" => sub {
     ->status_is(302)
     ->header_like("location"=> qr/success$/, "successfully logged");
   $t->get_ok($auth_check_url)
-    ->status_is(200);
+    ->status_is(200)
+    ->json_has('/user/id');
   $last_user_id = $t->tx->res->json->{user}->{id};
   set_user_expiration($last_user_id, -5*60); # add 5 minutes to be sure that correct number of user will be removed
   $t->app->remove_expired_users(expiration => 4); # this should remove currently logged user
@@ -234,11 +238,13 @@ subtest "try to load expired user but not removed (refresh token)" => sub {
     ->status_is(302)
     ->header_like("location"=> qr/success$/, "successfully logged");
   $t->get_ok($auth_check_url)
-    ->status_is(200);
+    ->status_is(200)
+    ->json_has('/user/id');
   $last_user_id = $t->tx->res->json->{user}->{id};
   my $last_user_token = $t->tx->res->json->{user}->{persistentToken};
   $t->get_ok($auth_check_url)
     ->status_is(200)
+    ->json_is('/user/id', $last_user_id)
     ->json_is('/user/persistentToken',$last_user_token, 'no token change');
   # expire user and session
   force_current_user_token_expiration($last_user_id);
