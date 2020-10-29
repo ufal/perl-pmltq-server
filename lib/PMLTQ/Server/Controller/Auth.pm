@@ -179,20 +179,26 @@ sub ldc_code {
                                     my $providerid=$_->treebank_provider_ids->search({provider=>'ldc'})->single;
                                     $providerid && exists $treebank_names{ $providerid->provider_id }
                                   } $c->all_treebanks()->all;
-
+  my $name = substr(Crypt::Digest::SHA512::sha512_b64u(rand().$$.time),-16);
   if ($c->authenticate('', '', {
       access_all => 0,
       %{$c->default_user_settings('ldc')},
       email => '',
-      name => substr(Crypt::Digest::SHA512::sha512_b64u(rand().$$.time),-16) ,
+      name => $name ,
       provider => 'LDC',
       organization => '',
       persistent_token => $persistent_token,
       valid_until => $expiration
     })) {
-    $c->app->log->debug("New user created");
+    $c->app->log->debug("New user created - $name");
+    $c->app->log->debug("$name (ldc tb ids): [".join(',', sort keys %treebank_names).']');
     $c->current_user->set_available_treebanks([@available_treebanks]);
-    $c->app->log->debug("Treebank assigned");
+    $c->app->log->debug("$name Treebank assigned: [".
+                        join(',',
+                             sort map {$_->treebank_provider_ids->search({provider=>'ldc'})->single->provider_id}
+                                 @available_treebanks
+                            ).
+                        ']');
     $c->signed_cookie(ldc => $persistent_token);
     $c->session(expiration=>259200); # session expires after three days
     return $c->redirect_to($redirect . '#success');
