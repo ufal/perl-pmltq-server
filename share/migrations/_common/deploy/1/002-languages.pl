@@ -433,6 +433,9 @@ migrate {
         name => 'Eskimo-Aleut languages',
         position => $gpos++,
         languages => [
+            { code => 'ess', name => 'Central Siberian Yupik', position => $lpos++ },
+            { code => 'esu', name => 'Central Alaskan Yupik', position => $lpos++ },
+            { code => 'ems', name => 'Alutiiq', position => $lpos++ },
             { code => 'ik', name => 'Inupiaq', position => $lpos++ },
             { code => 'iu', name => 'Inuit', position => $lpos++ },
             { code => 'kl', name => 'Greenlandic', position => $lpos++ },
