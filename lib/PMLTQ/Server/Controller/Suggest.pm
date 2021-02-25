@@ -5,6 +5,7 @@ package PMLTQ::Server::Controller::Treebank;
 use Mojo::Base 'Mojolicious::Controller';
 use PMLTQ::Common;
 use PMLTQ::Server::Validation;
+use Treex::PML::Schema;
 
 sub suggest {
   my $c = shift;
