@@ -55,6 +55,7 @@ migrate {
             { code => 'nl', name => 'Dutch', position => $lpos++ },
             { code => 'af', name => 'Afrikaans', position => $lpos++ },
             { code => 'fy', name => 'Frisian', position => $lpos++ },
+            { code => 'nds', name => 'Low Saxon', position => $lpos++ },
             { code => 'lb', name => 'Luxemburgish', position => $lpos++ },
             { code => 'li', name => 'Limburgish', position => $lpos++ },
             { code => 'gsw', name => 'Swiss German and Alsatian', position => $lpos++ },
@@ -141,6 +142,7 @@ migrate {
             { code => 'hi', name => 'Hindi', position => $lpos++ },
             { code => 'bh', name => 'Bihari', position => $lpos++ },
             { code => 'bho', name => 'Bhojpuri', position => $lpos++ },
+            { code => 'xnr', name => 'Kangri', position => $lpos++ },
             { code => 'ne', name => 'Nepali', position => $lpos++ },
             { code => 'or', name => 'Oriya', position => $lpos++ },
             { code => 'bn', name => 'Bengali', position => $lpos++ },
@@ -163,6 +165,7 @@ migrate {
             { code => 'grc', name => 'Ancient Greek', position => $lpos++ },
             { code => 'hit', name => 'Hittite', position => $lpos++ },
             { code => 'hy', name => 'Armenian', position => $lpos++ },
+            { code => 'hyw', name => 'Western Armenian', position => $lpos++ },
         ]
     });
     $lpos = 0;
@@ -183,6 +186,7 @@ migrate {
             { code => 'aa', name => 'Afar', position => $lpos++ },
             { code => 'om', name => 'Oromo', position => $lpos++ },
             { code => 'so', name => 'Somali', position => $lpos++ },
+            { code => 'bej', name => 'Beja', position => $lpos++ },
             { code => 'egy', name => 'Egyptian', position => $lpos++ },
             { code => 'cop', name => 'Coptic', position => $lpos++ },
             { code => 'ha', name => 'Hausa', position => $lpos++ },
@@ -478,7 +482,7 @@ migrate {
         name => 'Mayan languages',
         position => $gpos++,
         languages => [
-            { code => 'quc', name => 'Quiche', position => $lpos++ },
+            { code => 'quc', name => 'Kiche', position => $lpos++ },
             { code => 'yua', name => 'Yucatec Maya', position => $lpos++ },
         ]
     });
@@ -516,8 +520,11 @@ migrate {
             { code => 'aqz', name => 'Akuntsu', position => $lpos++ },
             { code => 'myu', name => 'Munduruku', position => $lpos++ },
             { code => 'tpn', name => 'Tupinamba', position => $lpos++ },
+            { code => 'gub', name => 'Guajajara', position => $lpos++ },
             { code => 'gn', name => 'Guarani', position => $lpos++ },
             { code => 'gun', name => 'Mbya Guarani', position => $lpos++ },
+            { code => 'mpu', name => 'Makurap', position => $lpos++ },
+            { code => 'urb', name => 'Kaapor', position => $lpos++ },
         ]
     });
     $lpos = 0;
@@ -544,6 +551,7 @@ migrate {
             { code => 'qhe', name => 'Hindi-English code-switching', position => $lpos++ },
             { code => 'qaf', name => 'Maghrebi Arabic-French code-switching', position => $lpos++ },
             { code => 'qtd', name => 'Turkish-German code-switching', position => $lpos++ },
+            { code => 'qfn', name => 'Frisian-Dutch code-switching', position => $lpos++ },
             { code => 'und', name => 'undetermined/unknown language', position => $lpos++ },
         ]
     });
