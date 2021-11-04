@@ -77,6 +77,8 @@ migrate {
         languages => [
             { code => 'la', name => 'Latin', position => $lpos++ },
             { code => 'it', name => 'Italian', position => $lpos++ },
+            { code => 'lij', name => 'Ligurian', position => $lpos++ },
+            { code => 'nap', name => 'Neapolitan', position => $lpos++ },
             { code => 'es', name => 'Spanish', position => $lpos++ },
             { code => 'lad', name => 'Ladino', position => $lpos++ },
             { code => 'pt', name => 'Portuguese', position => $lpos++ },
@@ -335,6 +337,7 @@ migrate {
             { code => 'xal', name => 'Kalmyk', position => $lpos++ },
             { code => 'bxr', name => 'Buryat', position => $lpos++ },
             { code => 'mn', name => 'Mongol', position => $lpos++ },
+            { code => 'sjo', name => 'Xibe', position => $lpos++ },
             { code => 'ko', name => 'Korean', position => $lpos++ },
             { code => 'ja', name => 'Japanese', position => $lpos++ },
         ]
@@ -525,6 +528,7 @@ migrate {
             { code => 'gun', name => 'Mbya Guarani', position => $lpos++ },
             { code => 'mpu', name => 'Makurap', position => $lpos++ },
             { code => 'urb', name => 'Kaapor', position => $lpos++ },
+            { code => 'arr', name => 'Karo', position => $lpos++ },
         ]
     });
     $lpos = 0;
