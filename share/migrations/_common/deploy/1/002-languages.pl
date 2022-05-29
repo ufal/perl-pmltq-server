@@ -34,6 +34,7 @@ migrate {
             { code => 'sr', name => 'Serbian', position => $lpos++ },
             { code => 'mk', name => 'Macedonian', position => $lpos++ },
             { code => 'bg', name => 'Bulgarian', position => $lpos++ },
+            { code => 'qpm', name => 'Pomak', position => $lpos++ },
             { code => 'cu', name => 'Old Church Slavonic', position => $lpos++ },
         ]
     });
@@ -75,6 +76,7 @@ migrate {
         name => 'Indo-European / Romance languages',
         position => $gpos++,
         languages => [
+            { code => 'xum', name => 'Umbrian', position => $lpos++ },
             { code => 'la', name => 'Latin', position => $lpos++ },
             { code => 'it', name => 'Italian', position => $lpos++ },
             { code => 'lij', name => 'Ligurian', position => $lpos++ },
@@ -182,6 +184,7 @@ migrate {
             { code => 'arz', name => 'Egyptian Arabic', position => $lpos++ },
             { code => 'arq', name => 'Algerian Arabic', position => $lpos++ },
             { code => 'mt', name => 'Maltese', position => $lpos++ },
+            { code => 'hbo', name => 'Ancient Hebrew', position => $lpos++ },
             { code => 'he', name => 'Hebrew', position => $lpos++ },
             { code => 'am', name => 'Amharic', position => $lpos++ },
             { code => 'ti', name => 'Tigrinya', position => $lpos++ },
@@ -499,6 +502,14 @@ migrate {
     });
     $lpos = 0;
     $lang_group_rs->create({
+        name => 'Arawan languages',
+        position => $gpos++,
+        languages => [
+            { code => 'jaa', name => 'Madi', position => $lpos++ },
+        ]
+    });
+    $lpos = 0;
+    $lang_group_rs->create({
         name => 'Quechuan and Aymaran languages',
         position => $gpos++,
         languages => [
@@ -529,6 +540,7 @@ migrate {
             { code => 'mpu', name => 'Makurap', position => $lpos++ },
             { code => 'urb', name => 'Kaapor', position => $lpos++ },
             { code => 'arr', name => 'Karo', position => $lpos++ },
+            { code => 'eme', name => 'Teko', position => $lpos++ },
         ]
     });
     $lpos = 0;
