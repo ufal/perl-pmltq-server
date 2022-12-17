@@ -164,6 +164,7 @@ migrate {
         position => $gpos++,
         languages => [
             { code => 'sq', name => 'Albanian', position => $lpos++ },
+            { code => 'aln', name => 'Gheg', position => $lpos++ },
             { code => 'el', name => 'Greek', position => $lpos++ },
             { code => 'pnt', name => 'Pontic', position => $lpos++ },
             { code => 'grc', name => 'Ancient Greek', position => $lpos++ },
@@ -195,6 +196,7 @@ migrate {
             { code => 'egy', name => 'Egyptian', position => $lpos++ },
             { code => 'cop', name => 'Coptic', position => $lpos++ },
             { code => 'ha', name => 'Hausa', position => $lpos++ },
+            { code => 'say', name => 'Zaar', position => $lpos++ },
         ]
     });
     $lpos = 0;
@@ -480,6 +482,7 @@ migrate {
         languages => [
             { code => 'hop', name => 'Hopi', position => $lpos++ },
             { code => 'nah', name => 'Nahuatl', position => $lpos++ },
+            { code => 'nhi', name => 'Western Sierra Puebla Nahuatl', position => $lpos++ },
             { code => 'tar', name => 'Tarahumara', position => $lpos++ },
         ]
     });
@@ -528,12 +531,21 @@ migrate {
     });
     $lpos = 0;
     $lang_group_rs->create({
+        name => 'Macro-Je languages',
+        position => $gpos++,
+        languages => [
+            { code => 'xav', name => 'Xavante', position => $lpos++ },
+        ]
+    });
+    $lpos = 0;
+    $lang_group_rs->create({
         name => 'Tupian languages',
         position => $gpos++,
         languages => [
             { code => 'aqz', name => 'Akuntsu', position => $lpos++ },
             { code => 'myu', name => 'Munduruku', position => $lpos++ },
             { code => 'tpn', name => 'Tupinamba', position => $lpos++ },
+            { code => 'yrl', name => 'Nheengatu', position => $lpos++ },
             { code => 'gub', name => 'Guajajara', position => $lpos++ },
             { code => 'gn', name => 'Guarani', position => $lpos++ },
             { code => 'gun', name => 'Mbya Guarani', position => $lpos++ },
