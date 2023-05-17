@@ -539,6 +539,14 @@ migrate {
     });
     $lpos = 0;
     $lang_group_rs->create({
+        name => 'Bororoan languages',
+        position => $gpos++,
+        languages => [
+            { code => 'bor', name => 'Bororo', position => $lpos++ },
+        ]
+    });
+    $lpos = 0;
+    $lang_group_rs->create({
         name => 'Tupian languages',
         position => $gpos++,
         languages => [
