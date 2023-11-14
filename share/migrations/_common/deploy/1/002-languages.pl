@@ -89,6 +89,7 @@ migrate {
             { code => 'ca', name => 'Catalan', position => $lpos++ },
             { code => 'oc', name => 'Occitan', position => $lpos++ },
             { code => 'fr', name => 'French', position => $lpos++ },
+            { code => 'frm', name => 'Middle French', position => $lpos++ },
             { code => 'fro', name => 'Old French', position => $lpos++ },
             { code => 'wa', name => 'Walloon', position => $lpos++ },
             { code => 'rm', name => 'Rhaeto-Romance', position => $lpos++ },
@@ -171,6 +172,7 @@ migrate {
             { code => 'hit', name => 'Hittite', position => $lpos++ },
             { code => 'hy', name => 'Armenian', position => $lpos++ },
             { code => 'hyw', name => 'Western Armenian', position => $lpos++ },
+            { code => 'xcl', name => 'Classical Armenian', position => $lpos++ },
         ]
     });
     $lpos = 0;
@@ -265,6 +267,7 @@ migrate {
             { code => 'krl', name => 'Karelian', position => $lpos++ },
             { code => 'olo', name => 'Livvi', position => $lpos++ },
             { code => 'et', name => 'Estonian', position => $lpos++ },
+            { code => 'vep', name => 'Veps', position => $lpos++ },
             { code => 'kv', name => 'Komi', position => $lpos++ },
             { code => 'koi', name => 'Komi Permyak', position => $lpos++ },
             { code => 'kpv', name => 'Komi Zyrian', position => $lpos++ },
@@ -482,6 +485,7 @@ migrate {
         languages => [
             { code => 'hop', name => 'Hopi', position => $lpos++ },
             { code => 'nah', name => 'Nahuatl', position => $lpos++ },
+            { code => 'azz', name => 'Highland Puebla Nahuatl', position => $lpos++ },
             { code => 'nhi', name => 'Western Sierra Puebla Nahuatl', position => $lpos++ },
             { code => 'tar', name => 'Tarahumara', position => $lpos++ },
         ]
